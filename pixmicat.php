@@ -579,8 +579,8 @@ function regist($name,$email,$sub,$com,$pwd,$upfile,$upfile_path,$upfile_name,$u
 		if(!stristr($email,'sage') && ($res_count < MAX_RES || MAX_RES == 0)){
 			if(!MAX_AGE_TIME || (($time - $chktime) < (MAX_AGE_TIME * 60 * 60))){ // 討論串並無過期，推文
 				$age=true;
-			}
-		}
+			} else $age=false;
+		} else $age=true;
 	}else{
 		$age=false;
 	}
@@ -606,7 +606,7 @@ function regist($name,$email,$sub,$com,$pwd,$upfile,$upfile_path,$upfile_name,$u
 		if(USE_THUMB) thumb($path.IMG_DIR, $tim, $ext, $imgW, $imgH, $W, $H); // 使用GD製作縮圖
 	}
 
-	// 刪除舊容量、對應表快取
+	// 刪除舊容量快取
 	total_size(true);
 	updatelog();
 
@@ -820,6 +820,7 @@ _ADMINEOF_;
 /* 計算目前附加檔案使用容量 (單位：KB) */
 function total_size($isupdate=false){
 	global $path;
+
 	$size = 0; $all = 0;
 	$cache_file = "./sizecache.dat"; // 附加檔案使用容量值快取檔案
 
@@ -829,7 +830,8 @@ function total_size($isupdate=false){
 	}
 	if(!is_file($cache_file)){ // 無快取，新增
 		$line = fetchPostList();
-		foreach($line as $k){
+		$linecount = postCount();
+		for($k=0;$k<$linecount;$k++){
 			extract(fetchPosts($line[$k]));
 			// 從記錄檔抽出計算附加檔案使用量
 			if($ext && file_func('exist',$path.IMG_DIR.$time.$ext)) $all += file_func('size',$path.IMG_DIR.$time.$ext); // 附加檔案合計計算

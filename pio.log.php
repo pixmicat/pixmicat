@@ -221,7 +221,7 @@ function addPost($no,$resno,$now,$name,$email,$sub,$com,$url,$host,$pass,$ext,$W
 	list($tline['no'],$tline['now'],$tline['name'],$tline['email'],$tline['sub'],$tline['com'],$tline['url'],$tline['host'],$tline['pw'],$tline['ext'],$tline['w'],$tline['h'],$tline['time'],$tline['chk'])=array($no,$now,$name,$email,$sub,$com,$url,$host,$pass,$ext,$W,$H,$tim,$chk);
 	$logs[$no]=array_reverse($tline);
 	array_unshift($porder,$no);
-	
+
 	if($resno) {
 		$trees[$resno][]=$no;
 		$restono[$no]=$resno;
