@@ -1,7 +1,7 @@
 <?php
 /* File I/O Wrapper */
 
-function file_func($action,$file='',$rfile='',$size='',$imgsize='') {
+function file_func($action,$file='',$size='',$imgsize='') {
 	switch($action) {
 		case 'exist':
 			if(!$file) return true;  // Function exists
@@ -16,10 +16,10 @@ function file_func($action,$file='',$rfile='',$size='',$imgsize='') {
 			$wh = @GetImageSize($file);
 			return $wh[0].'x'.$wh[1];
 			break;
-		case 'del':	// $file is not used here
-			if(!$rfile) return true;
-			if(is_array($rfile)) foreach($rfile as $fil) @unlink($fil);
-			else return @unlink($rfile);
+		case 'del':
+			if(!$file) return true;
+			if(is_array($file)) foreach($file as $fil) @unlink($fil);
+			else return @unlink($file);
 			break;
 		default:
 			return false;

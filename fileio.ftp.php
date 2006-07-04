@@ -6,31 +6,32 @@ include_once('./lib_ftp.php');
 	$str=basename($str);
 }
 
-function file_func($action,$file='',$rfile='',$size='',$imgsize='') {
+function file_func($action,$file='',$size='',$imgsize='') {
 	global $ftplog;
 	if(!isset($GLOBALS['ftplog'])) ftp_log('load');
-	if($action!='del'&&$action!='upload') {	// Remove Path for ftp_log()
-		if(is_array($file)) array_walk($file,'noPath');
-		else noPath($file,'');
-	}
+	
+	// Remove Path for ftp_log()
+		$lfile=$file;
+		if(is_array($lfile)) array_walk($lfile,'noPath');
+		else noPath($lfile,'');
 	
 	switch($action) {
 		case 'exist':
 			if(!$file) return true;  // Function exists
-			return ftp_log('exist',$file);
+			return ftp_log('exist',$lfile);
 			break;
 		case 'size':
 			if(!$file) return true;
-			return ftp_log('size',$file);
+			return ftp_log('size',$lfile);
 			break;
 		case 'imgsize':
 			if(!$file) return true;
-			return ftp_log('imgsize',$file);
+			return ftp_log('imgsize',$lfile);
 			break;
 		case 'del':
 			if(!$file) return true;
-			ftp_func('del',$rfile);
-			ftp_log('del',$file);
+			ftp_func('del',$file);
+			ftp_log('del',$lfile);
 			ftp_log('write');
 			return true;
 			break;
@@ -41,11 +42,11 @@ function file_func($action,$file='',$rfile='',$size='',$imgsize='') {
 		   $size=array(2) file size
 		   $imgsize=$file[0] img size */
 			if(!$file) return true;
-			ftp_func('put',$file,$rfile);
-			ftp_log('update',$file[0],$size[0],$imgsize);
-			ftp_log('update',$file[1],$size[1]);
+			ftp_func('put',$lfile,$file);
+			ftp_log('update',$lfile[0],$size[0],$imgsize);
+			ftp_log('update',$lfile[1],$size[1]);
 			ftp_log('write');
-			foreach($rfile as $fil) @unlink($fil);
+			foreach($file as $fil) @unlink($fil);
 			return true;
 			break;
 		default:

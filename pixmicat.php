@@ -1,5 +1,5 @@
 <?php
-define("FUTABA_VER", 'Pixmicat!-Log 3rd.Release b060617'); // 版本資訊文字
+define("FUTABA_VER", 'Pixmicat!-Log 3rd.Release b060617-PIO'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -40,8 +40,8 @@ $upfile_status = isset($_FILES['upfile']['error']) ? $_FILES['upfile']['error'] 
 include_once('./lib_common.php'); // 引入共通函式檔案
 include_once('./config.php'); // 引入設定檔
 if(USE_TEMPLATE) include_once('./lib_pte.php'); // 引入PTE外部函式庫
-include_once('./fileio.inc.php'); // 引入FileIO
-include_once('./pio.inc.php'); // 引入PIO
+include_once('./lib_fileio.php'); // 引入FileIO
+include_once('./lib_pio.php'); // 引入PIO
 
 /* 更新記錄檔檔案／輸出討論串 */
 function updatelog($resno=0,$page_num=0){
@@ -545,7 +545,7 @@ function regist($name,$email,$sub,$com,$pwd,$upfile,$upfile_path,$upfile_name,$u
 	// 記錄檔行數已達上限：刪除過舊檔
 	if($countline >= LOG_MAX){
 		$files=delOldPostes();
-		if(count($files)) foreach($files as $fil) unlink($fil);
+		if(count($files)) file_func('del',$files);
 	}
 
 	// 判斷欲回應的文章是不是剛剛被刪掉了
@@ -590,7 +590,7 @@ function regist($name,$email,$sub,$com,$pwd,$upfile,$upfile_path,$upfile_name,$u
 		$tmp_total_size = total_size(); // 取得目前附加檔案使用量
 		if($tmp_total_size >= STORAGE_MAX){
 			$files=delOldAttachments($tmp_total_size,STORAGE_MAX,false);
-			foreach($files as $fil) unlink($fil);
+			file_func('del',$files);
 		}
 	}
 
@@ -670,7 +670,7 @@ function usrdel($no,$pwd){
 	}
 	if($search_flag){
 		$files=(!$onlyimgdel)?removePosts($delposts):removeAttachments($delposts);
-		foreach($files as $fil) unlink($fil);
+		file_func('del',$files);
 		total_size(true); // 刪除容量快取
 		dbCommit();
 	}else error('無此文章或是密碼錯誤');
@@ -716,7 +716,7 @@ function admindel($pass){
 	if($delflag){
 		$delno = array_merge($delno, $_POST['delete']);
 		$files=($onlyimgdel!='on')?removePosts($delno):removeAttachments($delno);
-		foreach($files as $fil) unlink($fil);
+		file_func('del',$files);
 		total_size(true); // 刪除容量快取
 		$is_modified = TRUE;
 	}
@@ -945,6 +945,7 @@ function showstatus(){
 <table border="1" style="margin: 0px auto; text-align: left;">
 <tr><td align="center" colspan="3">基本設定</td></tr>
 <tr><td style="width: 240px;">程式版本</td><td colspan="2"> '.FUTABA_VER.' </td></tr>
+<tr><td>後端</td><td colspan="2"> '.PIXMICAT_BACKEND.'</td></tr>
 <tr><td>一頁顯示幾篇討論串</td><td colspan="2"> '.PAGE_DEF.' 篇</td></tr>
 <tr><td>一篇討論串最多顯示之回應筆數</td><td colspan="2"> '.RE_DEF.' 筆</td></tr>
 <tr><td>回應模式一頁顯示幾筆回應內容</td><td colspan="2"> '.RE_PAGE_DEF.' 筆 (全部顯示：0)</td></tr>
