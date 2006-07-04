@@ -733,6 +733,7 @@ function admindel($pass){
 	// 取出討論串首篇之No. (是否顯示停止勾選欄)
 	$tno = array_flip(fetchThreadList());
 	$porder=fetchPostList();
+	$countline=postCount();
 
 	// 印出刪除表格
 	echo <<< _N_EOT_
@@ -756,7 +757,6 @@ function ChangePage(page){
 _N_EOT_;
 	$p = 0; // 欄位背景顏色變化指標
 	for($j = (($page-1) * ADMIN_PAGE_DEF); $j < ($page * ADMIN_PAGE_DEF); $j++){
-		if($line[$j]=="\r\n") continue;
 		$p++;
 		$bg = ($p % 2) ? 'ListRow1_bg' : 'ListRow2_bg'; // 背景顏色
 		extract(fetchPosts($porder[$j]));
@@ -767,7 +767,7 @@ _N_EOT_;
 		$sub = str_cut($sub, 8);
 		if($email) $name = "<a href=\"mailto:$email\">$name</a>";
 		$com = str_replace('<br />',' ',$com);
-		$com = str_cut(htmlspecialchars($com), 20);
+		$com = htmlspecialchars(str_cut(html_entity_decode($com), 20));
 
 		// 討論串首篇停止勾選框
 		if(isset($tno[$no])) $THstop = '<input type="checkbox" name="stop[]" value="'.$no.'" />'.((strpos($url, '_THREADSTOP_')!==false)?'停':'');
