@@ -654,7 +654,7 @@ function usrdel($no,$pwd){
 	$pwd_md5 = substr(md5($pwd),2,8);
 	$host = gethostbyaddr($_SERVER['REMOTE_ADDR']);
 	$search_flag = $delflag = false;
-	$delno = array('dummy');
+	$delno = array();
 	reset($_POST);
 	while($item = each($_POST)) if($item[1]=='delete') array_push($delno, $item[0]);
 	$delno_count = count($delno) - 1; // 刪除筆數
@@ -707,7 +707,7 @@ __VALID_EOF__;
 function admindel($pass){
 	global $path, $onlyimgdel;
 	$page = isset($_POST['page']) ? $_POST['page'] : 1;
-	$delno = $thsno = array('dummy');
+	$delno = $thsno = array();
 	$delflag = isset($_POST['delete']); // 是否有「刪除」勾選
 	$thsflag = isset($_POST['stop']); // 是否有「停止」勾選
 	$is_modified = false; // 是否改寫檔案
@@ -759,6 +759,7 @@ _N_EOT_;
 	for($j = (($page-1) * ADMIN_PAGE_DEF); $j < ($page * ADMIN_PAGE_DEF); $j++){
 		$p++;
 		$bg = ($p % 2) ? 'ListRow1_bg' : 'ListRow2_bg'; // 背景顏色
+		if(!is_Post($porder[$j])) continue;
 		extract(fetchPosts($porder[$j]));
 
 		// 修改欄位樣式
@@ -832,6 +833,7 @@ function total_size($isupdate=false){
 		$line = fetchPostList();
 		$linecount = postCount();
 		for($k=0;$k<$linecount;$k++){
+			if(!is_Post($line[$k])) continue;
 			extract(fetchPosts($line[$k]));
 			// 從記錄檔抽出計算附加檔案使用量
 			if($ext && file_func('exist',$path.IMG_DIR.$time.$ext)) $all += file_func('size',$path.IMG_DIR.$time.$ext); // 附加檔案合計計算

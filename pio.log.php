@@ -58,10 +58,10 @@ function dbCommit() {
 	
 	$log=$tree='';
 	foreach($porder as $post)
-		$log.=implode(',',$logs[$post]).",\n";
+		$log.=is_Post($post)?implode(',',$logs[$post]).",\n":'';
 
 	foreach($torder as $treeline)
-		$tree.=implode(',',$trees[$treeline])."\n";
+		$tree.=is_Thread($treeline)?implode(',',$trees[$treeline])."\n":'';
 
 	$fp = fopen(LOGFILE, 'w');
 	stream_set_write_buffer($fp, 0);
@@ -112,6 +112,8 @@ function removePosts($posts) {
 		unset($restono[$post]);
 		if(@$porder_flip[$post]) unset($porder[$porder_flip[$post]]);
 	}
+	$porder=array_merge(array(),$porder);
+	$torder=array_merge(array(),$torder);
 	return $files;
 }
 
