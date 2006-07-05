@@ -574,15 +574,14 @@ function regist($name,$email,$sub,$com,$pwd,$upfile,$upfile_path,$upfile_name,$u
 	isset($H) ? 0 : $H = '';
 	isset($chk) ? 0 : $chk = '';
 
+	$age=true;
 	if($resto){
 		$res_count=postCount($resto)-1;
 		if(!stristr($email,'sage') && ($res_count < MAX_RES || MAX_RES == 0)){
 			if(!MAX_AGE_TIME || (($time - $chktime) < (MAX_AGE_TIME * 60 * 60))){ // 討論串並無過期，推文
 				$age=true;
 			} else $age=false;
-		} else $age=true;
-	}else{
-		$age=false;
+		} else $age=false;
 	}
 
 	// 附加檔案容量限制功能啟動：刪除過大檔
@@ -631,7 +630,7 @@ function regist($name,$email,$sub,$com,$pwd,$upfile,$upfile_path,$upfile_name,$u
 function redir(){
 	location.href = "$RedirforJS";
 }
-setTimeout("redir()",1000);
+//setTimeout("redir()",1000);
 // ]]>
 </script>
 </head>
@@ -759,7 +758,7 @@ _N_EOT_;
 	for($j = (($page-1) * ADMIN_PAGE_DEF); $j < ($page * ADMIN_PAGE_DEF); $j++){
 		$p++;
 		$bg = ($p % 2) ? 'ListRow1_bg' : 'ListRow2_bg'; // 背景顏色
-		if(!is_Post($porder[$j])) continue;
+		if(!isset($porder[$j])|| !is_Post($porder[$j])) continue;
 		extract(fetchPosts($porder[$j]));
 
 		// 修改欄位樣式
@@ -1010,7 +1009,7 @@ $iniv = array('mode','name','email','sub','com','pwd','upfile','upfile_path','up
 foreach($iniv as $iniva){
 	if(!isset($$iniva)) $$iniva = '';
 }
-//init(); // ←■■！程式環境初始化，跑過一次後請刪除此行！■■
+init(); // ←■■！程式環境初始化，跑過一次後請刪除此行！■■
 
 dbPrepare();
 switch($mode){

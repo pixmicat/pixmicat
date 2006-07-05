@@ -26,7 +26,7 @@ function dbInit() {
 
 /* 準備/讀入 */
 function dbPrepare($reload=false) {
-	global $LUT_name,$porder,$torder,$logs,$restono,$trees,$prepared;
+	global $porder,$torder,$logs,$restono,$trees,$prepared;
 	if($prepared && !$reload) return true;
 	$lines = file(LOGFILE);
 	$tree = file(TREEFILE);
@@ -54,14 +54,17 @@ function dbPrepare($reload=false) {
 function dbCommit() {
 	global $porder,$torder,$logs,$trees,$prepared;
 	if(!$prepared) return false;
-	if(postCount()>=LOG_MAX) delOldPostes();
+	$pcount=postCount();
+	$tcount=threadCount();
+	
+	if($pcount>=LOG_MAX) delOldPostes();
 	
 	$log=$tree='';
-	foreach($porder as $post)
-		$log.=is_Post($post)?implode(',',$logs[$post]).",\n":'';
+	for($post=0;$post<$pcount;$post++)
+		$log.=is_Post($porder[$post])?implode(',',$logs[$porder[$post]]).",\n":'';
 
-	foreach($torder as $treeline)
-		$tree.=is_Thread($treeline)?implode(',',$trees[$treeline])."\n":'';
+	for($tline=0;$tline<$tcount;$tline++)
+		$tree.=is_Thread($torder[$tline])?implode(',',$trees[$torder[$tline]])."\n":'';
 
 	$fp = fopen(LOGFILE, 'w');
 	stream_set_write_buffer($fp, 0);
@@ -99,18 +102,20 @@ function removePosts($posts) {
 	$files=removeAttachments($posts);
 	$porder_flip=array_flip($porder);
 	$torder_flip=array_flip($torder);
-	foreach($posts as $post) {
-		if($restono[$post]==$post) {
-			unset($trees[$post]);
-			if(@$torder_flip[$post]) unset($torder[$torder_flip[$post]]);
+	$pcount=count($posts);
+	for($post=0;$post<$pcount;$post++) {
+		if(!is_Post($posts[$post])) continue;
+		if($restono[$posts[$post]]==$post) {
+			unset($trees[$posts[$post]]);
+			if(@$torder_flip[$posts[$post]]) unset($torder[$torder_flip[$posts[$post]]]);
 		}
-		unset($logs[$post]);
-		if(@$trees[$restono[$post]]) {
-			$tr_flip=array_flip($trees[$restono[$post]]);
-			unset($trees[$restono[$post]][$tr_flip[$post]]);
+		unset($logs[$posts[$post]]);
+		if(@$trees[$restono[$posts[$post]]]) {
+			$tr_flip=array_flip($trees[$restono[$posts[$post]]]);
+			unset($trees[$restono[$posts[$post]]][$tr_flip[$posts[$post]]]);
 		}
-		unset($restono[$post]);
-		if(@$porder_flip[$post]) unset($porder[$porder_flip[$post]]);
+		unset($restono[$posts[$post]]);
+		if(@$porder_flip[$posts[$post]]) unset($porder[$porder_flip[$posts[$post]]]);
 	}
 	$porder=array_merge(array(),$porder);
 	$torder=array_merge(array(),$torder);
@@ -189,7 +194,7 @@ function fetchPosts($postlist) {
 function is_Thread($no) {
 	global $torder,$logs,$trees,$prepared;
 	if(!$prepared) dbPrepare();
-	return isset($trees[$no]) && is_Post($no);
+	return isset($trees[$no]);
 }
 
 /* 有此文章? */
@@ -227,7 +232,11 @@ function addPost($no,$resno,$now,$name,$email,$sub,$com,$url,$host,$pass,$ext,$W
 	if($resno) {
 		$trees[$resno][]=$no;
 		$restono[$no]=$resno;
-		if($age) array_unshift($torder,array_splice($torder,array_search($resno,$torder),1));
+		if($age) {
+			$torder_flip=array_flip($torder);
+			array_splice($torder,$torder_flip[$resno],1);
+			array_unshift($torder,$resno);
+		}
 	} else {
 		$trees[$no][0]=$no;
 		$restono[$no]=$no;
