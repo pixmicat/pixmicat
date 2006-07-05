@@ -23,7 +23,18 @@ define("PHP_SELF", basename($_SERVER["PHP_SELF"])); // 此程式名 (此欄不�
 define("TIME_ZONE", '+8'); // 時區設定 (GMT時區，參照 http://wwp.greenwichmeantime.com/ )
 define("HTTP_UPLOAD_DIFF", 50); // HTTP上傳所有位元組與實際位元組之允許誤差值
 ini_set("memory_limit", '32M'); // PHP運行的最大記憶體使用量 (php內定8M / 建議32M)
-define("USE_FTP", 0); // 使用mod_ftp (使用：1 不使用：0)
+
+//FTP
+define("USE_FTP", '0'); // 使用FTP
+define("FTP_HOST", 'ftp.t35.com'); // FTP主機地址
+define("FTP_PORT", '21'); // FTP主機連接埠
+define("FTP_USER", 'demo.t35.com'); // FTP使用者用稱
+define("FTP_PASS", 'demo'); // FTP使用者密碼
+define("FTP_BASE_PATH", '/'); // FTP目錄
+define("FTP_FILE_LOG", 'ftp.log'); // FTP記錄檔檔名
+
+//PIO
+define('PIXMICAT_BACKEND','log'); // PIO 後端 (log/mysql/sqlite)
 
 /*---- Part 2：板面各項細部功能設定 ----*/
 define("LOGFILE", 'img.log'); // 投稿文字記錄檔檔名
@@ -32,7 +43,7 @@ define("IMG_DIR", 'src/'); // 圖片存放目錄
 define("THUMB_DIR", 'thumb/'); // 預覽圖存放目錄
 define("PHP_SELF2", 'index.html'); // 入口檔名
 define("PHP_EXT", '.html'); // 第一頁以後生成檔案之副檔名
-define("TITLE", 'Pixmicat!-Log'); // 網頁標題
+define("TITLE", 'Pixmicat!-PIO'); // 網頁標題
 define("HOME", '../'); // 回首頁的連結
 define("TOP_LINKS", ''); // 頁面右上方的額外連結，請直接以[<a href="網址" rel="_blank">名稱</a>]格式鍵入，如果不需要開新視窗可刪除rel一段
 define("ADMIN_PASS", 'futaba'); // 管理員密碼
@@ -92,7 +103,7 @@ define("PAGE_DEF", 15); // 一頁顯示幾篇討論串
 define("ADMIN_PAGE_DEF", 20); // 管理模式下，一頁顯示幾筆資料
 define("RE_DEF", 10); // 一篇討論串最多顯示之回應筆數 (超過則自動隱藏，全部隱藏：0)
 define("RE_PAGE_DEF", 30); // 回應模式一頁顯示幾筆回應內容 (分頁用，全部顯示：0)
-define("LOG_MAX", 6000); // 記錄檔保留之最大資料筆數
+define("LOG_MAX", 500); // 記錄檔保留之最大資料筆數
 define("MAX_RES", 30); // 回應筆數超過多少則不自動推文 (關閉：0)
 define("MAX_AGE_TIME", 48); // 討論串可接受推文的時間範圍 (單位：小時，討論串存在超過此時間則回應皆不再自動推文 關閉：0)
 define("RE_COL", '#789922'); // ＞標註引用回文顏色

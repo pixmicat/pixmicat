@@ -111,11 +111,6 @@ class ClsFTP{
 		@unlink($tmpfile);
 		return $isok;
 	}
-	function p($msg){
-		echo "<pre>";
-		print_r($msg);
-		echo "</pre>";
-	}
 
 	function close(){
 		@ftp_quit($this->link_id);
@@ -133,7 +128,8 @@ function ftp_func($action,$file,$rfile='',$path=FTP_BASE_PATH,$host=FTP_HOST,$po
 			else $result = $ftp->delete($file);
 			break;
 		case "mkdir":
-			$result = $ftp->mkdir($file);
+			if(is_array($file)) foreach($file as $fil) $result = $ftp->mkdir($fil);
+			else $result = $ftp->mkdir($file);
 			break;
 		case "chmod":
 			if(is_array($file)) foreach($file as $fil) $result = $ftp->chmod($fil);

@@ -453,6 +453,9 @@ function regist($name,$email,$sub,$com,$pwd,$upfile,$upfile_path,$upfile_name,$u
 		$mes = '附加檔案'.CleanStr($upfile_name).'上傳完畢<br />';
 	}
 
+	$chkanti=array($name,$email,$sub,$com);
+	foreach($chkanti as $anti) if(anti_sakura($anti)) error("偵測到您有輸入櫻花日文假名", $dest);
+
 	// 檢查表單欄位內容並修整
 	if(!$name || ereg("^[ |　|]*$", $name)){
 		if(ALLOW_NONAME) $name = '無名氏';
@@ -851,6 +854,18 @@ function total_size($isupdate=false){
 	return (int)($all / 1024);
 }
 
+/* 取得完整的網址 */
+function fullURL() {
+	$filename=preg_replace('/.*\/+/',"",$_SERVER['PHP_SELF']);
+	$path=preg_replace("/$filename$/","",$_SERVER['PHP_SELF']);
+	return "http://".$_SERVER["HTTP_HOST"].$path;
+}
+
+/* 反櫻花字 */
+function anti_sakura($str) {
+	return preg_match('/[\x{E000}-\x{F848}]/u',$str);
+}
+
 /* 搜尋(全文檢索)功能 */
 function search(){
 	if(!USE_SEARCH) error('管理員選擇不開放搜尋功能！');
@@ -998,6 +1013,7 @@ function init(){
 	foreach($chkfolder as $value) if(!is_dir($value)){ mkdir($value); $is_executed = true; } // 沒有就建立
 
 	dbInit(); // PIO Init
+	file_func('init'); // FileIO Init
 
 	if($is_executed) error('環境初始化成功！<br />請現在打開此程式刪除init()程式環境初始化區段<br />');
 }
@@ -1031,7 +1047,7 @@ switch($mode){
 	case 'remake':
 		updatelog();
 		header('HTTP/1.1 302 Moved Temporarily');
-		header('Location: '.PHP_SELF2.'?'.time().substr(microtime(),2,3));
+		header('Location: '.fullURL().PHP_SELF2.'?'.time().substr(microtime(),2,3));
 		break;
 	default:
 		if($res){
@@ -1041,7 +1057,7 @@ switch($mode){
 		}else{
 			if(!is_file(PHP_SELF2)) updatelog();
 			header('HTTP/1.1 302 Moved Temporarily');
-			header('Location: '.PHP_SELF2.'?'.time().substr(microtime(),2,3));
+			header('Location: '.fullURL().PHP_SELF2.'?'.time().substr(microtime(),2,3));
 		}
 }
 if(($Encoding = CheckSupportGZip()) && GZIP_COMPRESS_LEVEL){ // 啟動Gzip
