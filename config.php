@@ -24,7 +24,7 @@ define("TIME_ZONE", '+8'); // 時區設定 (GMT時區，參照 http://wwp.greenw
 define("HTTP_UPLOAD_DIFF", 50); // HTTP上傳所有位元組與實際位元組之允許誤差值
 ini_set("memory_limit", '32M'); // PHP運行的最大記憶體使用量 (php內定8M / 建議32M)
 
-//FTP
+// FTP
 define("USE_FTP", 0); // 使用FTP
 define("FTP_HOST", 'ftp.t35.com'); // FTP主機地址
 define("FTP_PORT", 21); // FTP主機連接埠
@@ -37,8 +37,9 @@ define("IMGLINK_URL_PREFIX",''); // 圖像連結(檔名部份)的前置路徑/UR
 define("IMG_URL_PREFIX",''); // 圖像連結(縮圖部份)的前置路徑/URL, 不使用的話請設為''
 define("THUMB_URL_PREFIX",''); // 縮圖URL的前置路徑/URL, 不使用的話請設為''
 
-//PIO
-define('CONNECTION_STRING','log://img.log;tree.log/'); // PIO 連線字串
+// PIO
+define("CONNECTION_STRING", 'log://img.log;tree.log/'); // PIO 連線字串
+//define("CONNECTION_STRING", 'mysql://pixmicat:pass@127.0.0.1/test/imglog'); // PIO 連線字串
 
 /*---- Part 2：板面各項細部功能設定 ----*/
 define("IMG_DIR", 'src/'); // 圖片存放目錄
