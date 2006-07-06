@@ -46,7 +46,7 @@ function dbConnect($connStr=CONNECTION_STRING){
 	if($connStr){ // 有連線字串
 		// 格式： mysql://帳號:密碼@伺服器位置:埠號(可省略)/資料庫/資料表
 		// 示例： mysql://pixmicat:1234@127.0.0.1/pixmicat_use/imglog
-		if(preg_match('/^mysql:\/\/(.*)\:(.*)\@(.*\:?[0-9]+)\/(.*)\/(.*)$/i', $connStr, $linkinfos)){
+		if(preg_match('/^mysql:\/\/(.*)\:(.*)\@(.*\:?[0-9]+)\/(.*)\/(.*)\/$/i', $connStr, $linkinfos)){
 			define('MYSQL_USER', $linkinfos[1]); // 登入帳號
 			define('MYSQL_PASSWORD', $linkinfos[2]); // 登入密碼
 			define('MYSQL_SERVER', $linkinfos[3]); // 登入伺服器 (含埠號)
