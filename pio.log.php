@@ -235,7 +235,7 @@ function searchPost($keyword,$field,$method) {
 		foreach($keyword as $k)
 			if(strpos($log[$field], $k)!==FALSE) $found++;
 		if($method=="AND" && $found==$keyword_cnt) array_push($foundPosts,$log); // 全部都有找到 (AND交集搜尋)
-		elseif($method=="OR" && $found) array_push($foundPosts,$log); // 有找到 (OR交集搜尋)
+		elseif($method=="OR" && $found) array_push($foundPosts,$log); // 有找到 (OR聯集搜尋)
 	}
 	return $foundPosts;
 }
