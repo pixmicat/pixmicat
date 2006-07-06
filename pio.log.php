@@ -128,7 +128,7 @@ function delOldAttachments($total_size,$storage_max,$warnOnly=true) {
 	$rpord=rsort($porder);
 	$arr_warn=$arr_kill=array();
 	foreach($rpord as $post) {
-		if(file_func('exist',$path.IMG_DIR.$logs[$post]['time'].$logs[$post]['ext'])) { $total_size -= file_func('size',$path.IMG_DIR.$logs[$post]['time'].$logs[$post]['ext']) / 1024; $arr_warn[] = $post;$arr_kill[$post] = 1; } // 標記刪除
+		if(file_func('exist',$path.IMG_DIR.$logs[$post]['time'].$logs[$post]['ext'])) { $total_size -= file_func('size',$path.IMG_DIR.$logs[$post]['time'].$logs[$post]['ext']) / 1024; $arr_kill[] = $post;$arr_warn[$post] = 1; } // 標記刪除
 		if(file_func('exist',$path.THUMB_DIR.$logs[$post]['time'].'s.jpg')) { $total_size -= file_func('size',$path.THUMB_DIR.$logs[$post]['time'].'s.jpg') / 1024; }
 		if($total_size<$storage_max) break;
 	}
@@ -153,7 +153,7 @@ function removeAttachments($posts) {
 function postCount($resno=0) {
 	global $porder,$trees,$prepared;
 	if(!$prepared) dbPrepare();
-	return ($resno)?count(@$trees[$resno]):count($porder);
+	return ($resno)?is_Thread($resno)?count(@$trees[$resno])-1:0:count($porder);
 }
 
 /* 討論串數目 */

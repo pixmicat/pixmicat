@@ -1,7 +1,4 @@
 <?
-$ftplog=array();
-ftp_log('load');
-
 class ClsFTP{
 	var $host = "localhost";//FTP HOST
 	var $port = "21";		//FTP port

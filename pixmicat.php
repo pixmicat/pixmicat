@@ -579,7 +579,7 @@ function regist($name,$email,$sub,$com,$pwd,$upfile,$upfile_path,$upfile_name,$u
 
 	$age=true;
 	if($resto){
-		$res_count=postCount($resto)-1;
+		$res_count=postCount($resto);
 		if(!stristr($email,'sage') && ($res_count < MAX_RES || MAX_RES == 0)){
 			if(!MAX_AGE_TIME || (($time - $chktime) < (MAX_AGE_TIME * 60 * 60))){ // 討論串並無過期，推文
 				$age=true;
@@ -612,7 +612,8 @@ function regist($name,$email,$sub,$com,$pwd,$upfile,$upfile_path,$upfile_name,$u
 		$fsize=$rfile=array();
 		if(file_exists($path.IMG_DIR.$tim.$ext)) {array_push($rfile,IMG_DIR.$tim.$ext);array_push($fsize,filesize($path.IMG_DIR.$tim.$ext));}
 		if(file_exists($path.THUMB_DIR.$tim.'s.jpg')) {array_push($rfile,THUMB_DIR.$tim.'s.jpg');array_push($fsize,filesize($path.THUMB_DIR.$tim.'s.jpg'));}
-		file_func('upload',$rfile,$fsize,$imgW.'x'.$imgH);
+		$imgsize=($ext)?$imgW.'x'.$imgH:'';
+		file_func('upload',$rfile,$fsize,$imgsize);
 	}
 
 	// 刪除舊容量快取

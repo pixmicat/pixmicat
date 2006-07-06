@@ -7,14 +7,13 @@ include_once('./lib_ftp.php');
 }
 
 function file_func($action,$file='',$size='',$imgsize='') {
-	global $ftplog;
-	if(!isset($GLOBALS['ftplog'])) ftp_log('load');
-	
+	if(!isset($GLOBALS['ftplog']) && $file) ftp_log('load');
+
 	// Remove Path for ftp_log()
 		$lfile=$file;
 		if(is_array($lfile)) array_walk($lfile,'noPath');
 		else noPath($lfile,'');
-	
+
 	switch($action) {
 		case 'init':
 			if(!file_exists(FTP_FILE_LOG)) touch(FTP_FILE_LOG);
