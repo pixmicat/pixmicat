@@ -38,7 +38,7 @@ define("IMG_URL_PREFIX",''); // 圖像連結(縮圖部份)的前置路徑/URL, �
 define("THUMB_URL_PREFIX",''); // 縮圖URL的前置路徑/URL, 不使用的話請設為''
 
 // PIO
-define("CONNECTION_STRING", 'log://img.log;tree.log/'); // PIO 連線字串
+define("CONNECTION_STRING", 'log://img.log:tree.log/'); // PIO 連線字串
 //define("CONNECTION_STRING", 'mysql://pixmicat:pass@127.0.0.1/test/imglog/'); // PIO 連線字串
 
 /*---- Part 2：板面各項細部功能設定 ----*/

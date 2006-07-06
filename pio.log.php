@@ -12,12 +12,10 @@ function pioVersion() {
 }
 
 /* 處理連線字串/連接 */
-function dbConnect($connStr=CONNECTION_STRING) {
-	if($connStr){ // 有連線字串
-		if(preg_match('/^log:\/\/(.*);(.*)\/$/i', $connStr, $linkinfos)){
-			define('LOGFILE', $linkinfos[1]); // 投稿文字記錄檔檔名
-			define('TREEFILE', $linkinfos[2]); // 樹狀結構記錄檔檔名
-		}
+function dbConnect($connStr) {
+	if(preg_match('/^log:\/\/(.*)\:(.*)\/$/i', $connStr, $linkinfos)){
+		define('LOGFILE', $linkinfos[1]); // 投稿文字記錄檔檔名
+		define('TREEFILE', $linkinfos[2]); // 樹狀結構記錄檔檔名
 	}
 }
 
@@ -26,7 +24,6 @@ function dbInit() {
 	$chkfile = array(LOGFILE, TREEFILE);
 	// 逐一自動建置tree及log檔案
 	foreach($chkfile as $value){
-		$is_executed = true;
 		if(!is_file($value)){ // 檔案不存在
 			$fp = fopen($value, 'w');
 			stream_set_write_buffer($fp, 0);
@@ -37,6 +34,7 @@ function dbInit() {
 			@chmod($value, 0666);
 		}
 	}
+	return true;
 }
 
 /* 準備/讀入 */

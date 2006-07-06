@@ -1,5 +1,5 @@
 <?php
-define("FUTABA_VER", 'Pixmicat!-Log 3rd.Release b060617-PIO'); // 版本資訊文字
+define("FUTABA_VER", 'Pixmicat!-PIO 20060706'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -1016,17 +1016,16 @@ function showstatus(){
 
 /* 程式首次執行之初始化 */
 function init(){
-	$is_executed = false; // 是否有初始化動作
 	if(!is_writable(realpath('./'))) error('根目錄沒有寫入權限，請修改權限<br />');
 
 	$chkfolder = array(IMG_DIR, THUMB_DIR);
 	// 逐一自動建置IMG_DIR和THUMB_DIR
-	foreach($chkfolder as $value) if(!is_dir($value)){ mkdir($value); $is_executed = true; } // 沒有就建立
+	foreach($chkfolder as $value) if(!is_dir($value)) mkdir($value);  // 沒有就建立
 
 	dbInit(); // PIO Init
 	file_func('init'); // FileIO Init
 
-	if($is_executed) error('環境初始化成功！<br />請現在打開此程式刪除init()程式環境初始化區段<br />');
+	error('環境初始化成功！<br />請現在打開此程式刪除init()程式環境初始化區段<br />');
 }
 
 /*-----------程式各項功能主要判斷-------------*/
@@ -1036,7 +1035,7 @@ $iniv = array('mode','name','email','sub','com','pwd','upfile','upfile_path','up
 foreach($iniv as $iniva){
 	if(!isset($$iniva)) $$iniva = '';
 }
-init(); // ←■■！程式環境初始化，跑過一次後請刪除此行！■■
+//init(); // ←■■！程式環境初始化，跑過一次後請刪除此行！■■
 
 switch($mode){
 	case 'regist':
