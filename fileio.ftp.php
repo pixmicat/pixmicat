@@ -41,14 +41,14 @@ function file_func($action,$file='',$size='',$imgsize='') {
 			break;
 		case 'upload':
 		/* Upload img with sample
-		   $file=array(2) filename without path
-		   $rfile=array(2) filename with path
+		   $lfile=array(2) filename without path
+		   $file=array(2) filename with path
 		   $size=array(2) file size
 		   $imgsize=$file[0] img size */
 			if(!$file) return true;
-			ftp_func('put',$lfile,$file);
+			ftp_func('put',$file,$file);
 			ftp_log('update',$lfile[0],$size[0],$imgsize);
-			ftp_log('update',$lfile[1],$size[1]);
+			if(isset($lfile[1])) ftp_log('update',$lfile[1],$size[1]);
 			ftp_log('write');
 			foreach($file as $fil) @unlink($fil);
 			return true;

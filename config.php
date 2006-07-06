@@ -25,13 +25,17 @@ define("HTTP_UPLOAD_DIFF", 50); // HTTP上傳所有位元組與實際位元組�
 ini_set("memory_limit", '32M'); // PHP運行的最大記憶體使用量 (php內定8M / 建議32M)
 
 //FTP
-define("USE_FTP", '0'); // 使用FTP
+define("USE_FTP", 0); // 使用FTP
 define("FTP_HOST", 'ftp.t35.com'); // FTP主機地址
-define("FTP_PORT", '21'); // FTP主機連接埠
+define("FTP_PORT", 21); // FTP主機連接埠
 define("FTP_USER", 'demo.t35.com'); // FTP使用者用稱
 define("FTP_PASS", 'demo'); // FTP使用者密碼
 define("FTP_BASE_PATH", '/'); // FTP目錄
 define("FTP_FILE_LOG", 'ftp.log'); // FTP記錄檔檔名
+
+define("IMGLINK_URL_PREFIX",''); // 圖像連結(檔名部份)的前置路徑/URL, 不使用的話請設為''
+define("IMG_URL_PREFIX",''); // 圖像連結(縮圖部份)的前置路徑/URL, 不使用的話請設為''
+define("THUMB_URL_PREFIX",''); // 縮圖URL的前置路徑/URL, 不使用的話請設為''
 
 //PIO
 define('PIXMICAT_BACKEND','log'); // PIO 後端 (log/mysql/sqlite)

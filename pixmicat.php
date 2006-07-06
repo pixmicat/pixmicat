@@ -114,18 +114,18 @@ function updatelog($resno=0,$page_num=0){
 				if($w && $h){ // 有長寬屬性
 					if(file_func('exist',$path.THUMB_DIR.$time.'s.jpg')){
 						$img_thumb = '<small>[以預覽圖顯示]</small>';
-						$imgsrc = '<a href="'.$src.'" rel="_blank"><img src="'.THUMB_DIR.$time.'s.jpg" style="width: '.$w.'px; height: '.$h.'px;" class="img" alt="'.$size.'B" title="'.$size.'B" /></a>';
+						$imgsrc = '<a href="'.IMGLINK_URL_PREFIX.$src.'" rel="_blank"><img src="'.THUMB_URL_PREFIX.THUMB_DIR.$time.'s.jpg" style="width: '.$w.'px; height: '.$h.'px;" class="img" alt="'.$size.'B" title="'.$size.'B" /></a>';
 					}elseif($ext=='.swf'){ // swf檔案僅留連結就好
 					}else{
-						$imgsrc = '<a href="'.$src.'" rel="_blank"><img src="nothumb.gif" class="img" alt="'.$size.'B" title="'.$size.'B" /></a>';
+						$imgsrc = '<a href="'.IMGLINK_URL_PREFIX.$src.'" rel="_blank"><img src="nothumb.gif" class="img" alt="'.$size.'B" title="'.$size.'B" /></a>';
 					}
 				}else{ // 沒有長寬屬性
-					$imgsrc = '<a href="'.$src.'" rel="_blank"><img src="nothumb.gif" class="img" alt="'.$size.'B" title="'.$size.'B" /></a>';
+					$imgsrc = '<a href="'.IMGLINK_URL_PREFIX.$src.'" rel="_blank"><img src="nothumb.gif" class="img" alt="'.$size.'B" title="'.$size.'B" /></a>';
 				}
 				if(SHOW_IMGWH){ // 顯示附加檔案之原檔長寬尺寸
 					$imgwh_bar = file_func('imgsize',$img);
 				}
-				$IMG_BAR = '檔名：<a href="'.$src.'" rel="_blank">'.$time.$ext.'</a>-('.$size.'B'.$imgwh_bar.') '.$img_thumb;
+				$IMG_BAR = '檔名：<a href="'.IMG_URL_PREFIX.$src.'" rel="_blank">'.$time.$ext.'</a>-('.$size.'B'.$imgwh_bar.') '.$img_thumb;
 				if(!USE_TEMPLATE) $dat .= $IMG_BAR.'<br />'.$imgsrc;
 			}
 			// 回應 / 引用連結
@@ -212,18 +212,18 @@ function updatelog($resno=0,$page_num=0){
 					if($w && $h){ // 有長寬屬性
 						if(file_func('exist',$path.THUMB_DIR.$time.'s.jpg')){
 							$img_thumb = '<small>[以預覽圖顯示]</small>';
-							$imgsrc = '<a href="'.$src.'" rel="_blank"><img src="'.THUMB_DIR.$time.'s.jpg" style="width: '.$w.'px; height: '.$h.'px;" class="img" alt="'.$size.'B" title="'.$size.'B" /></a>';
+							$imgsrc = '<a href="'.IMGLINK_URL_PREFIX.$src.'" rel="_blank"><img src="'.THUMB_URL_PREFIX.THUMB_DIR.$time.'s.jpg" style="width: '.$w.'px; height: '.$h.'px;" class="img" alt="'.$size.'B" title="'.$size.'B" /></a>';
 						}elseif($ext=='.swf'){ // swf檔案僅留連結就好
 						}else{
-							$imgsrc = '<a href="'.$src.'" rel="_blank"><img src="nothumb.gif" class="img" alt="'.$size.'B" title="'.$size.'B" /></a>';
+							$imgsrc = '<a href="'.IMGLINK_URL_PREFIX.$src.'" rel="_blank"><img src="nothumb.gif" class="img" alt="'.$size.'B" title="'.$size.'B" /></a>';
 						}
 					}else{ // 沒有長寬屬性
-						$imgsrc = '<a href="'.$src.'" rel="_blank"><img src="nothumb.gif" class="img" alt="'.$size.'B" title="'.$size.'B" /></a>';
+						$imgsrc = '<a href="'.IMGLINK_URL_PREFIX.$src.'" rel="_blank"><img src="nothumb.gif" class="img" alt="'.$size.'B" title="'.$size.'B" /></a>';
 					}
 					if(SHOW_IMGWH){ // 顯示附加檔案之原檔長寬尺寸
 						$imgwh_bar = file_func('imgsize',$img);
 					}
-					$IMG_BAR = '檔名：<a href="'.$src.'" rel="_blank">'.$time.$ext.'</a>-('.$size.'B'.$imgwh_bar.') '.$img_thumb;
+					$IMG_BAR = '檔名：<a href="'.IMG_URL_PREFIX.$src.'" rel="_blank">'.$time.$ext.'</a>-('.$size.'B'.$imgwh_bar.') '.$img_thumb;
 					if(!USE_TEMPLATE){
 						$IMG_BAR = '<br />&nbsp;'.$IMG_BAR;
 						$imgsrc = '<br />'.$imgsrc;
@@ -608,6 +608,13 @@ function regist($name,$email,$sub,$com,$pwd,$upfile,$upfile_path,$upfile_name,$u
 		if(USE_THUMB) thumb($path.IMG_DIR, $tim, $ext, $imgW, $imgH, $W, $H); // 使用GD製作縮圖
 	}
 
+	if(file_func('upload')) {
+		$fsize=$rfile=array();
+		if(file_exists($path.IMG_DIR.$tim.$ext)) {array_push($rfile,IMG_DIR.$tim.$ext);array_push($fsize,filesize($path.IMG_DIR.$tim.$ext));}
+		if(file_exists($path.THUMB_DIR.$tim.'s.jpg')) {array_push($rfile,THUMB_DIR.$tim.'s.jpg');array_push($fsize,filesize($path.THUMB_DIR.$tim.'s.jpg'));}
+		file_func('upload',$rfile,$fsize,$imgW.'x'.$imgH);
+	}
+
 	// 刪除舊容量快取
 	total_size(true);
 	updatelog();
@@ -659,7 +666,7 @@ function usrdel($no,$pwd){
 	$delno = array();
 	reset($_POST);
 	while($item = each($_POST)) if($item[1]=='delete') array_push($delno, $item[0]);
-	$delno_count = count($delno) - 1; // 刪除筆數
+	$delno_count = count($delno); // 刪除筆數
 	if($delno_count==0) error('你真的有要刪除嗎？請回頁面重勾選');
 
 	$delposts=array();
