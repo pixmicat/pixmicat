@@ -1,5 +1,14 @@
 <?php
+
+if(defined('CONNECTION_STRING')){ // ¦³³s½u¦r¦ê
+	if(preg_match('/^(.*):\/\//i', CONNECTION_STRING, $backend)){
+		define('PIXMICAT_BACKEND',$backend[1]);
+	}
+}
+
 $pio_file='./pio.'.PIXMICAT_BACKEND.'.php';
 if(is_file($pio_file))
 	include_once($pio_file);
+
+dbConnect();
 ?>

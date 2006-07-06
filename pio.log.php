@@ -6,6 +6,21 @@ $trees=array();
 $restono=array();
 $prepared=0;
 
+/* PIO模組版本 */
+function pioVersion() {
+	return 'v20060706α';
+}
+
+/* 處理連線字串/連接 */
+function dbConnect($connStr=CONNECTION_STRING) {
+	if($connStr){ // 有連線字串
+		if(preg_match('/^log:\/\/(.*);(.*)\/$/i', $connStr, $linkinfos)){
+			define('LOGFILE', $linkinfos[1]); // 投稿文字記錄檔檔名
+			define('TREEFILE', $linkinfos[2]); // 樹狀結構記錄檔檔名
+		}
+	}
+}
+
 /* 初始化 */
 function dbInit() {
 	$chkfile = array(LOGFILE, TREEFILE);
@@ -79,6 +94,11 @@ function dbCommit() {
 	fwrite($fp, $tree);
 	flock($fp, LOCK_UN); // 解鎖
 	fclose($fp);
+}
+
+/* 優化資料表 */
+function dbOptimize($doit=false) {
+	return false; // 不支援
 }
 
 /* 刪除舊文 */

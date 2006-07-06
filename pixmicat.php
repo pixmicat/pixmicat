@@ -702,7 +702,8 @@ function valid($pass){
 	if(!$pass){
 		echo <<< __VALID_EOF__
 <br />
-<input type="radio" name="admin" value="del" checked="checked" />管理文章<p />
+<input type="radio" name="admin" value="del" checked="checked" />管理文章
+<input type="radio" name="admin" value="opt" />資料表最佳化<p />
 <input type="hidden" name="mode" value="admin" />
 <input type="password" name="pass" size="8" />
 <input type="submit" value=" 認證 " />
@@ -969,7 +970,7 @@ function showstatus(){
 <table border="1" style="margin: 0px auto; text-align: left;">
 <tr><td align="center" colspan="3">基本設定</td></tr>
 <tr><td style="width: 240px;">程式版本</td><td colspan="2"> '.FUTABA_VER.' </td></tr>
-<tr><td>後端</td><td colspan="2"> '.PIXMICAT_BACKEND.'</td></tr>
+<tr><td>後端</td><td colspan="2"> '.PIXMICAT_BACKEND.' - '.pioVersion().'</td></tr>
 <tr><td>一頁顯示幾篇討論串</td><td colspan="2"> '.PAGE_DEF.' 篇</td></tr>
 <tr><td>一篇討論串最多顯示之回應筆數</td><td colspan="2"> '.RE_DEF.' 筆</td></tr>
 <tr><td>回應模式一頁顯示幾筆回應內容</td><td colspan="2"> '.RE_PAGE_DEF.' 筆 (全部顯示：0)</td></tr>
@@ -1035,7 +1036,6 @@ foreach($iniv as $iniva){
 }
 init(); // ←■■！程式環境初始化，跑過一次後請刪除此行！■■
 
-dbPrepare();
 switch($mode){
 	case 'regist':
 		regist($name,$email,$sub,$com,$pwd,$upfile,$upfile_path,$upfile_name,$upfile_status,$resto);
@@ -1043,6 +1043,11 @@ switch($mode){
 	case 'admin':
 		valid($pass);
 		if($admin=='del') admindel($pass);
+		if($admin=='opt'){
+			if(!dbOptimize()) echo '後端並不支援此動作';
+			else echo '資料表最佳化'.(dbOptimize(true)?'成功':'失敗').'！';
+			die("</div></form></body>\n</html>");
+		}
 		break;
 	case 'search':
 		search();

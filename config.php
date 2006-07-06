@@ -38,11 +38,9 @@ define("IMG_URL_PREFIX",''); // 圖像連結(縮圖部份)的前置路徑/URL, �
 define("THUMB_URL_PREFIX",''); // 縮圖URL的前置路徑/URL, 不使用的話請設為''
 
 //PIO
-define('PIXMICAT_BACKEND','log'); // PIO 後端 (log/mysql/sqlite)
+define('CONNECTION_STRING','log://img.log;tree.log/'); // PIO 連線字串
 
 /*---- Part 2：板面各項細部功能設定 ----*/
-define("LOGFILE", 'img.log'); // 投稿文字記錄檔檔名
-define("TREEFILE", 'tree.log'); // 樹狀結構記錄檔檔名
 define("IMG_DIR", 'src/'); // 圖片存放目錄
 define("THUMB_DIR", 'thumb/'); // 預覽圖存放目錄
 define("PHP_SELF2", 'index.html'); // 入口檔名
