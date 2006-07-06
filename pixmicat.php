@@ -897,6 +897,7 @@ function search(){
 <li>關鍵字使用半形空白可以區隔多個搜尋關鍵字作AND(交集)搜尋。<p />
 關鍵字：<input type="text" name="keyword" size="30" />
 搜尋目標：<select name="field"><option value="com" selected="selected">內文</option><option value="name">名稱</option><option value="sub">標題</option><option value="no">編號</option></select>
+方法：<select name="method"><option value="AND" selected="selected">AND</option><option value="OR">OR</option></select>
 <input type="submit" value=" 搜尋 " />
 </li>
 </ul>
@@ -906,9 +907,10 @@ function search(){
 END_OF_HTML;
 	}else{
 		$tmp_searchfield = $_POST['field']; // 搜尋目標 (0:編號, 2:名稱, 4:標題, 5:內文)
+		$tmp_searchmethod = $_POST['method']; // 搜尋目標 (0:編號, 2:名稱, 4:標題, 5:內文)
 		$tmp_keyword = preg_split('/(　| )+/', trim($tmp_keyword)); // 搜尋文字用空格切割
 
-		$hits=searchPost($tmp_keyword,$tmp_searchfield,'AND');
+		$hits=searchPost($tmp_keyword,$tmp_searchfield,$tmp_searchmethod);
 
 		echo '<div id="search_result" style="text-align: center;">
 <table border="0" style="margin: 0px auto; text-align: left; width: 100%;">
