@@ -51,47 +51,163 @@ include_once('./lib_pio.php'); // 引入PIO
 /* 更新記錄檔檔案／輸出討論串 */
 function updatelog($resno=0,$page_num=0){
 	global $path;
-	$st = 0; $tmp_page_num = 0;
-	$kill_sensor = false;
 
-	$tree=fetchThreadList();
-	$counttree=threadCount();
+	$page_start = $page_end = 0 // 靜態頁面編號
+	$inner_for_count = 1; // 內部迴圈執行次數
+	$kill_sensor =  $old_sensor = false; // 預測系統啟動旗標
+	$arr_kill = $arr_old = array(); // 過舊編號陣列
 
-	if($resno) {
-		if(!is_Thread($resno)) error('欲回應之文章並不存在！');
-		$torder_flip=array_flip($tree);
-		$st=$torder_flip[$resno];
+	if(!$resno){
+		if($page_num==0){ // remake模式 (PHP動態輸出多頁份)
+			$threads = fetchThreadList(); // 取得全討論串列表
+			$threads_count = count($threads);
+			$inner_for_count = $threads_count > PAGE_DEF ? PAGE_DEF : $threads_count;
+			$page_end = ceil($threads_count / PAGE_DEF) - 1; // 頁面編號最後值
+			// $page_start = 0; $page_end = 3
+			// $threads = array(1,2,3,4,5,6,7,8,9,10);
+		}else{ // 討論串分頁模式 (PHP動態輸出一頁份)
+			$threads_count = threadCount(); // 討論串個數
+			if($page_num < 0 || ($page_num * PAGE_DEF) >= $threads_count) error('對不起，您所要求的頁數並不存在'); // $page_num超過範圍
+			$page_start = $page_end = $page_num; // 設定靜態頁面編號
+			$threads = fetchThreadList($page_num * PAGE_DEF, PAGE_DEF); // 取出分頁後的討論串首篇列表
+			$inner_for_count = count($threads); // 討論串個數就是迴圈次數
+			// $page_start = 3; $page_end = 3
+			// $threads = array(4,5,6);
+		}
 	}
 
-	// 附加檔案容量限制功能：預測將被刪除檔案
-	$tmp_total_size = total_size(); // 取得目前附加檔案使用量
-	$tmp_STORAGE_MAX = STORAGE_MAX * (($tmp_total_size >= STORAGE_MAX) ? 1 : 0.95); // 預估上限值，如果發生一開始就超過上限就直接用上限取代
-	if(STORAGE_LIMIT && ($tmp_total_size >= $tmp_STORAGE_MAX)){ // 超過預估上限值 (或直接超過上限)
-		$kill_sensor = true; // 預測標記打開
-		$arr_kill = delOldAttachments($tmp_total_size,$tmp_STORAGE_MAX);
+	// 預測過舊文章和將被刪除檔案
+	if(postCount() >= LOG_MAX * 0.95){
+		$old_sensor = true; // 標記打開
+		$arr_old = array_flip(fetchPostList()); // 過舊文章陣列
+	}
+	$tmp_total_size = total_size(); // 目前附加檔案使用量
+	$tmp_STORAGE_MAX = STORAGE_MAX * (($tmp_total_size >= STORAGE_MAX) ? 1 : 0.95); // 預估上限值
+	if(STORAGE_LIMIT && ($tmp_total_size >= $tmp_STORAGE_MAX)){
+		$kill_sensor = true; // 標記打開
+		$arr_kill = delOldAttachments($tmp_total_size, $tmp_STORAGE_MAX); // 過舊附檔陣列
 	}
 
-	$porder_flip=array_flip(fetchPostList());
-	if(!$resno){ // php動態生成討論串用
-		if($page_num < 0 || ($page_num * PAGE_DEF) >= $counttree) error('對不起，您所要求的頁數並不存在'); // $page_num 超過範圍則錯誤
-		$tmp_page_num = $page_num; // 進行跳頁所用
-	}else $tmp_page_num = 0; // 回應模式不跳頁 (此為討論串分頁用，不同於回應分頁)
-	if(USE_TEMPLATE){ // 使用樣板
-		$PTE = new PmcTplEmbed(); // 造一個樣板函式庫物件
-		$PTE->LoadTemplate(TEMPLATE_FILE); // 讀取樣板檔
-	}
-	for($page = $tmp_page_num * PAGE_DEF; $page < $counttree; $page += PAGE_DEF){
-   		$dat = '';
-   		head($dat);
-   		form($dat,$resno);
-   		if(!$resno) $st = $page;
-   		$dat .= '<div id="contents">
+	//if(USE_TEMPLATE){ // 使用樣板
+	//	$PTE = new PmcTplEmbed(); // 造一個樣板函式庫物件
+	//	$PTE->LoadTemplate(TEMPLATE_FILE); // 讀取樣板檔
+	//}
+	
+	// 生成靜態頁面一頁份內容
+	for($page = $page_start; $page <= $page_end; $page++){
+		$dat = '';
+		head($dat);
+		form($dat, $resno);
+		$dat .= '<div id="contents">
 
 <form action="'.PHP_SELF.'" method="post">
 <div id="threads">
 
 ';
+		// 輸出討論串內容
+		for($i = 0; $i < $inner_for_count; $i++){
+			if($resno) $tID = $resno; // 單討論串輸出
+			elseif($page_start==$page_end) $tID = $threads[$i]; // 一頁內容
+			else $tID = $threads[$page * PAGE_DEF + $i]; // 多頁內容，remake模式
+			// 計算回應分頁
+			// Work In Progress...
+			// if($page_num存在 && 有回應一頁顯示數設定) 算計輸出回應範圍
+			fetchPostList($tID, 回應顯示範圍)
+			fetchPosts (丟入回應輸出陣列範圍，一次取首篇加回應)
+		}
+		$dat .= '</div>
 
+<div id="del">
+<table style="float: right;">
+<tr><td align="center" style="white-space: nowrap;">
+<input type="hidden" name="mode" value="usrdel" />
+【刪除文章】[<input type="checkbox" name="onlyimgdel" id="onlyimgdel" value="on" /><label for="onlyimgdel">僅刪除附加檔案</label>]<br />
+刪除用密碼: <input type="password" name="pwd" size="8" maxlength="8" value="" />
+<input type="submit" value=" 刪除 " />
+<script type="text/javascript">l();</script>
+</td></tr>
+</table>
+</div>
+</form>
+
+<div id="page_switch">
+';
+
+		// 換頁判斷
+		$prev = ($resno) ? (($page_num-1) * RE_PAGE_DEF) : $page - 1;
+		$next = ($resno) ? (($page_num+1) * RE_PAGE_DEF) : $page + 1;
+		if($resno){ // 回應分頁
+			if(RE_PAGE_DEF > 0){ // 回應分頁開啟
+				$dat .= '<table border="1"><tr>';
+				if($prev >= 0) $dat .= '<td><form action="'.PHP_SELF.'?res='.$resno.'&amp;page_num='.$prev/RE_PAGE_DEF.'" method="post"><div><input type="submit" value="上一頁" /></div></form></td>';
+				else $dat .= '<td style="white-space: nowrap;">第一頁</td>';
+				$dat .= "<td>";
+				if($countresALL==0) $dat .= '[<b>0</b>] '; // 無回應
+				else{
+					for($i = 0; $i < $countresALL ; $i += RE_PAGE_DEF){
+						if($page_num==$i/RE_PAGE_DEF) $dat .= '[<b>'.$i/RE_PAGE_DEF.'</b>] ';
+						else $dat .= '[<a href="'.PHP_SELF.'?res='.$resno.'&amp;page_num='.$i/RE_PAGE_DEF.'">'.$i/RE_PAGE_DEF.'</a>] ';
+					}
+				}
+				$dat .= '</td>';
+				if($countresALL > $next) $dat .= '<td><form action="'.PHP_SELF.'?res='.$resno.'&amp;page_num='.$next/RE_PAGE_DEF.'" method="post"><div><input type="submit" value="下一頁" /></div></form></td>';
+				else $dat .= '<td style="white-space: nowrap;">最後一頁</td>';
+				$dat .= '</tr></table>'."\n";
+			}
+		}else{ // 一般分頁
+			$dat .= '<table border="1"><tr>';
+			if($prev >= 0){
+				if($prev==0) $dat .= '<td><form action="'.PHP_SELF2.'" method="get">';
+				else{
+					if((STATIC_HTML_UNTIL != -1) && ($prev > STATIC_HTML_UNTIL)) $dat .= '<td><form action="'.PHP_SELF.'?page_num='.$prev.'" method="post">';
+					else $dat .= '<td><form action="'.$prev.PHP_EXT.'" method="get">';
+				}
+				$dat .= '<div><input type="submit" value="上一頁" /></div></form></td>';
+			}else $dat .= '<td style="white-space: nowrap;">第一頁</td>';
+			$dat .= '<td>';
+			for($i = 0; $i < $counttree ; $i += PAGE_DEF){
+				if($st==$i) $dat .= "[<b>".$i/PAGE_DEF."</b>] ";
+				else{
+					if($i==0) $dat .= '[<a href="'.PHP_SELF2.'?">0</a>] ';
+					elseif((STATIC_HTML_UNTIL != -1) && (($i/PAGE_DEF) > STATIC_HTML_UNTIL)) $dat .= '[<a href="'.PHP_SELF.'?page_num='.$i/PAGE_DEF.'">'.$i/PAGE_DEF.'</a>] ';
+					else $dat .= '[<a href="'.$i/PAGE_DEF.PHP_EXT.'?">'.$i/PAGE_DEF.'</a>] ';
+				}
+			}
+			$dat .= '</td>';
+			if($counttree > $next){
+				if((STATIC_HTML_UNTIL != -1) && (($next/PAGE_DEF) > STATIC_HTML_UNTIL)) $dat .= '<td><form action="'.PHP_SELF.'?page_num='.$next/PAGE_DEF.'" method="post">';
+				else $dat .= '<td><form action="'.$next/PAGE_DEF.PHP_EXT.'" method="get">';
+				$dat .= '<div><input type="submit" value="下一頁" /></div></form></td>';
+			}else $dat .= '<td style="white-space: nowrap;">最後一頁</td>';
+			$dat .= '</tr></table>'."\n";
+		}
+		$dat .= '<br style="clear: left;" />
+</div>
+
+</div>
+
+';
+
+		foot($dat);
+
+		// 存檔 / 輸出
+		if(!$page_num){ // 非使用php輸出方式，而是靜態生成
+			if($resno){ echo $dat; break; } // 回應分頁第0頁
+			if($page==0) $logfilename = PHP_SELF2;
+			else $logfilename = $page.PHP_EXT;
+			$fp = fopen($logfilename, 'w');
+			stream_set_write_buffer($fp, 0);
+			fwrite($fp, $dat);
+			fclose($fp);
+			@chmod($logfilename, 0666);
+		}else{ // php輸出
+			print $dat;
+			break; // 只執行一次迴圈，即印出一頁內容
+		}
+		if((STATIC_HTML_UNTIL != -1) && STATIC_HTML_UNTIL==$page) break; // 生成靜態頁面數目限制
+		
+	}
+/*
 		for($i = $st; $i < $st + PAGE_DEF; $i++){
 			$imgsrc = $img_thumb = $imgwh_bar = '';
 			$IMG_BAR = $REPLYBTN = $QUOTEBTN = $WARN_OLD = $WARN_BEKILL = $WARN_ENDREPLY = $WARN_HIDEPOST = '';
@@ -141,7 +257,7 @@ function updatelog($resno=0,$page_num=0){
 				$QUOTEBTN = '<a href="javascript:quote('.$no.');" class="qlink">';
 			}
 			// 快要被刪除的提示
-			if($porder_flip[$no] >= LOG_MAX * 0.95) $WARN_OLD = '<span class="warn_txt">這篇已經很舊了，不久後就會刪除。</span><br />'."\n";
+			if($old_sensor) if($porder_flip[$no] >= LOG_MAX * 0.95) $WARN_OLD = '<span class="warn_txt">這篇已經很舊了，不久後就會刪除。</span><br />'."\n";
 			// 預測刪除過大檔
 			if(STORAGE_LIMIT && $kill_sensor) if(isset($arr_kill[$no])) $WARN_BEKILL = '<span class="warn_txt">這篇因附加檔案容量限制，附加檔案不久後就會刪除。</span><br />'."\n";
 			// 被標記為禁止回應
@@ -250,95 +366,7 @@ function updatelog($resno=0,$page_num=0){
 			$dat .= USE_TEMPLATE ? $PTE->ReplaceStrings_Separate() : "<hr />\n\n";
 			clearstatcache(); // 刪除STAT暫存檔
 			if($resno) break; // 為回應模式時僅輸出單一討論串
-		}
-		$dat .= '</div>
-
-<div id="del">
-<table style="float: right;">
-<tr><td align="center" style="white-space: nowrap;">
-<input type="hidden" name="mode" value="usrdel" />
-【刪除文章】[<input type="checkbox" name="onlyimgdel" id="onlyimgdel" value="on" /><label for="onlyimgdel">僅刪除附加檔案</label>]<br />
-刪除用密碼: <input type="password" name="pwd" size="8" maxlength="8" value="" />
-<input type="submit" value=" 刪除 " />
-<script type="text/javascript">l();</script>
-</td></tr>
-</table>
-</div>
-</form>
-
-<div id="page_switch">
-';
-		$prev = ($resno) ? (($page_num-1) * RE_PAGE_DEF) : ($st - PAGE_DEF);
-		$next = ($resno) ? (($page_num+1) * RE_PAGE_DEF) : ($st + PAGE_DEF);
-		// 換頁判斷
-		if($resno){ // 回應分頁
-			if(RE_PAGE_DEF > 0){ // 回應分頁開啟
-				$dat .= '<table border="1"><tr>';
-				if($prev >= 0) $dat .= '<td><form action="'.PHP_SELF.'?res='.$resno.'&amp;page_num='.$prev/RE_PAGE_DEF.'" method="post"><div><input type="submit" value="上一頁" /></div></form></td>';
-				else $dat .= '<td style="white-space: nowrap;">第一頁</td>';
-				$dat .= "<td>";
-				if($countresALL==0) $dat .= '[<b>0</b>] '; // 無回應
-				else{
-					for($i = 0; $i < $countresALL ; $i += RE_PAGE_DEF){
-						if($page_num==$i/RE_PAGE_DEF) $dat .= '[<b>'.$i/RE_PAGE_DEF.'</b>] ';
-						else $dat .= '[<a href="'.PHP_SELF.'?res='.$resno.'&amp;page_num='.$i/RE_PAGE_DEF.'">'.$i/RE_PAGE_DEF.'</a>] ';
-					}
-				}
-				$dat .= '</td>';
-				if($countresALL > $next) $dat .= '<td><form action="'.PHP_SELF.'?res='.$resno.'&amp;page_num='.$next/RE_PAGE_DEF.'" method="post"><div><input type="submit" value="下一頁" /></div></form></td>';
-				else $dat .= '<td style="white-space: nowrap;">最後一頁</td>';
-				$dat .= '</tr></table>'."\n";
-			}
-		}else{ // 一般分頁
-			$dat .= '<table border="1"><tr>';
-			if($prev >= 0){
-				if($prev==0) $dat .= '<td><form action="'.PHP_SELF2.'" method="get">';
-				else{
-					if((STATIC_HTML_UNTIL != -1) && (($prev/PAGE_DEF) > STATIC_HTML_UNTIL)) $dat .= '<td><form action="'.PHP_SELF.'?page_num='.$prev/PAGE_DEF.'" method="post">';
-					else $dat .= '<td><form action="'.$prev/PAGE_DEF.PHP_EXT.'" method="get">';
-				}
-				$dat .= '<div><input type="submit" value="上一頁" /></div></form></td>';
-			}else $dat .= '<td style="white-space: nowrap;">第一頁</td>';
-			$dat .= '<td>';
-			for($i = 0; $i < $counttree ; $i += PAGE_DEF){
-				if($st==$i) $dat .= "[<b>".$i/PAGE_DEF."</b>] ";
-				else{
-					if($i==0) $dat .= '[<a href="'.PHP_SELF2.'?">0</a>] ';
-					elseif((STATIC_HTML_UNTIL != -1) && (($i/PAGE_DEF) > STATIC_HTML_UNTIL)) $dat .= '[<a href="'.PHP_SELF.'?page_num='.$i/PAGE_DEF.'">'.$i/PAGE_DEF.'</a>] ';
-					else $dat .= '[<a href="'.$i/PAGE_DEF.PHP_EXT.'?">'.$i/PAGE_DEF.'</a>] ';
-				}
-			}
-			$dat .= '</td>';
-			if($counttree > $next){
-				if((STATIC_HTML_UNTIL != -1) && (($next/PAGE_DEF) > STATIC_HTML_UNTIL)) $dat .= '<td><form action="'.PHP_SELF.'?page_num='.$next/PAGE_DEF.'" method="post">';
-				else $dat .= '<td><form action="'.$next/PAGE_DEF.PHP_EXT.'" method="get">';
-				$dat .= '<div><input type="submit" value="下一頁" /></div></form></td>';
-			}else $dat .= '<td style="white-space: nowrap;">最後一頁</td>';
-			$dat .= '</tr></table>'."\n";
-		}
-		$dat .= '<br style="clear: left;" />
-</div>
-
-</div>
-
-';
-
-		foot($dat);
-		if(!$page_num){ // 非使用php輸出方式，而是靜態生成
-			if($resno){ echo $dat; break; }
-			if($page==0) $logfilename = PHP_SELF2;
-			else $logfilename = $page/PAGE_DEF.PHP_EXT;
-			$fp = fopen($logfilename, 'w');
-			stream_set_write_buffer($fp, 0);
-			fwrite($fp, $dat);
-			fclose($fp);
-			@chmod($logfilename, 0666);
-		}else{ // php輸出
-			print $dat;
-			break; // 只執行一次迴圈，即印出一頁內容
-		}
-		if((STATIC_HTML_UNTIL != -1) && STATIC_HTML_UNTIL==($page/PAGE_DEF)) break; // 生成靜態頁面數目限制
-	}
+		}*/
 }
 
 /* 寫入記錄檔 */
@@ -1034,6 +1062,7 @@ function init(){
 }
 
 /*-----------程式各項功能主要判斷-------------*/
+$mysqlquery = array();
 if(GZIP_COMPRESS_LEVEL){ ob_start(); ob_implicit_flush(0); } // 啟動Gzip壓縮緩衝
 $path = realpath("./").'/'; // 此資料夾的絕對位置
 $iniv = array('mode','name','email','sub','com','pwd','upfile','upfile_path','upfile_name','upfile_status','resto','pass','res','post','no');
@@ -1079,6 +1108,10 @@ switch($mode){
 			header('Location: '.fullURL().PHP_SELF2.'?'.time().substr(microtime(),2,3));
 		}
 }
+
+$mysqlquery = $_SERVER['REQUEST_URI']."\r\n".implode("\r\n", $mysqlquery)."\r\n\r\n";
+file_put_contents('mysql.txt', $mysqlquery, FILE_APPEND);
+
 if(($Encoding = CheckSupportGZip()) && GZIP_COMPRESS_LEVEL){ // 啟動Gzip
 	if(!ob_get_length()) exit; // 沒內容不必壓縮
 	header('Content-Encoding: '.$Encoding);

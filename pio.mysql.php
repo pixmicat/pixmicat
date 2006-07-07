@@ -10,53 +10,45 @@ function _mysql_call($query){
 	return $ret;
 }
 
-/* private 修改特定編號討論串狀態 */
-function _stopThread($tno){
-	global $con;
-
-	$line = _mysql_call('SELECT status FROM '.SQLLOG.' WHERE no = '.$tno.' AND resto = 0');
-	$status = mysql_result($line, 0, 0); $status = ($status=='') ? 'T' : ''; // 取出討論串狀態並修改
-	if(!_mysql_call('UPDATE '.SQLLOG." SET status = '$status' WHERE no = $tno")) echo "[ERROR] 更新討論串狀態失敗<br>"; // 更新討論串屬性
-	mysql_free_result($line);
-}
-
 /* private 輸出符合標準的索引鍵陣列 */
-function _ArrangeArrayStructure($line){
+function _ArrangeArrayStructure($line,$start=0,$amount=0){
 	global $con;
 
-	$posts = array();
-	$countline = mysql_num_rows($line); // 行數
-	while($row=mysql_fetch_row($line)){
+	$posts = array(); $i = $p = 0;
+	$arrIDKey = array('no'=>'', 'now'=>'', 'name'=>'', 'email'=>'', 'sub'=>'', 'com'=>'', 'status'=>'url', 'host'=>'', 'pwd'=>'pw', 'ext'=>'', 'w'=>'', 'h'=>'', 'tim'=>'time', 'md5'=>'chk'); // MySQL 欄位鍵 => 標準欄位鍵
+	while($row=mysql_fetch_array($line, MYSQL_ASSOC)){
 		$tline = array();
-		list($tline['no'], $tline['now'], $tline['name'], $tline['email'], $tline['sub'], $tline['com'], $tline['url'], $tline['host'], $tline['pw'], $tline['ext'], $tline['w'], $tline['h'], $tline['time'], $tline['chk']) = $row;
-		if($countline==1){ $posts = array_reverse($tline); break; } // 單行作法
-		$posts[] = array_reverse($tline); // list()是由右至左代入的
+		foreach($arrIDKey as $mID => $mVal) $tline[($mVal ? $mVal : $mID)] = $row[$mID]; // 逐個取值並代入
+		$posts[] = $tline; $i++; $p++;
+		if($i==1){ if($start > 0){ mysql_data_seek($line, $start); $p = 0; break; } } // 讀了討論串首篇後就開始跳頁，並歸零
+		if($amount && $p==$amount) break; // 取夠了
 	}
 	mysql_free_result($line);
 	return $posts;
 }
 
 /* PIO模組版本 */
+/* 輸入 void, 輸出 版本號 as string */
 function pioVersion() {
-	return 'v20060706α';
+	return 'v20060707α';
 }
 
 /* 處理連線字串/連接 */
-function dbConnect($connStr=CONNECTION_STRING){
-	if($connStr){ // 有連線字串
-		// 格式： mysql://帳號:密碼@伺服器位置:埠號(可省略)/資料庫/資料表/
-		// 示例： mysql://pixmicat:1234@127.0.0.1/pixmicat_use/imglog/
-		if(preg_match('/^mysql:\/\/(.*)\:(.*)\@(.*(?:\:[0-9]+)?)\/(.*)\/(.*)\/$/i', $connStr, $linkinfos)){
-			define('MYSQL_USER', $linkinfos[1]); // 登入帳號
-			define('MYSQL_PASSWORD', $linkinfos[2]); // 登入密碼
-			define('MYSQL_SERVER', $linkinfos[3]); // 登入伺服器 (含埠號)
-			define('MYSQL_DBNAME', $linkinfos[4]); // 資料庫名稱
-			define('SQLLOG', $linkinfos[5]); // 資料表名稱
-		}
+/* 輸入 連線字串 as string, 輸出 void */
+function dbConnect($connStr){
+	// 格式： mysql://帳號:密碼@伺服器位置:埠號(可省略)/資料庫/資料表/
+	// 示例： mysql://pixmicat:1234@127.0.0.1/pixmicat_use/imglog/
+	if(preg_match('/^mysql:\/\/(.*)\:(.*)\@(.*(?:\:[0-9]+)?)\/(.*)\/(.*)\/$/i', $connStr, $linkinfos)){
+		define('MYSQL_USER', $linkinfos[1]); // 登入帳號
+		define('MYSQL_PASSWORD', $linkinfos[2]); // 登入密碼
+		define('MYSQL_SERVER', $linkinfos[3]); // 登入伺服器 (含埠號)
+		define('MYSQL_DBNAME', $linkinfos[4]); // 資料庫名稱
+		define('SQLLOG', $linkinfos[5]); // 資料表名稱
 	}
 }
 
 /* 初始化 */
+/* 輸入 void, 輸出 void */
 function dbInit(){
 	global $con, $prepared;
 	dbPrepare();
@@ -92,6 +84,7 @@ COMMENT = 'For Pixmicat! use'";
 }
 
 /* 準備/讀入 */
+/* 輸入 是否重作 as boolean, 輸出 void */
 function dbPrepare($reload=false){
 	global $con, $prepared;
 	if($prepared && !$reload) return true;
@@ -109,14 +102,16 @@ function dbPrepare($reload=false){
 }
 
 /* 提交/儲存 */
+/* 輸入 void, 輸出 void */
 function dbCommit(){
 	global $con, $prepared;
 	if(!$prepared) return false;
-	if(postCount() >= LOG_MAX) delOldPostes();
+
 	//@mysql_query('COMMIT'); // 交易性能模式提交
 }
 
 /* 優化資料表 */
+/* 輸入 是否作 as boolean, 輸出 優化成果 as boolean */
 function dbOptimize($doit=false){
 	global $con;
 	if(!$doit) return true; // 支援最佳化資料表
@@ -127,6 +122,7 @@ function dbOptimize($doit=false){
 }
 
 /* 刪除舊文 */
+/* 輸入 void, 輸出 舊文之附加檔案列表 as array */
 function delOldPostes(){
 	global $con, $path;
 	$oldAttachments = array(); // 舊文的附加檔案清單
@@ -162,6 +158,7 @@ function delOldPostes(){
 }
 
 /* 刪除文章 */
+/* 輸入 文章編號 as array, 輸出 刪除附加檔案列表 as array */
 function removePosts($posts){
 	global $con;
 	$files = removeAttachments($posts); // 先取得刪除文章附件清單
@@ -172,6 +169,7 @@ function removePosts($posts){
 }
 
 /* 刪除舊附件 (輸出附件清單) */
+/* 輸入 附加檔案總容量 as integer, 限制檔案儲存量 as integer, 只警告 as boolean, 輸出 警告旗標 / 舊附件列表 as array */
 function delOldAttachments($total_size,$storage_max,$warnOnly=true){
 	global $con, $path;
 	$arr_warn = $arr_kill = array(); // 警告 / 即將被刪除標記陣列
@@ -193,6 +191,7 @@ function delOldAttachments($total_size,$storage_max,$warnOnly=true){
 }
 
 /* 刪除附件 (輸出附件清單) */
+/* 輸入 文章編號 as array, 輸出 刪除附件列表 as array */
 function removeAttachments($posts){
 	global $con, $path;
 
@@ -215,6 +214,7 @@ function removeAttachments($posts){
 }
 
 /* 文章數目 */
+/* 輸入 討論串ID as integer, 輸出 討論串文章 / 總文章數目 as integer */
 function postCount($resno=0){
 	global $con, $prepared;
 	if(!$prepared) dbPrepare();
@@ -231,6 +231,7 @@ function postCount($resno=0){
 }
 
 /* 討論串數目 */
+/* 輸入 void, 輸出 討論串數目 as integer */
 function threadCount(){
 	global $con, $prepared;
 	if(!$prepared) dbPrepare();
@@ -241,57 +242,60 @@ function threadCount(){
 }
 
 /* 輸出文章清單 */
+/* 輸入 討論串編號, 開始值, 數目 as integer, 輸出 討論串結構 as array / MySQL Link resource */
 function fetchPostList($resno=0,$start=0,$amount=0){
 	global $con, $prepared;
 	if(!$prepared) dbPrepare();
 
-	$line = array(); $i = 0;
 	if($resno){ // 輸出討論串的結構 (含自己, EX : 1,2,3,4,5,6)
-		$tree = _mysql_call('SELECT no FROM '.SQLLOG.' WHERE no = '.$resno.' OR resto = '.$resno.' ORDER BY no');
+		$tmpSQL = 'SELECT * FROM '.SQLLOG.' WHERE no = '.$resno.' OR resto = '.$resno.' ORDER BY no';
+		$tree = _mysql_call($tmpSQL);
+
+		return array($tree, $start, $amount) ; // ！重要！ 直接回傳resource, 開始值, 數目，故不必釋放資源
 	}else{ // 輸出所有文章編號，新的在前
-		$tree = _mysql_call('SELECT no FROM '.SQLLOG.' ORDER BY no DESC');
+		$line = array();
+		$tmpSQL = 'SELECT no FROM '.SQLLOG.' ORDER BY no DESC';
+		$tree = _mysql_call($tmpSQL);
+		while($rows=mysql_fetch_row($tree)) $line[] = $rows[0]; // 迴圈
+
+		mysql_free_result($tree);
+		return $line;
 	}
-	if($start > 0) mysql_data_seek($tree, $start); // 移動指標
-	while($rows=mysql_fetch_row($tree)){ // 迴圈
-		$i++; $line[] = $rows[0];
-		if($amount && $i==$amount) break; // 取夠了
-	}
-	mysql_free_result($tree);
-	return $line;
 }
 
 /* 輸出討論串清單 */
+/* 輸入 開始值, 數目 as integer, 輸出 討論串首篇編號 as array */
 function fetchThreadList($start=0,$amount=0) {
 	global $con, $prepared;
 	if(!$prepared) dbPrepare();
 
-	$treeline = array(); $i = 0;
-	$tree = _mysql_call('SELECT no FROM '.SQLLOG.' WHERE resto = 0 ORDER BY root DESC');
-	if($start > 0) mysql_data_seek($tree, $start); // 移動指標
-	while($rows=mysql_fetch_row($tree)){ // 迴圈
-		$i++; $treeline[] = $rows[0];
-		if($amount && $i==$amount) break; // 取夠了
-	}
+	$treeline = array();
+	$tmpSQL = 'SELECT no FROM '.SQLLOG.' WHERE resto = 0 ORDER BY root DESC';
+	if($amount) $tmpSQL .= " LIMIT {$start}, {$amount}"; // 有指定數量才用 LIMIT
+	$tree = _mysql_call($tmpSQL);
+	while($rows=mysql_fetch_row($tree)) $treeline[] = $rows[0]; // 迴圈
+
 	mysql_free_result($tree);
 	return $treeline;
 }
 
 /* 輸出文章 */
+/* 輸入 文章編號 as array / MySQL Link resource, 輸出 文章資料 as array */
 function fetchPosts($postlist){
 	global $con, $prepared;
 	if(!$prepared) dbPrepare();
 
-	if(is_array($postlist)){ // 多篇輸出 (保留功能)
+	if(is_resource($postlist[0])){ // 取巧法：MySQL resource
+		return _ArrangeArrayStructure($postlist[0], $postlist[1], $postlist[2]); // 重排陣列結構, 並由後端分頁
+	}else{ // 如果是文章編號陣列
 		$pno = implode(', ', $postlist); // ID字串
-		$line = _mysql_call('SELECT no, now, name, email, sub, com, status, host, pwd, ext, w, h, tim, md5 FROM '.SQLLOG.' WHERE no IN ('.$pno.') ORDER BY no DESC');
-	}else{ // 單篇輸出
-		$line = _mysql_call('SELECT no, now, name, email, sub, com, status, host, pwd, ext, w, h, tim, md5 FROM '.SQLLOG.' WHERE no = '.$postlist);
+		$line = _mysql_call('SELECT * FROM '.SQLLOG.' WHERE no IN ('.$pno.') ORDER BY no DESC');
+		return _ArrangeArrayStructure($line); // 重排陣列結構
 	}
-
-	return _ArrangeArrayStructure($line); // 重排陣列結構
 }
 
 /* 有此討論串? */
+/* 輸入 討論串編號 as integer, 輸出 是否存在 as boolean */
 function is_Thread($no){
 	global $con, $prepared;
 	if(!$prepared) dbPrepare();
@@ -300,22 +304,14 @@ function is_Thread($no){
 	return mysql_fetch_array($result);
 }
 
-/* 有此文章? */
-function is_Post($no){
-	global $con, $prepared;
-	if(!$prepared) dbPrepare();
-
-	$result = _mysql_call('SELECT no FROM '.SQLLOG.' WHERE no = '.$no);
-	return mysql_fetch_array($result);
-}
-
 /* 搜尋文章 */
+/* 輸入 關鍵字 as array, 搜尋目標 as string, 搜尋方式 as string, 輸出 文章資料 as array */
 function searchPost($keyword,$field,$method){
 	global $prepared;
 	if(!$prepared) dbPrepare();
 
 	$keyword_cnt = count($keyword);
-	$SearchQuery = 'SELECT no, now, name, email, sub, com, status, host, pwd, ext, w, h, tim, md5 FROM '.SQLLOG." WHERE {$field} LIKE '%".($keyword[0])."%'";
+	$SearchQuery = 'SELECT * FROM '.SQLLOG." WHERE {$field} LIKE '%".($keyword[0])."%'";
 	if($keyword_cnt > 1) for($i = 1; $i < $keyword_cnt; $i++) $SearchQuery .= " {$method} {$field} LIKE '%".($keyword[$i])."%'"; // 多重字串交集 / 聯集搜尋
 	$SearchQuery .= ' ORDER BY no DESC'; // 按照號碼大小排序
 	if(!$line=_mysql_call($SearchQuery)) echo '[ERROR] 搜尋文章失敗<br />';
@@ -324,6 +320,7 @@ function searchPost($keyword,$field,$method){
 }
 
 /* 新增文章/討論串 */
+/* 輸入 各種欄位值 as any, 輸出 void */
 function addPost($no,$resno,$now,$name,$email,$sub,$com,$url,$host,$pass,$ext,$W,$H,$tim,$chk,$age=false) {
 	global $con, $prepared;
 	if(!$prepared) dbPrepare();
@@ -355,14 +352,36 @@ $time.','. // 發文時間數值
 }
 
 /* 停止討論串 */
+/* 輸入 文章編號 as array, 輸出 void */
 function stopThread($no) {
 	global $con, $prepared;
 	if(!$prepared) dbPrepare();
 
-	if(is_array($no))
-		foreach($no as $n) _stopThread($n);
-	else{
-		_stopThread($n);
+	$tno = implode(', ', $postlist); // ID字串
+	$line = _mysql_call('SELECT status FROM '.SQLLOG.' WHERE no IN ('.$tno.') AND resto = 0');
+	while(list($status)=mysql_fetch_row($line)){ // 迴圈
+		$status = ($status=='') ? 'T' : ''; // 取出討論串狀態並修改
+		if(!_mysql_call('UPDATE '.SQLLOG." SET status = '$status' WHERE no = $tno")) echo "[ERROR] 更新討論串狀態失敗<br>"; // 更新討論串屬性
 	}
+	mysql_free_result($line);
+}
+
+/* 取出文章狀態 */
+/* 輸入 文章編號 as integer, 狀態類型 as string, 輸出 狀態值 as integer */
+function postStatus($no, $statusType){
+	global $con, $prepared;
+	if(!$prepared) dbPrepare();
+	$returnValue = 0; // 回傳值
+
+	switch($statusType){
+		case 'TS': // 討論串是否鎖定
+			$line = _mysql_call('SELECT status FROM '.SQLLOG.' WHERE no = '.$no.' AND resto = 0');
+			$status = mysql_result($line, 0, 0);
+			$returnValue = ($status=='T') ? 1 : 0; // 討論串是否鎖定
+			mysql_free_result($line);
+			break;
+		default:
+	}
+	return $returnValue;
 }
 ?>
