@@ -4,7 +4,7 @@ function getMicrotime(){
     list($usec, $sec) = explode(' ', microtime());
     return ((double)$usec + (double)$sec);
 }
-define("FUTABA_VER", 'Pixmicat!-PIO 20060707'); // 版本資訊文字
+define("FUTABA_VER", 'Pixmicat!-PIO 20060708'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -52,7 +52,7 @@ include_once('./lib_pio.php'); // 引入PIO
 function updatelog($resno=0,$page_num=0){
 	global $path;
 
-	$page_start = $page_end = 0 // 靜態頁面編號
+	$page_start = $page_end = 0; // 靜態頁面編號
 	$inner_for_count = 1; // 內部迴圈執行次數
 	$kill_sensor =  $old_sensor = false; // 預測系統啟動旗標
 	$arr_kill = $arr_old = array(); // 過舊編號陣列
@@ -106,14 +106,35 @@ function updatelog($resno=0,$page_num=0){
 ';
 		// 輸出討論串內容
 		for($i = 0; $i < $inner_for_count; $i++){
-			if($resno) $tID = $resno; // 單討論串輸出
-			elseif($page_start==$page_end) $tID = $threads[$i]; // 一頁內容
-			else $tID = $threads[$page * PAGE_DEF + $i]; // 多頁內容，remake模式
-			// 計算回應分頁
-			// Work In Progress...
-			// if($page_num存在 && 有回應一頁顯示數設定) 算計輸出回應範圍
-			fetchPostList($tID, 回應顯示範圍)
-			fetchPosts (丟入回應輸出陣列範圍，一次取首篇加回應)
+			// 取出討論串編號
+			if($resno) $tID = $resno; // 單討論串輸出 (回應模式)
+			elseif($page_start==$page_end) $tID = $threads[$i]; // 一頁內容 (一般模式)
+			else $tID = $threads[$page * PAGE_DEF + $i]; // 多頁內容 (remake模式)
+			// 取出討論串結構及回應個數等資訊
+			$tree = fetchPostList($tID); // 整個討論串樹狀結構
+			$tree_count = count($tree) - 1; // 討論串回應個數
+			// 計算回應分頁範圍
+			$RES_start = $RES_amount = 0;
+			$hiddenReply = 0; // 被隱藏回應數
+			if($resno && RE_PAGE_DEF){ // RE_PAGE_DEF有設定 (開啟回應分頁)
+				if($tree_count){ // 有回應才做分頁動作
+					if($page_num==='RE_PAGE_MAX') $page_num = ceil($tree_count / RE_PAGE_DEF) - 1; // 特殊值：最末頁
+					if($page_num < 0) $page_num = 0; // 負數
+					if($page_num * RE_PAGE_DEF >= $tree_count) error('對不起，您所要求的頁數並不存在');
+					$RES_start = $page_num * RE_PAGE_DEF + 1; // 開始
+					$RES_amount = RE_PAGE_DEF; if($tree_count % RE_PAGE_DEF) $RES_amount = $tree_count % RE_PAGE_DEF; // 取幾個
+				}elseif($page_num > 0) error('對不起，您所要求的頁數並不存在'); // 沒有回應的情況只允許page_num = 0 或負數
+			}else{ // 一般模式下的回應隱藏
+				$RES_start = $tree_count - RE_DEF + 1; if(!$RES_start) $RES_start = 1; // 開始
+				$RES_amount = RE_DEF; // 取幾個
+				$hiddenReply = $RES_start - 1; // 被隱藏回應數
+			}
+			// $RES_start, $RES_amount 拿去算新討論串結構 (分頁後, 部分回應隱藏)
+			array_unshift(array_slice($tree, $RES_start, $RES_amount), $tID);
+			$posts = fetchPosts($tree);
+			//exit(print_r($posts));
+			//$dat .= arrangeThreads($posts, $hiddenReply); // 交給這個函式去搞討論串印出
+			$dat .= '<div>吃掉了orz ID='.implode(', ', $tree).'<hr /></div>';
 		}
 		$dat .= '</div>
 
@@ -134,23 +155,23 @@ function updatelog($resno=0,$page_num=0){
 ';
 
 		// 換頁判斷
-		$prev = ($resno) ? (($page_num-1) * RE_PAGE_DEF) : $page - 1;
-		$next = ($resno) ? (($page_num+1) * RE_PAGE_DEF) : $page + 1;
+		$prev = ($resno ? $page_num : $page) - 1;
+		$next = ($resno ? $page_num : $page) + 1;
 		if($resno){ // 回應分頁
 			if(RE_PAGE_DEF > 0){ // 回應分頁開啟
 				$dat .= '<table border="1"><tr>';
-				if($prev >= 0) $dat .= '<td><form action="'.PHP_SELF.'?res='.$resno.'&amp;page_num='.$prev/RE_PAGE_DEF.'" method="post"><div><input type="submit" value="上一頁" /></div></form></td>';
+				if($prev >= 0) $dat .= '<td><form action="'.PHP_SELF.'?res='.$resno.'&amp;page_num='.$prev.'" method="post"><div><input type="submit" value="上一頁" /></div></form></td>';
 				else $dat .= '<td style="white-space: nowrap;">第一頁</td>';
 				$dat .= "<td>";
-				if($countresALL==0) $dat .= '[<b>0</b>] '; // 無回應
+				if($tree_count==0) $dat .= '[<b>0</b>] '; // 無回應
 				else{
-					for($i = 0; $i < $countresALL ; $i += RE_PAGE_DEF){
+					for($i = 0; $i < $tree_count ; $i += RE_PAGE_DEF){
 						if($page_num==$i/RE_PAGE_DEF) $dat .= '[<b>'.$i/RE_PAGE_DEF.'</b>] ';
 						else $dat .= '[<a href="'.PHP_SELF.'?res='.$resno.'&amp;page_num='.$i/RE_PAGE_DEF.'">'.$i/RE_PAGE_DEF.'</a>] ';
 					}
 				}
 				$dat .= '</td>';
-				if($countresALL > $next) $dat .= '<td><form action="'.PHP_SELF.'?res='.$resno.'&amp;page_num='.$next/RE_PAGE_DEF.'" method="post"><div><input type="submit" value="下一頁" /></div></form></td>';
+				if($tree_count > $next * RE_PAGE_DEF) $dat .= '<td><form action="'.PHP_SELF.'?res='.$resno.'&amp;page_num='.$next.'" method="post"><div><input type="submit" value="下一頁" /></div></form></td>';
 				else $dat .= '<td style="white-space: nowrap;">最後一頁</td>';
 				$dat .= '</tr></table>'."\n";
 			}
@@ -165,18 +186,18 @@ function updatelog($resno=0,$page_num=0){
 				$dat .= '<div><input type="submit" value="上一頁" /></div></form></td>';
 			}else $dat .= '<td style="white-space: nowrap;">第一頁</td>';
 			$dat .= '<td>';
-			for($i = 0; $i < $counttree ; $i += PAGE_DEF){
-				if($st==$i) $dat .= "[<b>".$i/PAGE_DEF."</b>] ";
+			for($i = 0; $i < $threads_count ; $i += PAGE_DEF){
+				if($page==$i/PAGE_DEF) $dat .= "[<b>".$i/PAGE_DEF."</b>] ";
 				else{
 					if($i==0) $dat .= '[<a href="'.PHP_SELF2.'?">0</a>] ';
-					elseif((STATIC_HTML_UNTIL != -1) && (($i/PAGE_DEF) > STATIC_HTML_UNTIL)) $dat .= '[<a href="'.PHP_SELF.'?page_num='.$i/PAGE_DEF.'">'.$i/PAGE_DEF.'</a>] ';
+					elseif(STATIC_HTML_UNTIL != -1 && $i/PAGE_DEF > STATIC_HTML_UNTIL) $dat .= '[<a href="'.PHP_SELF.'?page_num='.$i/PAGE_DEF.'">'.$i/PAGE_DEF.'</a>] ';
 					else $dat .= '[<a href="'.$i/PAGE_DEF.PHP_EXT.'?">'.$i/PAGE_DEF.'</a>] ';
 				}
 			}
 			$dat .= '</td>';
-			if($counttree > $next){
-				if((STATIC_HTML_UNTIL != -1) && (($next/PAGE_DEF) > STATIC_HTML_UNTIL)) $dat .= '<td><form action="'.PHP_SELF.'?page_num='.$next/PAGE_DEF.'" method="post">';
-				else $dat .= '<td><form action="'.$next/PAGE_DEF.PHP_EXT.'" method="get">';
+			if($threads_count > $next){
+				if((STATIC_HTML_UNTIL != -1) && ($next > STATIC_HTML_UNTIL)) $dat .= '<td><form action="'.PHP_SELF.'?page_num='.$next.'" method="post">';
+				else $dat .= '<td><form action="'.$next.PHP_EXT.'" method="get">';
 				$dat .= '<div><input type="submit" value="下一頁" /></div></form></td>';
 			}else $dat .= '<td style="white-space: nowrap;">最後一頁</td>';
 			$dat .= '</tr></table>'."\n";
@@ -205,7 +226,6 @@ function updatelog($resno=0,$page_num=0){
 			break; // 只執行一次迴圈，即印出一頁內容
 		}
 		if((STATIC_HTML_UNTIL != -1) && STATIC_HTML_UNTIL==$page) break; // 生成靜態頁面數目限制
-		
 	}
 /*
 		for($i = $st; $i < $st + PAGE_DEF; $i++){

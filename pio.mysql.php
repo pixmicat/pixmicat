@@ -11,17 +11,15 @@ function _mysql_call($query){
 }
 
 /* private 輸出符合標準的索引鍵陣列 */
-function _ArrangeArrayStructure($line,$start=0,$amount=0){
+function _ArrangeArrayStructure($line){
 	global $con;
 
-	$posts = array(); $i = $p = 0;
+	$posts = array();
 	$arrIDKey = array('no'=>'', 'now'=>'', 'name'=>'', 'email'=>'', 'sub'=>'', 'com'=>'', 'status'=>'url', 'host'=>'', 'pwd'=>'pw', 'ext'=>'', 'w'=>'', 'h'=>'', 'tim'=>'time', 'md5'=>'chk'); // MySQL 欄位鍵 => 標準欄位鍵
 	while($row=mysql_fetch_array($line, MYSQL_ASSOC)){
 		$tline = array();
 		foreach($arrIDKey as $mID => $mVal) $tline[($mVal ? $mVal : $mID)] = $row[$mID]; // 逐個取值並代入
-		$posts[] = $tline; $i++; $p++;
-		if($i==1){ if($start > 0){ mysql_data_seek($line, $start); $p = 0; break; } } // 讀了討論串首篇後就開始跳頁，並歸零
-		if($amount && $p==$amount) break; // 取夠了
+		$posts[] = $tline;
 	}
 	mysql_free_result($line);
 	return $posts;
@@ -30,7 +28,7 @@ function _ArrangeArrayStructure($line,$start=0,$amount=0){
 /* PIO模組版本 */
 /* 輸入 void, 輸出 版本號 as string */
 function pioVersion() {
-	return 'v20060707α';
+	return 'v20060708α';
 }
 
 /* 處理連線字串/連接 */
@@ -242,25 +240,22 @@ function threadCount(){
 }
 
 /* 輸出文章清單 */
-/* 輸入 討論串編號, 開始值, 數目 as integer, 輸出 討論串結構 as array / MySQL Link resource */
+/* 輸入 討論串編號, 開始值, 數目 as integer, 輸出 討論串結構 as array */
 function fetchPostList($resno=0,$start=0,$amount=0){
 	global $con, $prepared;
 	if(!$prepared) dbPrepare();
 
+	$line = array();
 	if($resno){ // 輸出討論串的結構 (含自己, EX : 1,2,3,4,5,6)
 		$tmpSQL = 'SELECT * FROM '.SQLLOG.' WHERE no = '.$resno.' OR resto = '.$resno.' ORDER BY no';
-		$tree = _mysql_call($tmpSQL);
-
-		return array($tree, $start, $amount) ; // ！重要！ 直接回傳resource, 開始值, 數目，故不必釋放資源
 	}else{ // 輸出所有文章編號，新的在前
-		$line = array();
 		$tmpSQL = 'SELECT no FROM '.SQLLOG.' ORDER BY no DESC';
-		$tree = _mysql_call($tmpSQL);
-		while($rows=mysql_fetch_row($tree)) $line[] = $rows[0]; // 迴圈
-
-		mysql_free_result($tree);
-		return $line;
 	}
+	$tree = _mysql_call($tmpSQL);
+	while($rows=mysql_fetch_row($tree)) $line[] = $rows[0]; // 迴圈
+
+	mysql_free_result($tree);
+	return $line;
 }
 
 /* 輸出討論串清單 */
@@ -280,18 +275,15 @@ function fetchThreadList($start=0,$amount=0) {
 }
 
 /* 輸出文章 */
-/* 輸入 文章編號 as array / MySQL Link resource, 輸出 文章資料 as array */
+/* 輸入 文章編號 as array, 輸出 文章資料 as array */
 function fetchPosts($postlist){
 	global $con, $prepared;
 	if(!$prepared) dbPrepare();
 
-	if(is_resource($postlist[0])){ // 取巧法：MySQL resource
-		return _ArrangeArrayStructure($postlist[0], $postlist[1], $postlist[2]); // 重排陣列結構, 並由後端分頁
-	}else{ // 如果是文章編號陣列
-		$pno = implode(', ', $postlist); // ID字串
-		$line = _mysql_call('SELECT * FROM '.SQLLOG.' WHERE no IN ('.$pno.') ORDER BY no DESC');
-		return _ArrangeArrayStructure($line); // 重排陣列結構
-	}
+	$pno = implode(', ', $postlist); // ID字串
+	$line = _mysql_call('SELECT * FROM '.SQLLOG.' WHERE no IN ('.$pno.') ORDER BY no');
+	return _ArrangeArrayStructure($line); // 重排陣列結構
+
 }
 
 /* 有此討論串? */
