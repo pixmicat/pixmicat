@@ -1,4 +1,9 @@
 <?php
+$time1 = getMicrotime();
+function getMicrotime(){
+    list($usec, $sec) = explode(' ', microtime());
+    return ((double)$usec + (double)$sec);
+}
 define("FUTABA_VER", 'Pixmicat!-PIO 20060706'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
@@ -544,7 +549,7 @@ function regist($name,$email,$sub,$com,$pwd,$upfile,$upfile_path,$upfile_name,$u
 		if($dest && $lchk==$chk && file_func('exist',$path.IMG_DIR.$ltime.$lext)) error('上傳失敗<br />近期已經有相同的附加檔案', $dest); // 相同的附加檔案
 	}
 
-	$ThreadExistsBefore=is_Thread($resto);
+	if($resto) $ThreadExistsBefore = is_Thread($resto);
 	// 記錄檔行數已達上限：刪除過舊檔
 	if($countline >= LOG_MAX){
 		$files=delOldPostes();

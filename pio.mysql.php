@@ -42,15 +42,17 @@ function pioVersion() {
 }
 
 /* 處理連線字串/連接 */
-function dbConnect($connStr){
-	// 格式： mysql://帳號:密碼@伺服器位置:埠號(可省略)/資料庫/資料表/
-	// 示例： mysql://pixmicat:1234@127.0.0.1/pixmicat_use/imglog/
-	if(preg_match('/^mysql:\/\/(.*)\:(.*)\@(.*(?:\:[0-9]+)?)\/(.*)\/(.*)\/$/i', $connStr, $linkinfos)){
-		define('MYSQL_USER', $linkinfos[1]); // 登入帳號
-		define('MYSQL_PASSWORD', $linkinfos[2]); // 登入密碼
-		define('MYSQL_SERVER', $linkinfos[3]); // 登入伺服器 (含埠號)
-		define('MYSQL_DBNAME', $linkinfos[4]); // 資料庫名稱
-		define('SQLLOG', $linkinfos[5]); // 資料表名稱
+function dbConnect($connStr=CONNECTION_STRING){
+	if($connStr){ // 有連線字串
+		// 格式： mysql://帳號:密碼@伺服器位置:埠號(可省略)/資料庫/資料表/
+		// 示例： mysql://pixmicat:1234@127.0.0.1/pixmicat_use/imglog/
+		if(preg_match('/^mysql:\/\/(.*)\:(.*)\@(.*(?:\:[0-9]+)?)\/(.*)\/(.*)\/$/i', $connStr, $linkinfos)){
+			define('MYSQL_USER', $linkinfos[1]); // 登入帳號
+			define('MYSQL_PASSWORD', $linkinfos[2]); // 登入密碼
+			define('MYSQL_SERVER', $linkinfos[3]); // 登入伺服器 (含埠號)
+			define('MYSQL_DBNAME', $linkinfos[4]); // 資料庫名稱
+			define('SQLLOG', $linkinfos[5]); // 資料表名稱
+		}
 	}
 }
 
@@ -264,7 +266,7 @@ function fetchThreadList($start=0,$amount=0) {
 	if(!$prepared) dbPrepare();
 
 	$treeline = array(); $i = 0;
-	$tree = _mysql_call('SELECT no FROM '.SQLLOG.' WHERE resto = 0');
+	$tree = _mysql_call('SELECT no FROM '.SQLLOG.' WHERE resto = 0 ORDER BY root DESC');
 	if($start > 0) mysql_data_seek($tree, $start); // 移動指標
 	while($rows=mysql_fetch_row($tree)){ // 迴圈
 		$i++; $treeline[] = $rows[0];
