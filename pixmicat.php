@@ -4,7 +4,7 @@ function getMicrotime(){
     list($usec, $sec) = explode(' ', microtime());
     return ((double)$usec + (double)$sec);
 }
-define("FUTABA_VER", 'Pixmicat!-PIO 20060706'); // 版本資訊文字
+define("FUTABA_VER", 'Pixmicat!-PIO 20060707'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -128,7 +128,7 @@ function updatelog($resno=0,$page_num=0){
 					$imgsrc = '<a href="'.IMGLINK_URL_PREFIX.$src.'" rel="_blank"><img src="nothumb.gif" class="img" alt="'.$size.'B" title="'.$size.'B" /></a>';
 				}
 				if(SHOW_IMGWH){ // 顯示附加檔案之原檔長寬尺寸
-					$imgwh_bar = file_func('imgsize',$img);
+					$imgwh_bar = ', '.file_func('imgsize',$img);
 				}
 				$IMG_BAR = '檔名：<a href="'.IMG_URL_PREFIX.$src.'" rel="_blank">'.$time.$ext.'</a>-('.$size.'B'.$imgwh_bar.') '.$img_thumb;
 				if(!USE_TEMPLATE) $dat .= $IMG_BAR.'<br />'.$imgsrc;
@@ -226,7 +226,7 @@ function updatelog($resno=0,$page_num=0){
 						$imgsrc = '<a href="'.IMGLINK_URL_PREFIX.$src.'" rel="_blank"><img src="nothumb.gif" class="img" alt="'.$size.'B" title="'.$size.'B" /></a>';
 					}
 					if(SHOW_IMGWH){ // 顯示附加檔案之原檔長寬尺寸
-						$imgwh_bar = file_func('imgsize',$img);
+						$imgwh_bar = ', '.file_func('imgsize',$img);
 					}
 					$IMG_BAR = '檔名：<a href="'.IMG_URL_PREFIX.$src.'" rel="_blank">'.$time.$ext.'</a>-('.$size.'B'.$imgwh_bar.') '.$img_thumb;
 					if(!USE_TEMPLATE){
