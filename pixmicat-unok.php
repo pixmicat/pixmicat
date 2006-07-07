@@ -122,19 +122,18 @@ function updatelog($resno=0,$page_num=0){
 					if($page_num < 0) $page_num = 0; // 負數
 					if($page_num * RE_PAGE_DEF >= $tree_count) error('對不起，您所要求的頁數並不存在');
 					$RES_start = $page_num * RE_PAGE_DEF + 1; // 開始
-					$RES_amount = RE_PAGE_DEF; if($tree_count % RE_PAGE_DEF) $RES_amount = $tree_count % RE_PAGE_DEF; // 取幾個
+					$RES_amount = RE_PAGE_DEF; // 取幾個
 				}elseif($page_num > 0) error('對不起，您所要求的頁數並不存在'); // 沒有回應的情況只允許page_num = 0 或負數
 			}else{ // 一般模式下的回應隱藏
-				$RES_start = $tree_count - RE_DEF + 1; if(!$RES_start) $RES_start = 1; // 開始
+				$RES_start = $tree_count - RE_DEF + 1; if($RES_start < 1) $RES_start = 1; // 開始
 				$RES_amount = RE_DEF; // 取幾個
 				$hiddenReply = $RES_start - 1; // 被隱藏回應數
 			}
 			// $RES_start, $RES_amount 拿去算新討論串結構 (分頁後, 部分回應隱藏)
-			array_unshift(array_slice($tree, $RES_start, $RES_amount), $tID);
+			$tree = array_slice($tree, $RES_start, $RES_amount); array_unshift($tree, $tID);
 			$posts = fetchPosts($tree);
-			//exit(print_r($posts));
-			//$dat .= arrangeThreads($posts, $hiddenReply); // 交給這個函式去搞討論串印出
-			$dat .= '<div>吃掉了orz ID='.implode(', ', $tree).'<hr /></div>';
+			//$dat .= arrangeThread($posts, $hiddenReply); // 交給這個函式去搞討論串印出
+			$dat .= '<div>吃掉回應'.$hiddenReply.'個orz ID='.implode(', ', $tree).'<p /><a href="pixmicat.php?res='.$tID.'">[REPLY]</a><hr /></div>';
 		}
 		$dat .= '</div>
 
@@ -195,7 +194,7 @@ function updatelog($resno=0,$page_num=0){
 				}
 			}
 			$dat .= '</td>';
-			if($threads_count > $next){
+			if($threads_count > $next * PAGE_DEF){
 				if((STATIC_HTML_UNTIL != -1) && ($next > STATIC_HTML_UNTIL)) $dat .= '<td><form action="'.PHP_SELF.'?page_num='.$next.'" method="post">';
 				else $dat .= '<td><form action="'.$next.PHP_EXT.'" method="get">';
 				$dat .= '<div><input type="submit" value="下一頁" /></div></form></td>';
@@ -387,6 +386,12 @@ function updatelog($resno=0,$page_num=0){
 			clearstatcache(); // 刪除STAT暫存檔
 			if($resno) break; // 為回應模式時僅輸出單一討論串
 		}*/
+}
+
+/* 印出討論串 */
+function arrangeThread($posts, $hiddepReply){
+	// exit(print_r($posts));
+	return '[NOT OK]';
 }
 
 /* 寫入記錄檔 */
