@@ -180,7 +180,7 @@ function delOldAttachments($total_size,$storage_max,$warnOnly=true){
 			if($dext){ // 有附加檔
 				$dfile = $path.IMG_DIR.$dtim.$dext; // 附加檔案名稱
 				$dthumb = $path.THUMB_DIR.$dtim.'s.jpg'; // 預覽檔案名稱
-				if(file_func('exist', $dfile)){ $total_size -= file_func('size', $dfile) / 1024; $arr_kill[] = $dno; $arr_warn[] = $dno; } // 標記刪除
+				if(file_func('exist', $dfile)){ $total_size -= file_func('size', $dfile) / 1024; $arr_kill[] = $dno; $arr_warn[$dno] = 1; } // 標記刪除
 				if(file_func('exist', $dthumb)) $total_size -= file_func('size', $dthumb) / 1024;
 				if($total_size < $storage_max) break;
 			}
