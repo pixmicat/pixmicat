@@ -18,7 +18,7 @@ function file_func($action,$file='',$size='',$imgsize='') {
 		case 'init':
 			if(!file_exists(FTP_FILE_LOG)) touch(FTP_FILE_LOG);
 			ftp_func('mkdir',array(IMG_DIR,THUMB_DIR));
-			break;
+			return true;
 		case 'exist':
 			if(!$file) return true;  // Function exists
 			return ftp_log('exist',$lfile);

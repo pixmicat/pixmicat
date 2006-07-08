@@ -8,7 +8,7 @@ $prepared=0;
 
 /* PIO模組版本 */
 function pioVersion() {
-	return 'v20060706α';
+	return 'v20060707α';
 }
 
 /* 處理連線字串/連接 */
@@ -74,7 +74,7 @@ function dbCommit() {
 	
 	$log=$tree='';
 	for($post=0;$post<$pcount;$post++)
-		$log.=is_Post($porder[$post])?implode(',',$logs[$porder[$post]]).",\n":'';
+		$log.=isset($logs[$porder[$post]])?implode(',',$logs[$porder[$post]]).",\n":'';
 
 	for($tline=0;$tline<$tcount;$tline++)
 		$tree.=is_Thread($torder[$tline])?implode(',',$trees[$torder[$tline]])."\n":'';
@@ -122,7 +122,7 @@ function removePosts($posts) {
 	$torder_flip=array_flip($torder);
 	$pcount=count($posts);
 	for($post=0;$post<$pcount;$post++) {
-		if(!is_Post($posts[$post])) continue;
+		if(!isset($logs[$posts[$post]])) continue;
 		if($restono[$posts[$post]]==$post) {
 			unset($trees[$posts[$post]]);
 			if(@$torder_flip[$posts[$post]]) unset($torder[$torder_flip[$posts[$post]]]);
@@ -185,7 +185,17 @@ function threadCount() {
 function fetchPostList($resno=0,$start=0,$amount=0) {
 	global $porder,$trees,$prepared;
 	if(!$prepared) dbPrepare();
-	return $resno?($amount?array_slice($trees[$resno],$start,$amount):$trees[$resno]):($amount?array_slice($porder,$start,$amount):$porder);
+	$plist=array();
+	if($resno) {
+		if(is_Thread($resno)) {
+			if($start && $amount) $plist=array_unshift(array_slice($trees[$resno],$start,$amount),$resno);
+			if(!$start && $amount) $plist=array_slice($trees[$resno],0,$amount);
+			if(!$start && !$amount) $plist=$trees[$resno];
+		}
+	} else {
+		$plist=$amount?array_slice($porder,$start,$amount):$porder;
+	}
+	return $plist;
 }
 
 /* 輸出討論串清單 */
@@ -213,13 +223,6 @@ function is_Thread($no) {
 	global $torder,$logs,$trees,$prepared;
 	if(!$prepared) dbPrepare();
 	return isset($trees[$no]);
-}
-
-/* 有此文章? */
-function is_Post($no) {
-	global $torder,$logs,$trees,$prepared;
-	if(!$prepared) dbPrepare();
-	return isset($logs[$no]);
 }
 
 /* 搜尋文章 */
@@ -262,18 +265,45 @@ function addPost($no,$resno,$now,$name,$email,$sub,$com,$url,$host,$pass,$ext,$W
 	}
 }
 
-/* 停止討論串 */
-function stopThread($no) {
+/* 取得文章屬性 */
+function getPostStatus($status,$statusType) {
 	global $porder,$torder,$logs,$trees,$prepared;
 	if(!$prepared) dbPrepare();
+	$returnValue = 0; // 回傳值
 
-	if(is_array($no))
-		foreach($no as $n)
-			if(is_Thread($n)) 
-				$logs[$n]['url']=($logs[$n]['url']=='')?'_THREADSTOP_':'';
-	else {
-		if(is_Thread($no))
-			$logs[$no]['url']=($logs[$no]['url']=='')?'_THREADSTOP_':'';
+	switch($statusType){
+		case 'TS': // 討論串是否鎖定
+			$returnValue = (strpos($status[$i],'_THREADSTOP_')!==false) ? 1 : 0; // 討論串是否鎖定
+			break;
+		default:
 	}
+	return $returnValue;
+}
+
+/* 設定文章屬性 */
+function setPostStatus($no, $status, $statusType, $newValue) {
+	global $logs,$prepared;
+	if(!$prepared) dbPrepare();
+
+	$scount=count($no);
+	for($i=0;$i<$scount;$i++) {
+		$statusType[$i]=explode(',',$statusType[$i]);
+		$newValue[$i]=explode(',',$newValue[$i]);
+		$st_count=count($statusType[$i]);
+		for($j=0;$j<$st_count;$j++) {
+			switch($statusType[$i][$j]){
+				case 'TS': // 討論串鎖定
+					if(strpos($status[$i],'_THREADSTOP_')!==false && $newValue[$j]==0)
+						$status[$i] = str_replace('_THREADSTOP_','',$status[$i]); // 討論串解除鎖定
+					 elseif(strpos($status[$i],'_THREADSTOP_')===false && $newValue[$j]==1)
+						$status[$i] .= '_THREADSTOP_'; // 討論串鎖定
+					break;
+				default:
+			}
+		}
+		$logs[$no[$i]]['url']=$status[$i];
+	}
+}
+
 }
 ?>

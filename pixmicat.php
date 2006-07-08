@@ -724,7 +724,14 @@ function admindel($pass){
 	// 討論串停止區塊
 	if($thsflag){
 		$thsno = array_merge($thsno, $_POST['stop']);
-		stopThread($thsno);
+		$threads=fetchPosts($thsno); // 取得文章
+		$turl=$tstatus=$tsval=array();
+		foreach($threads as $th) {
+			array_push($turl,$th['url']);
+			array_push($tstatus,'TS');
+			array_push($tsval,(getPostStatus($th['url'],'TS')==1?0:1));
+		}
+		setPostStatus($thsno,$turl,$tstatus,$tsval);
 		$is_modified = true;
 	}
 	if(($delflag || $thsflag) && $is_modified){ // 無論如何都有檔案操作，回寫檔案
@@ -772,7 +779,7 @@ _N_EOT_;
 		$com = htmlspecialchars(str_cut(html_entity_decode($com), 20));
 
 		// 討論串首篇停止勾選框
-		if(isset($tno[$no])) $THstop = '<input type="checkbox" name="stop[]" value="'.$no.'" />'.((strpos($url, '_THREADSTOP_')!==false)?'停':'');
+		if(isset($tno[$no])) $THstop = '<input type="checkbox" name="stop[]" value="'.$no.'" />'.((getPostStatus($url, 'TS')==1)?'停':'');
 		else $THstop = '--';
 
 		// 從記錄抽出附加檔案使用量並生成連結

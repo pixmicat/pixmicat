@@ -4,7 +4,7 @@
 function file_func($action,$file='',$size='',$imgsize='') {
 	switch($action) {
 		case 'init':
-			break;
+			return true;
 		case 'exist':
 			if(!$file) return true;  // Function exists
 			return is_file($file);
