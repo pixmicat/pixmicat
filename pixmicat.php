@@ -4,7 +4,7 @@ function getMicrotime(){
     list($usec, $sec) = explode(' ', microtime());
     return ((double)$usec + (double)$sec);
 }
-define("FUTABA_VER", 'Pixmicat!-PIO 20060707'); // 版本資訊文字
+define("FUTABA_VER", 'Pixmicat!-PIO 20060708'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -51,205 +51,88 @@ include_once('./lib_pio.php'); // 引入PIO
 /* 更新記錄檔檔案／輸出討論串 */
 function updatelog($resno=0,$page_num=0){
 	global $path;
-	$st = 0; $tmp_page_num = 0;
-	$kill_sensor = false;
 
-	$tree=fetchThreadList();
-	$counttree=threadCount();
+	$page_start = $page_end = 0; // 靜態頁面編號
+	$inner_for_count = 1; // 內部迴圈執行次數
+	$kill_sensor =  $old_sensor = false; // 預測系統啟動旗標
+	$arr_kill = $arr_old = array(); // 過舊編號陣列
 
-	if($resno) {
-		if(!is_Thread($resno)) error('欲回應之文章並不存在！');
-		$torder_flip=array_flip($tree);
-		$st=$torder_flip[$resno];
+	if(!$resno){
+		if($page_num==0){ // remake模式 (PHP動態輸出多頁份)
+			$threads = fetchThreadList(); // 取得全討論串列表
+			$threads_count = count($threads);
+			$inner_for_count = $threads_count > PAGE_DEF ? PAGE_DEF : $threads_count;
+			$page_end = ceil($threads_count / PAGE_DEF) - 1; // 頁面編號最後值
+			// $page_start = 0; $page_end = 3
+			// $threads = array(1,2,3,4,5,6,7,8,9,10);
+		}else{ // 討論串分頁模式 (PHP動態輸出一頁份)
+			$threads_count = threadCount(); // 討論串個數
+			if($page_num < 0 || ($page_num * PAGE_DEF) >= $threads_count) error('對不起，您所要求的頁數並不存在'); // $page_num超過範圍
+			$page_start = $page_end = $page_num; // 設定靜態頁面編號
+			$threads = fetchThreadList($page_num * PAGE_DEF, PAGE_DEF); // 取出分頁後的討論串首篇列表
+			$inner_for_count = count($threads); // 討論串個數就是迴圈次數
+			// $page_start = 3; $page_end = 3
+			// $threads = array(4,5,6);
+		}
 	}
 
-	// 附加檔案容量限制功能：預測將被刪除檔案
-	$tmp_total_size = total_size(); // 取得目前附加檔案使用量
-	$tmp_STORAGE_MAX = STORAGE_MAX * (($tmp_total_size >= STORAGE_MAX) ? 1 : 0.95); // 預估上限值，如果發生一開始就超過上限就直接用上限取代
-	if(STORAGE_LIMIT && ($tmp_total_size >= $tmp_STORAGE_MAX)){ // 超過預估上限值 (或直接超過上限)
-		$kill_sensor = true; // 預測標記打開
-		$arr_kill = delOldAttachments($tmp_total_size,$tmp_STORAGE_MAX);
+	// 預測過舊文章和將被刪除檔案
+	if(postCount() >= LOG_MAX * 0.95){
+		$old_sensor = true; // 標記打開
+		$arr_old = array_flip(fetchPostList()); // 過舊文章陣列
+	}
+	$tmp_total_size = total_size(); // 目前附加檔案使用量
+	$tmp_STORAGE_MAX = STORAGE_MAX * (($tmp_total_size >= STORAGE_MAX) ? 1 : 0.95); // 預估上限值
+	if(STORAGE_LIMIT && ($tmp_total_size >= $tmp_STORAGE_MAX)){
+		$kill_sensor = true; // 標記打開
+		$arr_kill = delOldAttachments($tmp_total_size, $tmp_STORAGE_MAX); // 過舊附檔陣列
 	}
 
-	$porder_flip=array_flip(fetchPostList());
-	if(!$resno){ // php動態生成討論串用
-		if($page_num < 0 || ($page_num * PAGE_DEF) >= $counttree) error('對不起，您所要求的頁數並不存在'); // $page_num 超過範圍則錯誤
-		$tmp_page_num = $page_num; // 進行跳頁所用
-	}else $tmp_page_num = 0; // 回應模式不跳頁 (此為討論串分頁用，不同於回應分頁)
-	if(USE_TEMPLATE){ // 使用樣板
-		$PTE = new PmcTplEmbed(); // 造一個樣板函式庫物件
-		$PTE->LoadTemplate(TEMPLATE_FILE); // 讀取樣板檔
-	}
-	for($page = $tmp_page_num * PAGE_DEF; $page < $counttree; $page += PAGE_DEF){
-   		$dat = '';
-   		head($dat);
-   		form($dat,$resno);
-   		if(!$resno) $st = $page;
-   		$dat .= '<div id="contents">
+	// 生成靜態頁面一頁份內容
+	for($page = $page_start; $page <= $page_end; $page++){
+		$dat = '';
+		head($dat);
+		form($dat, $resno);
+		$dat .= '<div id="contents">
 
 <form action="'.PHP_SELF.'" method="post">
 <div id="threads">
 
 ';
-
-		for($i = $st; $i < $st + PAGE_DEF; $i++){
-			$imgsrc = $img_thumb = $imgwh_bar = '';
-			$IMG_BAR = $REPLYBTN = $QUOTEBTN = $WARN_OLD = $WARN_BEKILL = $WARN_ENDREPLY = $WARN_HIDEPOST = '';
-
-			if(!isset($tree[$i])) break;
-			$treeline = fetchPostList($tree[$i]);
-			$treeline_count = count($treeline);
-//			list($no,$now,$name,$email,$sub,$com,$url,$host,,$ext,$w,$h,$time,) = array_values(fetchPosts($treeline[0]));
-			extract(fetchPosts($treeline[0]));
-
-			// 設定一些欄位
-			if(CLEAR_SAGE) $email = preg_replace('/^sage( *)/i', '', trim($email)); // 清除E-mail中的「sage」關鍵字
-			if($email) $name = "<a href=\"mailto:$email\">$name</a>";
-			if(AUTO_LINK) $com = auto_link($com); // 內文自動作成連結
-			$com = quoteLight($com);
-			$name = preg_replace('/(◆.{10})/', '<span class="nor">$1</span>', $name); // Trip取消粗體
-
-			// 附加檔案名稱
-			$src = IMG_DIR.$time.$ext;
-			$img = $path.$src;
-			if(!USE_TEMPLATE) $dat .= "<div class=\"threadpost\">\n";
-			if($ext && file_func('exist',$img)){
-				$size = file_func('size',$img);
-				$size = ($size>=1024) ? (int)($size/1024)." K" : $size." "; // KB和B的判別
-				if($w && $h){ // 有長寬屬性
-					if(file_func('exist',$path.THUMB_DIR.$time.'s.jpg')){
-						$img_thumb = '<small>[以預覽圖顯示]</small>';
-						$imgsrc = '<a href="'.IMGLINK_URL_PREFIX.$src.'" rel="_blank"><img src="'.THUMB_URL_PREFIX.THUMB_DIR.$time.'s.jpg" style="width: '.$w.'px; height: '.$h.'px;" class="img" alt="'.$size.'B" title="'.$size.'B" /></a>';
-					}elseif($ext=='.swf'){ // swf檔案僅留連結就好
-					}else{
-						$imgsrc = '<a href="'.IMGLINK_URL_PREFIX.$src.'" rel="_blank"><img src="nothumb.gif" class="img" alt="'.$size.'B" title="'.$size.'B" /></a>';
-					}
-				}else{ // 沒有長寬屬性
-					$imgsrc = '<a href="'.IMGLINK_URL_PREFIX.$src.'" rel="_blank"><img src="nothumb.gif" class="img" alt="'.$size.'B" title="'.$size.'B" /></a>';
-				}
-				if(SHOW_IMGWH){ // 顯示附加檔案之原檔長寬尺寸
-					$imgwh_bar = ', '.file_func('imgsize',$img);
-				}
-				$IMG_BAR = '檔名：<a href="'.IMG_URL_PREFIX.$src.'" rel="_blank">'.$time.$ext.'</a>-('.$size.'B'.$imgwh_bar.') '.$img_thumb;
-				if(!USE_TEMPLATE) $dat .= $IMG_BAR.'<br />'.$imgsrc;
+		// 輸出討論串內容
+		for($i = 0; $i < $inner_for_count; $i++){
+			// 取出討論串編號
+			if($resno) $tID = $resno; // 單討論串輸出 (回應模式)
+			elseif($page_start==$page_end) $tID = $threads[$i]; // 一頁內容 (一般模式)
+			else $tID = $threads[$page * PAGE_DEF + $i]; // 多頁內容 (remake模式)
+			// 取出討論串結構及回應個數等資訊
+			$tree = fetchPostList($tID); // 整個討論串樹狀結構
+			$tree_count = count($tree) - 1; // 討論串回應個數
+			// 計算回應分頁範圍
+			$RES_start = $RES_amount = 0;
+			$hiddenReply = 0; // 被隱藏回應數
+			if($resno && RE_PAGE_DEF){ // RE_PAGE_DEF有設定 (開啟回應分頁)
+				if($tree_count){ // 有回應才做分頁動作
+					if($page_num==='RE_PAGE_MAX') $page_num = ceil($tree_count / RE_PAGE_DEF) - 1; // 特殊值：最末頁
+					if($page_num < 0) $page_num = 0; // 負數
+					if($page_num * RE_PAGE_DEF >= $tree_count) error('對不起，您所要求的頁數並不存在');
+					$RES_start = $page_num * RE_PAGE_DEF + 1; // 開始
+					$RES_amount = RE_PAGE_DEF; // 取幾個
+				}elseif($page_num > 0) error('對不起，您所要求的頁數並不存在'); // 沒有回應的情況只允許page_num = 0 或負數
+			}else{ // 一般模式下的回應隱藏
+				$RES_start = $tree_count - RE_DEF + 1; if($RES_start < 1) $RES_start = 1; // 開始
+				$RES_amount = RE_DEF; // 取幾個
+				$hiddenReply = $RES_start - 1; // 被隱藏回應數
 			}
-			// 回應 / 引用連結
-			if(!$resno){
-				$REPLYBTN = '[<a href="'.PHP_SELF.'?res='.$no.'">回應</a>]';
-				$QUOTEBTN = '<a href="'.PHP_SELF.'?res='.$no.'#q'.$no.'" class="qlink">';
-			}else{
-				$QUOTEBTN = '<a href="javascript:quote('.$no.');" class="qlink">';
+			// $RES_start, $RES_amount 拿去算新討論串結構 (分頁後, 部分回應隱藏)
+			$tree_cut = array_slice($tree, $RES_start, $RES_amount); array_unshift($tree_cut, $tID); // 取出特定範圍回應
+			$posts = fetchPosts($tree_cut); // 取得文章架構內容
+			if(USE_TEMPLATE){ // 使用樣板
+				$PTE = new PmcTplEmbed(); // PTE物件
+				$PTE->LoadTemplate(TEMPLATE_FILE);
 			}
-			// 快要被刪除的提示
-			if($porder_flip[$no] >= LOG_MAX * 0.95) $WARN_OLD = '<span class="warn_txt">這篇已經很舊了，不久後就會刪除。</span><br />'."\n";
-			// 預測刪除過大檔
-			if(STORAGE_LIMIT && $kill_sensor) if(isset($arr_kill[$no])) $WARN_BEKILL = '<span class="warn_txt">這篇因附加檔案容量限制，附加檔案不久後就會刪除。</span><br />'."\n";
-			// 被標記為禁止回應
-			if(strpos($url, '_THREADSTOP_')!==FALSE) $WARN_ENDREPLY = '<span class="warn_txt">這篇討論串已被管理員標記為禁止回應。</span><br />'."\n";
-			// 討論串主文章生成
-			if(!USE_TEMPLATE){
-				$dat .= '<input type="checkbox" name="'.$no.'" value="delete" /><span class="title">'.$sub.'</span>
-名稱: <span class="name">'.$name.'</span> ['.$now.'] '.$QUOTEBTN.'No.'.$no.'</a>&nbsp;'.$REPLYBTN;
-				$dat .= "\n<div class=\"quote\">$com</div>\n";
-				$dat .= $WARN_OLD.$WARN_BEKILL.$WARN_ENDREPLY;
-			}
-
-			// 準備回應模式及回應分頁
-			if(!$resno){
-				$s = $treeline_count - RE_DEF;
-				if($s < 1) $s = 1;
-				elseif($s > 1){ $WARN_HIDEPOST = '<span class="warn_txt2">有回應 '.($s - 1).' 篇被省略。要閱讀所有回應請按下回應連結。</span><br />'."\n"; if(!USE_TEMPLATE) $dat .= $WARN_HIDEPOST; }
-				$RES_start = $s; // 回應分頁開始指標
-				$RES_end = $treeline_count; // 回應分頁結束指標
-			}else{ // 回應模式
-				$RES_start = 1;
-				$RES_end = $treeline_count;
-				if(RE_PAGE_DEF){ // RE_PAGE_DEF有設定 (開啟分頁)
-					$countresALL = $treeline_count - 1; // 總回應數
-					if($countresALL > 0){ // 有回應才做分頁動作
-						if($page_num==='RE_PAGE_MAX'){ // 特殊值：最末頁
-							$page_num = intval($countresALL / RE_PAGE_DEF); // 最末頁資料指標位置
-							if(!($countresALL % RE_PAGE_DEF)) $page_num--; // 如果回應數和一頁顯示取餘數=0，則-1
-						}
-						if($page_num < 0) $page_num = 0; // 負數
-						if($page_num * RE_PAGE_DEF >= $countresALL) error('對不起，您所要求的頁數並不存在'); // 超過最大筆數，顯示錯誤
-						$RES_end = ($page_num + 1) * RE_PAGE_DEF + 1; if($RES_end > $treeline_count) $RES_end = $treeline_count; // 分頁結束指標超過範圍
-						$RES_start = $page_num * RE_PAGE_DEF + 1;
-					}elseif($page_num > 0) error('對不起，您所要求的頁數並不存在'); // 沒有回應的情況只允許page_num = 0 或負數
-				}
-			}
-			if(USE_TEMPLATE) $dat .= $PTE->ReplaceStrings_Main(array('{$NO}'=>$no, '{$SUB}'=>$sub, '{$NAME}'=>$name, '{$NOW}'=>$now, '{$COM}'=>$com, '{$REPLYBTN}'=>$REPLYBTN, '{$IMG_BAR}'=>$IMG_BAR, '{$IMG_SRC}'=>$imgsrc, '{$WARN_OLD}'=>$WARN_OLD, '{$WARN_BEKILL}'=>$WARN_BEKILL, '{$WARN_ENDREPLY}'=>$WARN_ENDREPLY, '{$WARN_HIDEPOST}'=>$WARN_HIDEPOST));
-			else $dat .= "</div>\n"; // 討論串首篇收尾用
-
-			// 生成回應
-			for($k = $RES_start; $k < $RES_end; $k++){
-				$imgsrc = $img_thumb = $imgwh_bar = '';
-				$IMG_BAR = $QUOTEBTN = $WARN_BEKILL = '';
-
-//				list($no,$now,$name,$email,$sub,$com,$url,$host,,$ext,$w,$h,$time,) = fetchPosts($treeline[$k]);
-				extract(fetchPosts($treeline[$k]));
-
-				// 設定一些欄位
-				if(CLEAR_SAGE) $email = preg_replace('/^sage( *)/i', '', trim($email)); // 清除E-mail中的「sage」關鍵字
-				if($email) $name = "<a href=\"mailto:$email\">$name</a>";
-				if(AUTO_LINK) $com = auto_link($com); // 內文自動作成連結
-				$com = quoteLight($com);
-				if(USE_QUOTESYSTEM){ // 啟用引用瀏覽系統
-					if(preg_match_all('/((?:&gt;)+|＞)(?:No\.)?(\d+)/i', $com, $matches, PREG_SET_ORDER)){ // 找尋>>No.xxx
-						foreach($matches as $val){
-							if($r_page=array_search($val[2], $treeline)){ // $r_page !==0 (首篇) 就算找到
-								// 在顯示區間內，輸出錨點即可
-								if($r_page >= $RES_start && $r_page <= $RES_end) $com = str_replace($val[0], '<a class="qlink" href="#r'.$val[2].'" onclick="replyhl('.$val[2].');">'.$val[0].'</a>', $com);
-								// 非顯示區間，輸出頁面導引及錨點
-								else $com = str_replace($val[0], '<a class="qlink" href="'.PHP_SELF.'?res='.$treeline[0].(RE_PAGE_DEF ? '&amp;page_num='.floor(($r_page - 1) / RE_PAGE_DEF) : '').'#r'.$val[2].'">'.$val[0].'</a>', $com);
-							}
-						}
-					}
-				}
-				$name = preg_replace('/(◆.{10})/', '<span class="nor">$1</span>', $name); // Trip取消粗體
-
-				// 附加檔案名稱
-				$src = IMG_DIR.$time.$ext;
-				$img = $path.$src;
-				if($ext && file_func('exist',$img)){
-					$size = file_func('size',$img);
-					$size = ($size>=1024) ? (int)($size/1024)." K" : $size." "; // KB和B的判別
-					if($w && $h){ // 有長寬屬性
-						if(file_func('exist',$path.THUMB_DIR.$time.'s.jpg')){
-							$img_thumb = '<small>[以預覽圖顯示]</small>';
-							$imgsrc = '<a href="'.IMGLINK_URL_PREFIX.$src.'" rel="_blank"><img src="'.THUMB_URL_PREFIX.THUMB_DIR.$time.'s.jpg" style="width: '.$w.'px; height: '.$h.'px;" class="img" alt="'.$size.'B" title="'.$size.'B" /></a>';
-						}elseif($ext=='.swf'){ // swf檔案僅留連結就好
-						}else{
-							$imgsrc = '<a href="'.IMGLINK_URL_PREFIX.$src.'" rel="_blank"><img src="nothumb.gif" class="img" alt="'.$size.'B" title="'.$size.'B" /></a>';
-						}
-					}else{ // 沒有長寬屬性
-						$imgsrc = '<a href="'.IMGLINK_URL_PREFIX.$src.'" rel="_blank"><img src="nothumb.gif" class="img" alt="'.$size.'B" title="'.$size.'B" /></a>';
-					}
-					if(SHOW_IMGWH){ // 顯示附加檔案之原檔長寬尺寸
-						$imgwh_bar = ', '.file_func('imgsize',$img);
-					}
-					$IMG_BAR = '檔名：<a href="'.IMG_URL_PREFIX.$src.'" rel="_blank">'.$time.$ext.'</a>-('.$size.'B'.$imgwh_bar.') '.$img_thumb;
-					if(!USE_TEMPLATE){
-						$IMG_BAR = '<br />&nbsp;'.$IMG_BAR;
-						$imgsrc = '<br />'.$imgsrc;
-					}
-				}
-				// 引用連結
-				$QUOTEBTN = $resno ? '<a href="javascript:quote('.$no.');" class="qlink">' : '<a href="'.PHP_SELF.'?res='.$treeline[0].'#q'.$no.'" class="qlink">';
-				// 預測刪除過大檔
-				if(STORAGE_LIMIT && $kill_sensor) if(isset($arr_kill[$no])) $WARN_BEKILL = '<span class="warn_txt">這篇因附加檔案容量限制，附加檔案不久後就會刪除。</span><br />'."\n";
-				// 討論串回應生成
-				if(USE_TEMPLATE) $dat .= $PTE->ReplaceStrings_Reply(array('{$NO}'=>$no, '{$SUB}'=>$sub, '{$NAME}'=>$name, '{$NOW}'=>$now, '{$COM}'=>$com, '{$IMG_BAR}'=>$IMG_BAR, '{$IMG_SRC}'=>$imgsrc, '{$WARN_BEKILL}'=>$WARN_BEKILL));
-				else{
-					$dat .= '<div class="reply" id="r'.$no.'">
-<input type="checkbox" name="'.$no.'" value="delete" /><span class="title">'.$sub.'</span> 名稱: <span class="name">'.$name.'</span> ['.$now.'] '.$QUOTEBTN.'No.'.$no.'</a>&nbsp;'.$IMG_BAR.$imgsrc.'
-<div class="quote">'.$com.'</div>
-'.$WARN_BEKILL."</div>\n";
-				}
-			}
-			$dat .= USE_TEMPLATE ? $PTE->ReplaceStrings_Separate() : "<hr />\n\n";
-			clearstatcache(); // 刪除STAT暫存檔
-			if($resno) break; // 為回應模式時僅輸出單一討論串
+			$dat .= arrangeThread($tree, $tree_cut, $posts, $hiddenReply, $resno); // 交給這個函式去搞討論串印出
+			//$dat .= '<div>吃掉回應'.$hiddenReply.'個orz<br />ALL ID='.implode(', ', $tree).'<br />SHOW ID='.implode(', ', $tree_cut).'<p /><a href="pixmicat.php?res='.$tID.'">[REPLY]</a><hr /></div>';
 		}
 		$dat .= '</div>
 
@@ -268,24 +151,25 @@ function updatelog($resno=0,$page_num=0){
 
 <div id="page_switch">
 ';
-		$prev = ($resno) ? (($page_num-1) * RE_PAGE_DEF) : ($st - PAGE_DEF);
-		$next = ($resno) ? (($page_num+1) * RE_PAGE_DEF) : ($st + PAGE_DEF);
+
 		// 換頁判斷
+		$prev = ($resno ? $page_num : $page) - 1;
+		$next = ($resno ? $page_num : $page) + 1;
 		if($resno){ // 回應分頁
 			if(RE_PAGE_DEF > 0){ // 回應分頁開啟
 				$dat .= '<table border="1"><tr>';
-				if($prev >= 0) $dat .= '<td><form action="'.PHP_SELF.'?res='.$resno.'&amp;page_num='.$prev/RE_PAGE_DEF.'" method="post"><div><input type="submit" value="上一頁" /></div></form></td>';
+				if($prev >= 0) $dat .= '<td><form action="'.PHP_SELF.'?res='.$resno.'&amp;page_num='.$prev.'" method="post"><div><input type="submit" value="上一頁" /></div></form></td>';
 				else $dat .= '<td style="white-space: nowrap;">第一頁</td>';
 				$dat .= "<td>";
-				if($countresALL==0) $dat .= '[<b>0</b>] '; // 無回應
+				if($tree_count==0) $dat .= '[<b>0</b>] '; // 無回應
 				else{
-					for($i = 0; $i < $countresALL ; $i += RE_PAGE_DEF){
+					for($i = 0; $i < $tree_count ; $i += RE_PAGE_DEF){
 						if($page_num==$i/RE_PAGE_DEF) $dat .= '[<b>'.$i/RE_PAGE_DEF.'</b>] ';
 						else $dat .= '[<a href="'.PHP_SELF.'?res='.$resno.'&amp;page_num='.$i/RE_PAGE_DEF.'">'.$i/RE_PAGE_DEF.'</a>] ';
 					}
 				}
 				$dat .= '</td>';
-				if($countresALL > $next) $dat .= '<td><form action="'.PHP_SELF.'?res='.$resno.'&amp;page_num='.$next/RE_PAGE_DEF.'" method="post"><div><input type="submit" value="下一頁" /></div></form></td>';
+				if($tree_count > $next * RE_PAGE_DEF) $dat .= '<td><form action="'.PHP_SELF.'?res='.$resno.'&amp;page_num='.$next.'" method="post"><div><input type="submit" value="下一頁" /></div></form></td>';
 				else $dat .= '<td style="white-space: nowrap;">最後一頁</td>';
 				$dat .= '</tr></table>'."\n";
 			}
@@ -294,24 +178,24 @@ function updatelog($resno=0,$page_num=0){
 			if($prev >= 0){
 				if($prev==0) $dat .= '<td><form action="'.PHP_SELF2.'" method="get">';
 				else{
-					if((STATIC_HTML_UNTIL != -1) && (($prev/PAGE_DEF) > STATIC_HTML_UNTIL)) $dat .= '<td><form action="'.PHP_SELF.'?page_num='.$prev/PAGE_DEF.'" method="post">';
-					else $dat .= '<td><form action="'.$prev/PAGE_DEF.PHP_EXT.'" method="get">';
+					if((STATIC_HTML_UNTIL != -1) && ($prev > STATIC_HTML_UNTIL)) $dat .= '<td><form action="'.PHP_SELF.'?page_num='.$prev.'" method="post">';
+					else $dat .= '<td><form action="'.$prev.PHP_EXT.'" method="get">';
 				}
 				$dat .= '<div><input type="submit" value="上一頁" /></div></form></td>';
 			}else $dat .= '<td style="white-space: nowrap;">第一頁</td>';
 			$dat .= '<td>';
-			for($i = 0; $i < $counttree ; $i += PAGE_DEF){
-				if($st==$i) $dat .= "[<b>".$i/PAGE_DEF."</b>] ";
+			for($i = 0; $i < $threads_count ; $i += PAGE_DEF){
+				if($page==$i/PAGE_DEF) $dat .= "[<b>".$i/PAGE_DEF."</b>] ";
 				else{
 					if($i==0) $dat .= '[<a href="'.PHP_SELF2.'?">0</a>] ';
-					elseif((STATIC_HTML_UNTIL != -1) && (($i/PAGE_DEF) > STATIC_HTML_UNTIL)) $dat .= '[<a href="'.PHP_SELF.'?page_num='.$i/PAGE_DEF.'">'.$i/PAGE_DEF.'</a>] ';
+					elseif(STATIC_HTML_UNTIL != -1 && $i/PAGE_DEF > STATIC_HTML_UNTIL) $dat .= '[<a href="'.PHP_SELF.'?page_num='.$i/PAGE_DEF.'">'.$i/PAGE_DEF.'</a>] ';
 					else $dat .= '[<a href="'.$i/PAGE_DEF.PHP_EXT.'?">'.$i/PAGE_DEF.'</a>] ';
 				}
 			}
 			$dat .= '</td>';
-			if($counttree > $next){
-				if((STATIC_HTML_UNTIL != -1) && (($next/PAGE_DEF) > STATIC_HTML_UNTIL)) $dat .= '<td><form action="'.PHP_SELF.'?page_num='.$next/PAGE_DEF.'" method="post">';
-				else $dat .= '<td><form action="'.$next/PAGE_DEF.PHP_EXT.'" method="get">';
+			if($threads_count > $next * PAGE_DEF){
+				if((STATIC_HTML_UNTIL != -1) && ($next > STATIC_HTML_UNTIL)) $dat .= '<td><form action="'.PHP_SELF.'?page_num='.$next.'" method="post">';
+				else $dat .= '<td><form action="'.$next.PHP_EXT.'" method="get">';
 				$dat .= '<div><input type="submit" value="下一頁" /></div></form></td>';
 			}else $dat .= '<td style="white-space: nowrap;">最後一頁</td>';
 			$dat .= '</tr></table>'."\n";
@@ -324,10 +208,12 @@ function updatelog($resno=0,$page_num=0){
 ';
 
 		foot($dat);
+
+		// 存檔 / 輸出
 		if(!$page_num){ // 非使用php輸出方式，而是靜態生成
-			if($resno){ echo $dat; break; }
+			if($resno){ echo $dat; break; } // 回應分頁第0頁
 			if($page==0) $logfilename = PHP_SELF2;
-			else $logfilename = $page/PAGE_DEF.PHP_EXT;
+			else $logfilename = $page.PHP_EXT;
 			$fp = fopen($logfilename, 'w');
 			stream_set_write_buffer($fp, 0);
 			fwrite($fp, $dat);
@@ -337,8 +223,107 @@ function updatelog($resno=0,$page_num=0){
 			print $dat;
 			break; // 只執行一次迴圈，即印出一頁內容
 		}
-		if((STATIC_HTML_UNTIL != -1) && STATIC_HTML_UNTIL==($page/PAGE_DEF)) break; // 生成靜態頁面數目限制
+		if((STATIC_HTML_UNTIL != -1) && STATIC_HTML_UNTIL==$page) break; // 生成靜態頁面數目限制
 	}
+}
+
+/* 輸出討論串架構 */
+// $tree : 討論串架構 ex: 1,2,3,4,5,6,7
+// $tree_cut : 已設定範圍的討論串架構 ex: 1,5,6,7
+// $posts : 已設定範圍的討論串文章資料陣列 ex: Array([0]=>(['no']=>1, ['name']=> ...), [1]=>(['no']=>5, ...))
+// $hiddenReply : 隱藏回應數 ex: 3
+// $resno : 是否為回應模式 ex: 18 (是) or 0 (否)
+function arrangeThread($tree, $tree_cut, $posts, $hiddenReply, $resno=0){
+	global $path, $PTE, $arr_kill, $arr_old, $kill_sensor, $old_sensor;
+
+	// exit(print_r($posts));
+	$thdat = ''; // 討論串輸出碼
+	$posts_count = count($posts); // 迴圈次數
+	// $i = 0 (首篇), $i = 1～n (回應)
+	for($i = 0; $i < $posts_count; $i++){
+		$imgsrc = $img_thumb = $imgwh_bar = '';
+		$IMG_BAR = $REPLYBTN = $QUOTEBTN = $WARN_OLD = $WARN_BEKILL = $WARN_ENDREPLY = $WARN_HIDEPOST = '';
+
+		extract($posts[$i]); // 取出討論串文章內容設定變數
+
+		// 設定欄位值
+		if(CLEAR_SAGE) $email = preg_replace('/^sage( *)/i', '', trim($email)); // 清除E-mail中的「sage」關鍵字
+		if($email) $name = "<a href=\"mailto:$email\">$name</a>";
+		if(AUTO_LINK) $com = auto_link($com);
+		$com = quoteLight($com);
+		$name = preg_replace('/(◆.{10})/', '<span class="nor">$1</span>', $name); // Trip取消粗體
+		if(USE_QUOTESYSTEM && $i){ // 啟用引用瀏覽系統
+			if(preg_match_all('/((?:&gt;)+|＞)(?:No\.)?(\d+)/i', $com, $matches, PREG_SET_ORDER)){ // 找尋>>No.xxx
+				foreach($matches as $val){
+					if($r_page=array_search($val[2], $tree)){ // $r_page !==0 (首篇) 就算找到
+						// 在顯示區間內，輸出錨點即可
+						// $tree_cut 目前頁面顯示文章+回應
+						if(array_search($val[2], $tree_cut)) $com = str_replace($val[0], '<a class="qlink" href="#r'.$val[2].'" onclick="replyhl('.$val[2].');">'.$val[0].'</a>', $com);
+						// 非顯示區間，輸出頁面導引及錨點
+						else $com = str_replace($val[0], '<a class="qlink" href="'.PHP_SELF.'?res='.$tree[0].(RE_PAGE_DEF ? '&amp;page_num='.floor(($r_page - 1) / RE_PAGE_DEF) : '').'#r'.$val[2].'">'.$val[0].'</a>', $com);
+					}
+				}
+			}
+		}
+
+		// 設定附加檔案顯示
+		$src = IMG_DIR.$time.$ext; $img = $path.$src;
+		if($ext && file_func('exist', $img)){
+			$size = file_func('size', $img);
+			$size = ($size>=1024) ? (int)($size/1024).' K' : $size.' '; // KB和B的判別
+			$imgsrc = '<a href="'.IMGLINK_URL_PREFIX.$src.'" rel="_blank"><img src="nothumb.gif" class="img" alt="'.$size.'B" title="'.$size.'B" /></a>'; // 預設顯示圖樣式 (無預覽圖時)
+			if($w && $h){
+				if(file_func('exist', $path.THUMB_DIR.$time.'s.jpg')){ // 有預覽圖
+					$img_thumb = '<small>[以預覽圖顯示]</small>';
+					$imgsrc = '<a href="'.IMGLINK_URL_PREFIX.$src.'" rel="_blank"><img src="'.THUMB_URL_PREFIX.THUMB_DIR.$time.'s.jpg" style="width: '.$w.'px; height: '.$h.'px;" class="img" alt="'.$size.'B" title="'.$size.'B" /></a>';
+				}elseif($ext=='.swf') $imgsrc = ''; // swf檔案不需預覽圖
+			}
+			if(SHOW_IMGWH) $imgwh_bar = ', '.file_func('imgsize', $img); // 顯示附加檔案之原檔長寬尺寸
+			$IMG_BAR = '檔名：<a href="'.IMG_URL_PREFIX.$src.'" rel="_blank">'.$time.$ext.'</a>-('.$size.'B'.$imgwh_bar.') '.$img_thumb;
+			if(!USE_TEMPLATE){
+				if($i) $IMG_BAR = '<br />&nbsp;'.$IMG_BAR; // 只有回應的IMG_BAR有資料時需要換行
+				$imgsrc = '<br />'.$imgsrc;
+			}
+		}
+
+		// 設定回應 / 引用連結
+		if($resno){ // 回應模式
+			$QUOTEBTN = '<a href="javascript:quote('.$no.');" class="qlink">';
+		}else{
+			if(!$i)	$REPLYBTN = '[<a href="'.PHP_SELF.'?res='.$no.'">回應</a>]'; // 首篇
+			$QUOTEBTN = '<a href="'.PHP_SELF.'?res='.$tree[0].'#q'.$no.'" class="qlink">';
+		}
+
+		// 設定討論串屬性
+		if(STORAGE_LIMIT && $kill_sensor) if(isset($arr_kill[$no])) $WARN_BEKILL = '<span class="warn_txt">這篇因附加檔案容量限制，附加檔案不久後就會刪除。</span><br />'."\n"; // 預測刪除過大檔
+		if(!$i){ // 首篇 Only
+			if($old_sensor) if($arr_old[$no] >= LOG_MAX * 0.95) $WARN_OLD = '<span class="warn_txt">這篇已經很舊了，不久後就會刪除。</span><br />'."\n"; // 快要被刪除的提示
+			if(postStatus($url, 'TS')) $WARN_ENDREPLY = '<span class="warn_txt">這篇討論串已被管理員標記為禁止回應。</span><br />'."\n"; // 被標記為禁止回應
+			if($hiddenReply) $WARN_HIDEPOST = '<span class="warn_txt2">有回應 '.$hiddenReply.' 篇被省略。要閱讀所有回應請按下回應連結。</span><br />'."\n"; // 有隱藏的回應
+		}
+
+		// 最終輸出處
+		if(USE_TEMPLATE){ // 樣板輸出
+			// 回應
+			if($i) $thdat .= $PTE->ReplaceStrings_Reply(array('{$NO}'=>$no, '{$SUB}'=>$sub, '{$NAME}'=>$name, '{$NOW}'=>$now, '{$COM}'=>$com, '{$IMG_BAR}'=>$IMG_BAR, '{$IMG_SRC}'=>$imgsrc, '{$WARN_BEKILL}'=>$WARN_BEKILL));
+			// 首篇
+			else $thdat .= $PTE->ReplaceStrings_Main(array('{$NO}'=>$no, '{$SUB}'=>$sub, '{$NAME}'=>$name, '{$NOW}'=>$now, '{$COM}'=>$com, '{$REPLYBTN}'=>$REPLYBTN, '{$IMG_BAR}'=>$IMG_BAR, '{$IMG_SRC}'=>$imgsrc, '{$WARN_OLD}'=>$WARN_OLD, '{$WARN_BEKILL}'=>$WARN_BEKILL, '{$WARN_ENDREPLY}'=>$WARN_ENDREPLY, '{$WARN_HIDEPOST}'=>$WARN_HIDEPOST));
+		}else{ // 非樣板輸出
+			if($i){ // 回應
+				$thdat .= '<div class="reply" id="r'.$no.'">
+<input type="checkbox" name="'.$no.'" value="delete" /><span class="title">'.$sub.'</span> 名稱: <span class="name">'.$name.'</span> ['.$now.'] '.$QUOTEBTN.'No.'.$no.'</a>&nbsp;'.$IMG_BAR.$imgsrc.'
+<div class="quote">'.$com.'</div>
+'.$WARN_BEKILL."</div>\n";
+			}else{ // 首篇
+				$thdat .= '<div class="threadpost">
+'.$IMG_BAR.$imgsrc.'<input type="checkbox" name="'.$no.'" value="delete" /><span class="title">'.$sub.'</span> 名稱: <span class="name">'.$name.'</span> ['.$now.'] '.$QUOTEBTN.'No.'.$no.'</a>&nbsp;'.$REPLYBTN.'
+<div class="quote">'.$com.'</div>
+'.$WARN_OLD.$WARN_BEKILL.$WARN_ENDREPLY.$WARN_HIDEPOST."</div>\n";
+			}
+		}
+	}
+	$thdat .= USE_TEMPLATE ? $PTE->ReplaceStrings_Separate() : "<hr />\n\n";
+	return $thdat;
 }
 
 /* 寫入記錄檔 */
@@ -1034,6 +1019,7 @@ function init(){
 }
 
 /*-----------程式各項功能主要判斷-------------*/
+$mysqlquery = array();
 if(GZIP_COMPRESS_LEVEL){ ob_start(); ob_implicit_flush(0); } // 啟動Gzip壓縮緩衝
 $path = realpath("./").'/'; // 此資料夾的絕對位置
 $iniv = array('mode','name','email','sub','com','pwd','upfile','upfile_path','upfile_name','upfile_status','resto','pass','res','post','no');
@@ -1079,6 +1065,10 @@ switch($mode){
 			header('Location: '.fullURL().PHP_SELF2.'?'.time().substr(microtime(),2,3));
 		}
 }
+
+$mysqlquery = $_SERVER['REQUEST_URI']."\r\n".implode("\r\n", $mysqlquery)."\r\n\r\n";
+file_put_contents('mysql.txt', $mysqlquery, FILE_APPEND);
+
 if(($Encoding = CheckSupportGZip()) && GZIP_COMPRESS_LEVEL){ // 啟動Gzip
 	if(!ob_get_length()) exit; // 沒內容不必壓縮
 	header('Content-Encoding: '.$Encoding);
