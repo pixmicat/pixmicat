@@ -3,8 +3,9 @@ $prepared = 0;
 
 /* private 使用SQL字串和MySQL伺服器要求 */
 function _mysql_call($query){
-	global $con;
+	global $con,$mysqlquery;
 
+	$mysqlquery[] = $query;
 	$ret = mysql_query($query);
 	if(!$ret) error('MySQL SQL指令錯誤：<p />指令: '.$query.'<br />錯誤訊息: (#'.mysql_errno().') '.mysql_error());
 	return $ret;
@@ -359,18 +360,15 @@ function stopThread($no) {
 }
 
 /* 取出文章狀態 */
-/* 輸入 文章編號 as integer, 狀態類型 as string, 輸出 狀態值 as integer */
-function postStatus($no, $statusType){
+/* 輸入 狀態字串 as integer, 狀態類型 as string, 輸出 狀態值 as integer */
+function postStatus($status, $statusType){
 	global $con, $prepared;
 	if(!$prepared) dbPrepare();
 	$returnValue = 0; // 回傳值
 
 	switch($statusType){
 		case 'TS': // 討論串是否鎖定
-			$line = _mysql_call('SELECT status FROM '.SQLLOG.' WHERE no = '.$no.' AND resto = 0');
-			$status = mysql_result($line, 0, 0);
 			$returnValue = ($status=='T') ? 1 : 0; // 討論串是否鎖定
-			mysql_free_result($line);
 			break;
 		default:
 	}
