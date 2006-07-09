@@ -273,7 +273,7 @@ function getPostStatus($status,$statusType) {
 
 	switch($statusType){
 		case 'TS': // 討論串是否鎖定
-			$returnValue = (strpos($status[$i],'_THREADSTOP_')!==false) ? 1 : 0; // 討論串是否鎖定
+			$returnValue = (strpos($status,'_THREADSTOP_')!==false) ? 1 : 0; // 討論串是否鎖定
 			break;
 		default:
 	}
@@ -293,9 +293,9 @@ function setPostStatus($no, $status, $statusType, $newValue) {
 		for($j=0;$j<$st_count;$j++) {
 			switch($statusType[$i][$j]){
 				case 'TS': // 討論串鎖定
-					if(strpos($status[$i],'_THREADSTOP_')!==false && $newValue[$j]==0)
+					if(strpos($status[$i],'_THREADSTOP_')!==false && $newValue[$i][$j]==0)
 						$status[$i] = str_replace('_THREADSTOP_','',$status[$i]); // 討論串解除鎖定
-					 elseif(strpos($status[$i],'_THREADSTOP_')===false && $newValue[$j]==1)
+					elseif(strpos($status[$i],'_THREADSTOP_')===false && $newValue[$i][$j]==1)
 						$status[$i] .= '_THREADSTOP_'; // 討論串鎖定
 					break;
 				default:
@@ -305,5 +305,15 @@ function setPostStatus($no, $status, $statusType, $newValue) {
 	}
 }
 
+/* 取得最後的文章編號 */
+function getLastPostNo($state) {
+	global $porder,$logs,$prepared;
+	if(!$prepared) dbPrepare();
+
+	switch($state) {
+		case 'beforeCommit':
+		case 'afterCommit':
+			return $porder[0];
+	}
 }
 ?>
