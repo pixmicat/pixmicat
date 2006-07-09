@@ -97,41 +97,47 @@ function dbOptimize($doit=false) {
 	return false; // 不支援
 }
 
+/* 將回文放進陣列 */
+/* private */ function includeReplies($posts) {
+	global $restono,$trees;
+	foreach($posts as $post) {
+		if($restono[$post]==$post) { // 討論串頭
+			$posts=array_merge($posts,$trees[$post]);
+		}
+	}
+	return array_merge(array(),array_unique($posts));
+}
+
 /* 刪除舊文 */
 function delOldPostes() {
 	global $porder,$torder,$restono,$logs,$trees;
 	$delPosts=@array_splice($porder,LOG_MAX);
-	if(count($delPosts)) {
-		foreach($delPosts as $post) {
-			if($restono[$post]==$post) { // 討論串頭
-				$delPosts=array_merge($delPosts,$trees[$post]);
-			}
-		}
-		$delPosts=array_unique($delPosts);
-		return removePosts($delPosts);
-	} else return false;
+	if(count($delPosts))
+		return removePosts(includeReplies($delPosts));
+	else return false;
 }
 
 /* 刪除文章 */
 function removePosts($posts) {
 	global $porder,$torder,$restono,$logs,$trees;
+	$posts=includeReplies($posts);
 	$files=removeAttachments($posts);
 	$porder_flip=array_flip($porder);
 	$torder_flip=array_flip($torder);
 	$pcount=count($posts);
-	for($post=0;$post<$pcount;$post++) {
-		if(!isset($logs[$posts[$post]])) continue;
-		if($restono[$posts[$post]]==$post) {
-			unset($trees[$posts[$post]]);
-			if(@$torder_flip[$posts[$post]]) unset($torder[$torder_flip[$posts[$post]]]);
+	for($p=0;$p<$pcount;$p++) {
+		if(!isset($logs[$posts[$p]])) continue;
+		if($restono[$posts[$p]]==$posts[$p]) { // 討論串頭
+			unset($trees[$posts[$p]]); // 刪除樹狀記錄
+			if(array_key_exists($posts[$p],$torder_flip)) unset($torder[$torder_flip[$posts[$p]]]);
 		}
-		unset($logs[$posts[$post]]);
-		if(@$trees[$restono[$posts[$post]]]) {
-			$tr_flip=array_flip($trees[$restono[$posts[$post]]]);
-			unset($trees[$restono[$posts[$post]]][$tr_flip[$posts[$post]]]);
+		unset($logs[$posts[$p]]);
+		if(array_key_exists($restono[$posts[$p]],$trees)) {
+			$tr_flip=array_flip($trees[$restono[$posts[$p]]]);
+			unset($trees[$restono[$posts[$p]]][$tr_flip[$posts[$p]]]);
 		}
-		unset($restono[$posts[$post]]);
-		if(@$porder_flip[$posts[$post]]) unset($porder[$porder_flip[$posts[$post]]]);
+		unset($restono[$posts[$p]]);
+		if(array_key_exists($posts[$p],$porder_flip)) unset($porder[$porder_flip[$posts[$p]]]);
 	}
 	$porder=array_merge(array(),$porder);
 	$torder=array_merge(array(),$torder);
