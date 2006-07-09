@@ -70,8 +70,6 @@ function dbCommit() {
 	$pcount=postCount();
 	$tcount=threadCount();
 	
-	if($pcount>=LOG_MAX) delOldPostes();
-	
 	$log=$tree='';
 	for($post=0;$post<$pcount;$post++)
 		$log.=isset($logs[$porder[$post]])?implode(',',$logs[$porder[$post]]).",\n":'';
@@ -188,7 +186,9 @@ function fetchPostList($resno=0,$start=0,$amount=0) {
 	$plist=array();
 	if($resno) {
 		if(is_Thread($resno)) {
-			if($start && $amount) $plist=array_unshift(array_slice($trees[$resno],$start,$amount),$resno);
+			if($start && $amount) {
+				$plist=array_slice($trees[$resno],$start,$amount);array_unshift($plist,$resno);
+			}
 			if(!$start && $amount) $plist=array_slice($trees[$resno],0,$amount);
 			if(!$start && !$amount) $plist=$trees[$resno];
 		}
@@ -211,7 +211,7 @@ function fetchPosts($postlist) {
 	if(!$prepared) dbPrepare();
 	$posts=array();
 	if(!is_array($postlist)) { // Single Post
-		$posts=$logs[$postlist];
+		array_push($posts,$logs[$postlist]);
 	} else {
 		foreach($postlist as $p) array_push($posts,$logs[$p]);
 	}
