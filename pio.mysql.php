@@ -29,7 +29,7 @@ function _ArrangeArrayStructure($line){
 /* PIO模組版本 */
 /* 輸入 void, 輸出 版本號 as string */
 function pioVersion() {
-	return 'v20060708α';
+	return 'v20060709α';
 }
 
 /* 處理連線字串/連接 */
@@ -248,9 +248,10 @@ function fetchPostList($resno=0,$start=0,$amount=0){
 
 	$line = array();
 	if($resno){ // 輸出討論串的結構 (含自己, EX : 1,2,3,4,5,6)
-		$tmpSQL = 'SELECT * FROM '.SQLLOG.' WHERE no = '.$resno.' OR resto = '.$resno.' ORDER BY no';
+		$tmpSQL = 'SELECT no FROM '.SQLLOG.' WHERE no = '.$resno.' OR resto = '.$resno.' ORDER BY no';
 	}else{ // 輸出所有文章編號，新的在前
 		$tmpSQL = 'SELECT no FROM '.SQLLOG.' ORDER BY no DESC';
+		if($amount) $tmpSQL .= " LIMIT {$start}, {$amount}"; // 有指定數量才用 LIMIT
 	}
 	$tree = _mysql_call($tmpSQL);
 	while($rows=mysql_fetch_row($tree)) $line[] = $rows[0]; // 迴圈
@@ -281,10 +282,14 @@ function fetchPosts($postlist){
 	global $con, $prepared;
 	if(!$prepared) dbPrepare();
 
-	$pno = implode(', ', $postlist); // ID字串
-	$line = _mysql_call('SELECT * FROM '.SQLLOG.' WHERE no IN ('.$pno.') ORDER BY no');
-	return _ArrangeArrayStructure($line); // 重排陣列結構
+	if(is_array($postlist)){ // 取多串
+		$pno = implode(', ', $postlist); // ID字串
+		$tmpSQL = 'SELECT * FROM '.SQLLOG.' WHERE no IN ('.$pno.') ORDER BY no';
+		if(count($postlist) > 1){ if($postlist[0] > $postlist[1]) $tmpSQL .= ' DESC'; } // 由大排到小
+	}else $tmpSQL = 'SELECT * FROM '.SQLLOG.' WHERE no = '.$postlist; // 取單串
+	$line = _mysql_call($tmpSQL);
 
+	return _ArrangeArrayStructure($line); // 重排陣列結構
 }
 
 /* 有此討論串? */
@@ -344,34 +349,38 @@ $time.','. // 發文時間數值
 	if(!$result=_mysql_call($query)) echo '[ERROR] 新增文章失敗<br />';
 }
 
-/* 停止討論串 */
-/* 輸入 文章編號 as array, 輸出 void */
-function stopThread($no) {
-	global $con, $prepared;
-	if(!$prepared) dbPrepare();
-
-	$tno = implode(', ', $postlist); // ID字串
-	$line = _mysql_call('SELECT status FROM '.SQLLOG.' WHERE no IN ('.$tno.') AND resto = 0');
-	while(list($status)=mysql_fetch_row($line)){ // 迴圈
-		$status = ($status=='') ? 'T' : ''; // 取出討論串狀態並修改
-		if(!_mysql_call('UPDATE '.SQLLOG." SET status = '$status' WHERE no = $tno")) echo "[ERROR] 更新討論串狀態失敗<br>"; // 更新討論串屬性
-	}
-	mysql_free_result($line);
-}
-
-/* 取出文章狀態 */
+/* 取出單一文章狀態 */
 /* 輸入 狀態字串 as integer, 狀態類型 as string, 輸出 狀態值 as integer */
-function postStatus($status, $statusType){
+function getPostStatus($status, $statusType){
 	global $con, $prepared;
 	if(!$prepared) dbPrepare();
 	$returnValue = 0; // 回傳值
 
 	switch($statusType){
 		case 'TS': // 討論串是否鎖定
-			$returnValue = ($status=='T') ? 1 : 0; // 討論串是否鎖定
+			$returnValue = (strpos($status, 'T')!==false) ? 1 : 0; // 討論串是否鎖定
 			break;
 		default:
 	}
 	return $returnValue;
+}
+
+/* 設定文章狀態 */
+/* 輸入 處理文章編號 as array, 舊值 as array, 狀態類型 as array, 新值 as array, 輸出 void */
+function setPostStatus($no, $status, $statusType, $newValue){
+	global $con, $prepared;
+	if(!$prepared) dbPrepare();
+
+	$forcount = count($no);
+	for($i = 0; $i < $forcount; $i++){
+		$newStatus = ''; // 討論串狀態旗標字串
+		switch($statusType[$i]){
+			case 'TS': // 討論串是否停止
+				$newStatus = $newValue[$i] ? ($status[$i].'T') : str_replace('T', '', $status[$i]); // 更改狀態字串
+				if(!_mysql_call('UPDATE '.SQLLOG." SET status = '$newStatus' WHERE no = ".$no[$i])) echo "[ERROR] 更新討論串狀態失敗<br>"; // 更新討論串屬性
+				break;
+			default:
+		}
+	}
 }
 ?>
