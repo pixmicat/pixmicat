@@ -383,4 +383,17 @@ function setPostStatus($no, $status, $statusType, $newValue){
 		}
 	}
 }
+
+/* 取得最後文章編號 */
+/* 輸入 使用狀態 as string,輸出 編號 as integer */
+function getLastPostNo($state){
+	global $con, $prepared;
+	if(!$prepared) dbPrepare();
+
+	if($state=='afterCommit'){ // 送出後的最後文章編號
+		$tree = _mysql_call('SELECT MAX(no) FROM '.SQLLOG);
+		$lastno = mysql_result($tree, 0); mysql_free_result($tree);
+		return $lastno;
+	}else return 0; // 其他狀態沒用
+}
 ?>

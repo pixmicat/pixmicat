@@ -104,7 +104,10 @@ function updatelog($resno=0,$page_num=0){
 			// 取出討論串編號
 			if($resno) $tID = $resno; // 單討論串輸出 (回應模式)
 			elseif($page_start==$page_end) $tID = $threads[$i]; // 一頁內容 (一般模式)
-			else $tID = $threads[$page * PAGE_DEF + $i]; // 多頁內容 (remake模式)
+			else{ // 多頁內容 (remake模式)
+				if(($page * PAGE_DEF + $i) >= $threads_count) break; // 超出索引代表已全部完成
+				$tID = $threads[$page * PAGE_DEF + $i];
+			}
 			// 取出討論串結構及回應個數等資訊
 			$tree = fetchPostList($tID); // 整個討論串樹狀結構
 			$tree_count = count($tree) - 1; // 討論串回應個數
@@ -567,8 +570,7 @@ function regist($name,$email,$sub,$com,$pwd,$upfile,$upfile_path,$upfile_name,$u
 	}
 
 	// 計算某些欄位值
-	$firstPost = fetchPosts(fetchPostList(0, 0, 1)); // 取出第一筆文章的資訊
-	$lastno = $firstPost[0]['no']; $no = $lastno + 1;
+	$no = getLastPostNo('beforeCommit') + 1;
 	isset($ext) ? 0 : $ext = '';
 	isset($W) ? 0 : $W = '';
 	isset($H) ? 0 : $H = '';
@@ -608,7 +610,10 @@ function regist($name,$email,$sub,$com,$pwd,$upfile,$upfile_path,$upfile_name,$u
 	$RedirURL = PHP_SELF2.'?'.$tim; // 定義儲存資料後轉址目標
 	if(isset($_POST['up_series'])){ // 勾選連貼機能
 		if($resto) $RedirURL = PHP_SELF.'?res='.$resto.'&amp;upseries=1'; // 回應後繼續轉回此主題下
-		else $RedirURL = PHP_SELF.'?res='.$no.'&amp;upseries=1'; // 新增主題後繼續轉到此主題下
+		else{
+			$lastno = getLastPostNo('afterCommit'); // 取得此新文章編號
+			$RedirURL = PHP_SELF.'?res='.$lastno.'&amp;upseries=1'; // 新增主題後繼續轉到此主題下
+		}
 	}
 	$RedirforJS = strtr($RedirURL, array("&amp;"=>"&")); // JavaScript用轉址目標
 
