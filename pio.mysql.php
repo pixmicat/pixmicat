@@ -1,4 +1,8 @@
 <?php
+/*
+PIO - Pixmicat! database I/O
+MySQL API
+*/
 $prepared = 0;
 
 /* private 使用SQL字串和MySQL伺服器要求 */
@@ -28,8 +32,8 @@ function _ArrangeArrayStructure($line){
 
 /* PIO模組版本 */
 /* 輸入 void, 輸出 版本號 as string */
-function pioVersion() {
-	return 'v20060709α';
+function pioVersion(){
+	return 'v20060710α';
 }
 
 /* 處理連線字串/連接 */
@@ -112,12 +116,13 @@ function dbCommit(){
 /* 優化資料表 */
 /* 輸入 是否作 as boolean, 輸出 優化成果 as boolean */
 function dbOptimize($doit=false){
-	global $con;
-	if(!$doit) return true; // 支援最佳化資料表
-	else{
-		if(!_mysql_call('OPTIMIZE TABLES '.SQLLOG)) return false;
-		else return true;
-	}
+	global $con, $prepared;
+	if(!$prepared) dbPrepare();
+
+	if($doit){
+		if(_mysql_call('OPTIMIZE TABLES '.SQLLOG)) return true;
+		else return false;
+	}else return true; // 支援最佳化資料表
 }
 
 /* 刪除舊文 */
@@ -127,26 +132,20 @@ function delOldPostes(){
 	$oldAttachments = array(); // 舊文的附加檔案清單
 	$countline = postCount(); // 文章數目
 	$cutIndex = $countline - LOG_MAX + 1; // LIMIT用，取出最舊的幾篇
-	if(!$result=_mysql_call('SELECT no,ext,tim FROM '.SQLLOG.' ORDER BY no LIMIT 0, '.$cutIndex)) echo '[ERROR] 取出舊文失敗<br />';
+	if(!$result=_mysql_call('SELECT no,ext,tim FROM '.SQLLOG." WHERE ext <> '' ORDER BY no LIMIT 0, ".$cutIndex)) echo '[ERROR] 取出舊文失敗<br />';
 	else{
-		while($row=mysql_fetch_row($result)){ // 個別跑舊文迴圈
-			list($dno, $dext, $dtim) = $row;
-			if($dext){ // 有附加檔
-				$dfile = $path.IMG_DIR.$dtim.$dext; // 附加檔案名稱
-				$dthumb = $path.THUMB_DIR.$dtim.'s.jpg'; // 預覽檔案名稱
-				if(file_func('exist', $dfile)) $oldAttachments[] = $dfile;
-				if(file_func('exist', $dthumb)) $oldAttachments[] = $dthumb;
-			}
+		while(list($dno, $dext, $dtim)=mysql_fetch_row($result)){ // 個別跑舊文迴圈
+			$dfile = $path.IMG_DIR.$dtim.$dext; // 附加檔案名稱
+			$dthumb = $path.THUMB_DIR.$dtim.'s.jpg'; // 預覽檔案名稱
+			if(file_func('exist', $dfile)) $oldAttachments[] = $dfile;
+			if(file_func('exist', $dthumb)) $oldAttachments[] = $dthumb;
 			// 逐次搜尋舊文之回應
 			if(!$resultres=_mysql_call('SELECT ext,tim FROM '.SQLLOG." WHERE ext <> '' AND resto = $dno")) echo '[ERROR] 取出舊文之回應失敗<br />';
-			while($rowres=mysql_fetch_row($resultres)){
-				list($rext, $rtim) = $rowres;
-				if($rext){ // 有附加檔
-					$rfile = $path.IMG_DIR.$rtim.$rext; // 附加檔案名稱
-					$rthumb = $path.THUMB_DIR.$rtim.'s.jpg'; // 預覽檔案名稱
-					if(file_func('exist', $rfile)) $oldAttachments[] = $rfile;
-					if(file_func('exist', $rthumb)) $oldAttachments[] = $rthumb;
-				}
+			while(list($rext, $rtim)=mysql_fetch_row($resultres)){
+				$rfile = $path.IMG_DIR.$rtim.$rext; // 附加檔案名稱
+				$rthumb = $path.THUMB_DIR.$rtim.'s.jpg'; // 預覽檔案名稱
+				if(file_func('exist', $rfile)) $oldAttachments[] = $rfile;
+				if(file_func('exist', $rthumb)) $oldAttachments[] = $rthumb;
 			}
 			mysql_free_result($resultres);
 			if(!_mysql_call('DELETE FROM '.SQLLOG.' WHERE no = '.$dno.' OR resto = '.$dno)) echo '[ERROR] 刪除舊文及其回應失敗<br />'; // 刪除文章
@@ -159,30 +158,28 @@ function delOldPostes(){
 /* 刪除文章 */
 /* 輸入 文章編號 as array, 輸出 刪除附加檔案列表 as array */
 function removePosts($posts){
-	global $con;
-	$files = removeAttachments($posts); // 先取得刪除文章附件清單
+	global $con, $prepared;
+	if(!$prepared) dbPrepare();
 
+	$files = removeAttachments($posts); // 先取得刪除文章附件清單
 	$pno = implode(', ', $posts); // ID字串
-	if(!$result=_mysql_call('DELETE FROM '.SQLLOG.' WHERE no IN ('.$pno.')')) echo '[ERROR] 刪除文章失敗<br />'; // 刪掉文章
+	if(!$result=_mysql_call('DELETE FROM '.SQLLOG.' WHERE no IN ('.$pno.') OR resto IN('.$pno.')')) echo '[ERROR] 刪除文章及其回應失敗<br />'; // 刪掉文章
 	return $files;
 }
 
 /* 刪除舊附件 (輸出附件清單) */
 /* 輸入 附加檔案總容量 as integer, 限制檔案儲存量 as integer, 只警告 as boolean, 輸出 警告旗標 / 舊附件列表 as array */
-function delOldAttachments($total_size,$storage_max,$warnOnly=true){
+function delOldAttachments($total_size, $storage_max, $warnOnly=true){
 	global $con, $path;
 	$arr_warn = $arr_kill = array(); // 警告 / 即將被刪除標記陣列
-	if(!$result=_mysql_call('SELECT no,ext,tim FROM '.SQLLOG.' ORDER BY no')) echo '[ERROR] 取出舊文失敗<br />';
+	if(!$result=_mysql_call('SELECT no,ext,tim FROM '.SQLLOG." WHERE ext <> '' ORDER BY no")) echo '[ERROR] 取出舊文失敗<br />';
 	else{
-		while($row=mysql_fetch_row($result)){ // 個別跑舊文迴圈
-			list($dno, $dext, $dtim) = $row;
-			if($dext){ // 有附加檔
-				$dfile = $path.IMG_DIR.$dtim.$dext; // 附加檔案名稱
-				$dthumb = $path.THUMB_DIR.$dtim.'s.jpg'; // 預覽檔案名稱
-				if(file_func('exist', $dfile)){ $total_size -= file_func('size', $dfile) / 1024; $arr_kill[] = $dno; $arr_warn[$dno] = 1; } // 標記刪除
-				if(file_func('exist', $dthumb)) $total_size -= file_func('size', $dthumb) / 1024;
-				if($total_size < $storage_max) break;
-			}
+		while(list($dno, $dext, $dtim)=mysql_fetch_row($result)){ // 個別跑舊文迴圈
+			$dfile = $path.IMG_DIR.$dtim.$dext; // 附加檔案名稱
+			$dthumb = $path.THUMB_DIR.$dtim.'s.jpg'; // 預覽檔案名稱
+			if(file_func('exist', $dfile)){ $total_size -= file_func('size', $dfile) / 1024; $arr_kill[] = $dno; $arr_warn[$dno] = 1; } // 標記刪除
+			if(file_func('exist', $dthumb)) $total_size -= file_func('size', $dthumb) / 1024;
+			if($total_size < $storage_max) break;
 		}
 	}
 	mysql_free_result($result);
@@ -196,16 +193,13 @@ function removeAttachments($posts){
 
 	$files = array();
 	$pno = implode(', ', $posts); // ID字串
-	if(!$result=_mysql_call('SELECT tim,ext FROM '.SQLLOG.' WHERE no IN ('.$pno.')')) echo '[ERROR] 取出附件清單失敗<br />';
+	if(!$result=_mysql_call('SELECT tim,ext FROM '.SQLLOG.' WHERE (no IN ('.$pno.') OR resto IN('.$pno.")) AND ext <> ''")) echo '[ERROR] 取出附件清單失敗<br />';
 	else{
-		while($row=mysql_fetch_row($result)){ // 個別跑迴圈
-			list($dext, $dtim) = $row;
-			if($dext){ // 有附加檔
-				$dfile = $path.IMG_DIR.$dtim.$dext; // 附加檔案名稱
-				$dthumb = $path.THUMB_DIR.$dtim.'s.jpg'; // 預覽檔案名稱
-				if(file_func('exist', $dfile)) $files[] = $dfile;
-				if(file_func('exist', $dthumb)) $files[] = $dthumb;
-			}
+		while(list($dext, $dtim)=mysql_fetch_row($result)){ // 個別跑迴圈
+			$dfile = $path.IMG_DIR.$dtim.$dext; // 附加檔案名稱
+			$dthumb = $path.THUMB_DIR.$dtim.'s.jpg'; // 預覽檔案名稱
+			if(file_func('exist', $dfile)) $files[] = $dfile;
+			if(file_func('exist', $dthumb)) $files[] = $dthumb;
 		}
 	}
 	mysql_free_result($result);
@@ -242,7 +236,7 @@ function threadCount(){
 
 /* 輸出文章清單 */
 /* 輸入 討論串編號, 開始值, 數目 as integer, 輸出 討論串結構 as array */
-function fetchPostList($resno=0,$start=0,$amount=0){
+function fetchPostList($resno=0, $start=0, $amount=0){
 	global $con, $prepared;
 	if(!$prepared) dbPrepare();
 
@@ -262,7 +256,7 @@ function fetchPostList($resno=0,$start=0,$amount=0){
 
 /* 輸出討論串清單 */
 /* 輸入 開始值, 數目 as integer, 輸出 討論串首篇編號 as array */
-function fetchThreadList($start=0,$amount=0) {
+function fetchThreadList($start=0, $amount=0){
 	global $con, $prepared;
 	if(!$prepared) dbPrepare();
 
@@ -304,7 +298,7 @@ function is_Thread($no){
 
 /* 搜尋文章 */
 /* 輸入 關鍵字 as array, 搜尋目標 as string, 搜尋方式 as string, 輸出 文章資料 as array */
-function searchPost($keyword,$field,$method){
+function searchPost($keyword, $field, $method){
 	global $prepared;
 	if(!$prepared) dbPrepare();
 
@@ -319,7 +313,7 @@ function searchPost($keyword,$field,$method){
 
 /* 新增文章/討論串 */
 /* 輸入 各種欄位值 as any, 輸出 void */
-function addPost($no,$resno,$now,$name,$email,$sub,$com,$url,$host,$pass,$ext,$W,$H,$tim,$chk,$age=false) {
+function addPost($no, $resno, $now, $name, $email, $sub, $com, $url, $host, $pass, $ext, $W, $H, $tim, $chk, $age=false){
 	global $con, $prepared;
 	if(!$prepared) dbPrepare();
 
