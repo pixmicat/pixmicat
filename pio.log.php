@@ -42,9 +42,11 @@ function dbInit() {
 }
 
 /* 準備/讀入 */
-function dbPrepare($reload=false) {
+function dbPrepare($reload=false,$transaction=true) {
 	global $porder,$torder,$logs,$restono,$trees,$prepared;
 	if($prepared && !$reload) return true;
+	
+	if($reload && $prepared) unset($porder,$torder,$logs,$restono,$trees);
 	$lines = file(LOGFILE);
 	$tree = file(TREEFILE);
 
