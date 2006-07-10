@@ -7,9 +7,8 @@ $prepared = 0;
 
 /* private 使用SQL字串和MySQL伺服器要求 */
 function _mysql_call($query){
-	global $con,$mysqlquery;
+	global $con;
 
-	$mysqlquery[] = $query;
 	$ret = mysql_query($query);
 	if(!$ret) error('MySQL SQL指令錯誤：<p />指令: '.$query.'<br />錯誤訊息: (#'.mysql_errno().') '.mysql_error());
 	return $ret;
@@ -33,7 +32,7 @@ function _ArrangeArrayStructure($line){
 /* PIO模組版本 */
 /* 輸入 void, 輸出 版本號 as string */
 function pioVersion(){
-	return 'v20060710α';
+	return 'v20060711α';
 }
 
 /* 處理連線字串/連接 */

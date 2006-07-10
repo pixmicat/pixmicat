@@ -4,7 +4,7 @@ function getMicrotime(){
     list($usec, $sec) = explode(' ', microtime());
     return ((double)$usec + (double)$sec);
 }
-define("PIXMICAT_VER", 'Pixmicat!-PIO 20060709'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 20060711'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -1011,7 +1011,7 @@ function init(){
 
 	$chkfolder = array(IMG_DIR, THUMB_DIR);
 	// 逐一自動建置IMG_DIR和THUMB_DIR
-	foreach($chkfolder as $value) if(!is_dir($value)) mkdir($value);  // 沒有就建立
+	foreach($chkfolder as $value) if(!is_dir($value)){ mkdir($value); @chmod($value, 0777); }  // 沒有就建立
 
 	dbInit(); // PIO Init
 	file_func('init'); // FileIO Init
@@ -1020,7 +1020,6 @@ function init(){
 }
 
 /*-----------程式各項功能主要判斷-------------*/
-$mysqlquery = array();
 if(GZIP_COMPRESS_LEVEL){ ob_start(); ob_implicit_flush(0); } // 啟動Gzip壓縮緩衝
 $path = realpath("./").'/'; // 此資料夾的絕對位置
 $iniv = array('mode','name','email','sub','com','pwd','upfile','upfile_path','upfile_name','upfile_status','resto','pass','res','post','no');
@@ -1066,10 +1065,6 @@ switch($mode){
 			header('Location: '.fullURL().PHP_SELF2.'?'.time().substr(microtime(),2,3));
 		}
 }
-
-$mysqlquery = $_SERVER['REQUEST_URI']."\r\n".implode("\r\n", $mysqlquery)."\r\n\r\n";
-file_put_contents('mysql.txt', $mysqlquery, FILE_APPEND);
-
 if(($Encoding = CheckSupportGZip()) && GZIP_COMPRESS_LEVEL){ // 啟動Gzip
 	if(!ob_get_length()) exit; // 沒內容不必壓縮
 	header('Content-Encoding: '.$Encoding);
