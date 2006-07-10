@@ -1,4 +1,8 @@
 <?php
+/*
+PIO - Pixmicat! database I/O
+MySQL API
+*/
 $porder=array();
 $torder=array();
 $logs=array();
@@ -8,7 +12,7 @@ $prepared=0;
 
 /* PIO模組版本 */
 function pioVersion() {
-	return 'v20060707α';
+	return 'v20060710α';
 }
 
 /* 處理連線字串/連接 */
