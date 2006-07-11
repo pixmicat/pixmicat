@@ -82,7 +82,7 @@ function dbInit(){
 			$result .= 'CREATE INDEX IDX_'.SQLLOG.'_'.$x.' ON '.SQLLOG.'('.$x.');';
 		}
 		$result .= 'CREATE INDEX IDX_'.SQLLOG.'_resto_no ON '.SQLLOG.'(resto,no);';
-		$result .= 'INSERT INTO '.SQLLOG.' (resto,root,time,md5,tim,ext,w,h,pwd,now,name,email,sub,com,host,status) VALUES (0, datetime("now"), 1111111111, "", 1111111111111, "", 0, 0, "", "05/01/01(六)00:00 ID:00000000", "無名氏", "", "無標題", "無內文", "", "");';
+		$result .= 'INSERT INTO '.SQLLOG.' (resto,root,time,md5,tim,ext,w,h,pwd,now,name,email,sub,com,host,status) VALUES (0, datetime("now"), 1111111111, "", 1111111111111, "", 0, 0, "", "05/01/01(六)00:00", "無名氏", "", "無標題", "無內文", "", "");';
 		sqlite_exec($con, $result); // 正式新增資料表
 		dbCommit();
 	}
@@ -309,7 +309,7 @@ function addPost($no,$resno,$now,$name,$email,$sub,$com,$url,$host,$pass,$ext,$W
 
 	$time = (int)substr($tim, 0, -3); // 13位數的數字串是檔名，10位數的才是時間數值
 	if($resno){ // 新增回應
-		$rootqu = "'1980-01-01 00:00:00'";
+		$rootqu = "1980-01-01 00:00:00";
 		if($age){ // 推文
 			$query = 'UPDATE '.SQLLOG.' SET root = "'.strftime("%Y-%m-%d %H:%M:%S",time()).'" WHERE no = '.$resno; // 將被回應的文章往上移動
 			if(!$result=_sqlite_call($query)) echo '[ERROR] 推文失敗<br />';
@@ -318,10 +318,10 @@ function addPost($no,$resno,$now,$name,$email,$sub,$com,$url,$host,$pass,$ext,$W
 
 	$query = 'INSERT INTO '.SQLLOG.' (resto,root,time,md5,tim,ext,w,h,pwd,now,name,email,sub,com,host,status) VALUES ('.
 (int)$resno.','. // 回應編號
-$rootqu.','. // 最後更新時間
+"'$rootqu',". // 最後更新時間
 $time.','. // 發文時間數值
 "'$chk',". // 附加檔案md5
-"'$tim', '$ext',". // 附加檔名
+"$tim, '$ext',". // 附加檔名
 (int)$W.', '.(int)$H.','. // 預覽圖長寬
 "'".sqlite_escape_string($pass)."',".
 "'$now',". // 時間(含ID)字串
