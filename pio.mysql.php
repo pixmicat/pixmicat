@@ -82,8 +82,7 @@ COMMENT = 'For Pixmicat! use'";
 			mysql_free_result($result2);
 		}
 		mysql_query($result); // 正式新增資料表
-		@mysql_query('INSERT INTO '.SQLLOG.' (resto,root,time,md5,tim,ext,w,h,pwd,now,name,email,sub,com,host,status) VALUES (0, now(), 1111111111, "", 1111111111111, "", 0, 0, "", "05/01/01(六)00:00 ID:00000000", "無名氏", "", "無標題", "無內文", "", "")'); // 追加一筆新資料
-);
+		addPost(0, 0, '05/01/01(六)00:00 ID:00000000', '無名氏', '', '無標題', '無內文', '', 'localhost', '', '', 0, 0, 1111111111111, '', true); // 追加一筆新資料
 	}
 }
 

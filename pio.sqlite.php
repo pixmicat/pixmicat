@@ -9,7 +9,7 @@ $prepared = 0;
 function _sqlite_call($query){
 	global $con;
 	$ret = @sqlite_query($con,$query);
-	if(!$ret) error('SQLite SQL指令錯誤：<p />指令: '.$query);
+	if(!$ret) error('SQLite SQL指令錯誤：<p />指令: '.$query.'<br />錯誤訊息: '.sqlite_error_string(sqlite_last_error($con)));
 	return $ret;
 }
 
@@ -28,8 +28,8 @@ function _ArrangeArrayStructure($line){
 }
 
 /* SQLite的sqlite_result頂替函數 */
-/* private */ function sqlite_result($rh,$row,$field){
-	$currrow=sqlite_fetch_all($rh,SQLITE_NUM);
+/* private */ function sqlite_result($rh, $row, $field){
+	$currrow = sqlite_fetch_all($rh,SQLITE_NUM);
 	return $currrow[$row][$field];
 }
 

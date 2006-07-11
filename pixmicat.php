@@ -42,11 +42,11 @@ $upfile = isset($_FILES['upfile']['tmp_name']) ? $_FILES['upfile']['tmp_name'] :
 $upfile_name = isset($_FILES['upfile']['name']) ? $_FILES['upfile']['name'] : '';
 $upfile_status = isset($_FILES['upfile']['error']) ? $_FILES['upfile']['error'] : 4;
 
-include_once('./lib_common.php'); // 引入共通函式檔案
 include_once('./config.php'); // 引入設定檔
-if(USE_TEMPLATE) include_once('./lib_pte.php'); // 引入PTE外部函式庫
+include_once('./lib_common.php'); // 引入共通函式檔案
 include_once('./lib_fileio.php'); // 引入FileIO
 include_once('./lib_pio.php'); // 引入PIO
+if(USE_TEMPLATE) include_once('./lib_pte.php'); // 引入PTE外部函式庫
 
 /* 更新記錄檔檔案／輸出討論串 */
 function updatelog($resno=0,$page_num=0){
@@ -946,9 +946,13 @@ function showstatus(){
 	else $clrflag_sl = 'F2004A';
 
 	// 判斷是否開啟GD模組、取出GD版本號及功能是否正常
-	$func_gd = extension_loaded('gd') ? '<span style="color: blue;">已開啟</span>' : '<span style="color: red;">未開啟</span>';
+	$func_gd = '<span style="color: red;">未開啟</span>';
+	$func_gdver = '(No info)';
+	if(extension_loaded('gd')){
+		$func_gd = '<span style="color: blue;">已開啟</span>';
+		if($func_gdver = @gd_info()) $func_gdver = $func_gdver['GD Version'];
+	}
 	$thumb_IsAvailable = function_exists('ImageCreateTrueColor') ? '<span style="color: blue;">功能正常</span>' : '<span style="color: red">功能失常</span>';
-	if($func_gdver = @gd_info()) $func_gdver = $func_gdver['GD Version'];
 
 	$dat = '';
 	head($dat);
@@ -1026,7 +1030,7 @@ $iniv = array('mode','name','email','sub','com','pwd','upfile','upfile_path','up
 foreach($iniv as $iniva){
 	if(!isset($$iniva)) $$iniva = '';
 }
-//init(); // ←■■！程式環境初始化，跑過一次後請刪除此行！■■
+init(); // ←■■！程式環境初始化，跑過一次後請刪除此行！■■
 
 switch($mode){
 	case 'regist':
