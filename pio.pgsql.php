@@ -79,8 +79,8 @@ CREATE TABLE ".SQLLOG." (
 );";
 		$idxs = array('resto', 'root', 'time');
 		foreach($idxs as $idx) $result .= 'CREATE INDEX '.SQLLOG.'_'.$idx.'_index ON '.SQLLOG.' ('.$idx.');';
-		$result .= 'INSERT INTO '.SQLLOG.' (resto,root,time,md5,tim,ext,w,h,pwd,now,name,email,sub,com,host,status) VALUES (0, now(), 1111111111, "", 1111111111111, "", 0, 0, "", "05/01/01(六)00:00 ID:00000000", "無名氏", "", "無標題", "無內文", "", "");';
 		pg_query($con, $result); // 正式新增資料表
+		addPost(1, 0, '05/01/01(六)00:00', '無名氏', 0, '無標題', '無內文', '', '', '', '', 0, 0, 0, '');
 		dbCommit();
 	}
 }
