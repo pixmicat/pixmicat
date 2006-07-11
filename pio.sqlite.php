@@ -309,12 +309,12 @@ function addPost($no,$resno,$now,$name,$email,$sub,$com,$url,$host,$pass,$ext,$W
 
 	$time = (int)substr($tim, 0, -3); // 13位數的數字串是檔名，10位數的才是時間數值
 	if($resno){ // 新增回應
-		$rootqu = 0;
+		$rootqu = "'1980-01-01 00:00:00'";
 		if($age){ // 推文
-			$query = 'UPDATE '.SQLLOG.' SET root = datetime("now") WHERE no = '.$resno; // 將被回應的文章往上移動
+			$query = 'UPDATE '.SQLLOG.' SET root = "'.strftime("%Y-%m-%d %H:%M:%S",time()).'" WHERE no = '.$resno; // 將被回應的文章往上移動
 			if(!$result=_sqlite_call($query)) echo '[ERROR] 推文失敗<br />';
 		}
-	}else $rootqu = 'datetime("now")'; // 新增討論串, 討論串最後被更新時間
+	}else $rootqu = strftime("%Y-%m-%d %H:%M:%S",time()); // 新增討論串, 討論串最後被更新時間
 
 	$query = 'INSERT INTO '.SQLLOG.' (resto,root,time,md5,tim,ext,w,h,pwd,now,name,email,sub,com,host,status) VALUES ('.
 (int)$resno.','. // 回應編號

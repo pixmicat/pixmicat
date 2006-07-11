@@ -56,9 +56,9 @@ function dbInit(){
 	global $con, $prepared;
 	dbPrepare();
 	if(pg_num_rows(pg_query($con,"select relname from pg_class where relname='".SQLLOG."'"))!=1){ // 資料表不存在
-		$result = "CREATE SEQUENCE no_seq;
+		$result = "CREATE SEQUENCE ".SQLLOG."_no_seq;
 CREATE TABLE ".SQLLOG." (
-  \"no\" int NOT NULL DEFAULT nextval('no_seq'),
+  \"no\" int NOT NULL DEFAULT nextval('".SQLLOG."_no_seq'),
   \"resto\" int NOT NULL,
   \"root\" timestamp NULL DEFAULT '1980-01-01 00:00:00',
   \"time\" int NOT NULL,
