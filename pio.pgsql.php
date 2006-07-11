@@ -77,9 +77,10 @@ CREATE TABLE ".SQLLOG." (
   \"status\" varchar(4) NOT NULL,
   PRIMARY KEY (\"no\")
 );";
-		$idxs=array('resto','root','time');
+		$idxs = array('resto', 'root', 'time');
 		foreach($idxs as $idx) $result .= 'CREATE INDEX '.SQLLOG.'_'.$idx.'_index ON '.SQLLOG.' ('.$idx.');';
-		pg_query($con,$result); // 正式新增資料表
+		$result .= 'INSERT INTO '.SQLLOG.' (resto,root,time,md5,tim,ext,w,h,pwd,now,name,email,sub,com,host,status) VALUES (0, now(), 1111111111, "", 1111111111111, "", 0, 0, "", "05/01/01(六)00:00 ID:00000000", "無名氏", "", "無標題", "無內文", "", "");';
+		pg_query($con, $result); // 正式新增資料表
 		dbCommit();
 	}
 }

@@ -77,12 +77,13 @@ function dbInit(){
 "status" VARCHAR(4)  NOT NULL
 );';
 		
-		$idx=array("resto","root","time");
+		$idx = array('resto', 'root', 'time');
 		foreach($idx as $x) {
-			$result.='CREATE INDEX IDX_'.SQLLOG.'_'.$x.' ON '.SQLLOG.'('.$x.');';
+			$result .= 'CREATE INDEX IDX_'.SQLLOG.'_'.$x.' ON '.SQLLOG.'('.$x.');';
 		}
-		$result.='CREATE INDEX IDX_'.SQLLOG.'_resto_no ON '.SQLLOG.'(resto,no);';
-		sqlite_exec($con,$result); // 正式新增資料表
+		$result .= 'CREATE INDEX IDX_'.SQLLOG.'_resto_no ON '.SQLLOG.'(resto,no);';
+		$result .= 'INSERT INTO '.SQLLOG.' (resto,root,time,md5,tim,ext,w,h,pwd,now,name,email,sub,com,host,status) VALUES (0, datetime("now"), 1111111111, "", 1111111111111, "", 0, 0, "", "05/01/01(六)00:00 ID:00000000", "無名氏", "", "無標題", "無內文", "", "");';
+		sqlite_exec($con, $result); // 正式新增資料表
 		dbCommit();
 	}
 }
