@@ -189,7 +189,7 @@ function removeAttachments($posts){
 
 	$files = array();
 	$pno = implode(', ', $posts); // ID字串
-	if(!$result=_pgsql_call('SELECT tim,ext FROM '.SQLLOG.' WHERE (no IN ('.$pno.') OR resto IN('.$pno.")) AND ext <> ''")) echo '[ERROR] 取出附件清單失敗<br />';
+	if(!$result=_pgsql_call('SELECT ext,tim FROM '.SQLLOG.' WHERE (no IN ('.$pno.') OR resto IN('.$pno.")) AND ext <> ''")) echo '[ERROR] 取出附件清單失敗<br />';
 	else{
 		while(list($dext, $dtim)=pg_fetch_array($result)){ // 個別跑迴圈
 			$dfile = $path.IMG_DIR.$dtim.$dext; // 附加檔案名稱

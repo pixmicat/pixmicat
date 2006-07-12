@@ -158,7 +158,7 @@ function removePosts($posts){
 
 	$files = removeAttachments($posts); // 先取得刪除文章附件清單
 	$pno = implode(', ', $posts); // ID字串
-	if(!$result=_sqlite_call('DELETE FROM '.SQLLOG.' WHERE no IN ('.$pno.') OR resto IN('.$pno.')')) echo '[ERROR] 刪除文章及其回應失敗<br />'; // 刪掉文章
+	//if(!$result=_sqlite_call('DELETE FROM '.SQLLOG.' WHERE no IN ('.$pno.') OR resto IN('.$pno.')')) echo '[ERROR] 刪除文章及其回應失敗<br />'; // 刪掉文章
 	return $files;
 }
 
@@ -187,7 +187,7 @@ function removeAttachments($posts){
 
 	$files = array();
 	$pno = implode(', ', $posts); // ID字串
-	if(!$result=_sqlite_call('SELECT tim,ext FROM '.SQLLOG.' WHERE no IN ('.$pno.') OR resto IN('.$pno.") AND ext <> ''")) echo '[ERROR] 取出附件清單失敗<br />';
+	if(!$result=_sqlite_call('SELECT ext,tim FROM '.SQLLOG.' WHERE (no IN ('.$pno.') OR resto IN('.$pno.")) AND ext <> ''")) echo '[ERROR] 取出附件清單失敗<br />';
 	else{
 		while(list($dext, $dtim)=sqlite_fetch_array($result)){ // 個別跑迴圈
 			$dfile = $path.IMG_DIR.$dtim.$dext; // 附加檔案名稱
