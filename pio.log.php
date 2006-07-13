@@ -23,7 +23,7 @@ $prepared=0;
 
 /* PIO模組版本 */
 function pioVersion() {
-	return 'v20060713α';
+	return 'v20060713β';
 }
 
 /* 處理連線字串/連接 */
@@ -117,8 +117,7 @@ function delOldPostes() {
 	if(!$prepared) dbPrepare();
 
 	$delPosts=@array_splice($porder,LOG_MAX);
-	if(count($delPosts))
-		return removePosts(includeReplies($delPosts));
+	if(count($delPosts)) return removePosts(includeReplies($delPosts));
 	else return false;
 }
 
@@ -153,11 +152,11 @@ function removePosts($posts) {
 
 /* 刪除舊附件 (輸出附件清單) */
 function delOldAttachments($total_size,$storage_max,$warnOnly=true) {
-	global $porder,$logs,$path;
+	global $porder,$logs,$path,$prepared;
 	if(!$prepared) dbPrepare();
 
-	$rpord=rsort($porder);
-	$arr_warn=$arr_kill=array();
+	$rpord = $porder; sort($rpord); // 由舊排到新 (小->大)
+	$arr_warn = $arr_kill = array();
 	foreach($rpord as $post) {
 		if(file_func('exist',$path.IMG_DIR.$logs[$post]['time'].$logs[$post]['ext'])) { $total_size -= file_func('size',$path.IMG_DIR.$logs[$post]['time'].$logs[$post]['ext']) / 1024; $arr_kill[] = $post;$arr_warn[$post] = 1; } // 標記刪除
 		if(file_func('exist',$path.THUMB_DIR.$logs[$post]['time'].'s.jpg')) { $total_size -= file_func('size',$path.THUMB_DIR.$logs[$post]['time'].'s.jpg') / 1024; }

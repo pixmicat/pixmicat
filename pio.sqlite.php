@@ -36,7 +36,7 @@ function _ArrangeArrayStructure($line){
 /* PIO模組版本 */
 /* 輸入 void, 輸出 版本號 as string */
 function pioVersion() {
-	return 'v20060713α';
+	return 'v20060713β';
 }
 
 /* 處理連線字串/連接 */
