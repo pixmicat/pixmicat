@@ -1,7 +1,7 @@
 <?php
 /*
 PIO - Pixmicat! database I/O
-MySQL API
+Log API
 */
 $porder=array();
 $torder=array();
@@ -10,9 +10,20 @@ $trees=array();
 $restono=array();
 $prepared=0;
 
+/* 將回文放進陣列 */
+/* private */ function includeReplies($posts) {
+	global $restono,$trees;
+	foreach($posts as $post) {
+		if($restono[$post]==$post) { // 討論串頭
+			$posts=array_merge($posts,$trees[$post]);
+		}
+	}
+	return array_merge(array(),array_unique($posts));
+}
+
 /* PIO模組版本 */
 function pioVersion() {
-	return 'v20060710α';
+	return 'v20060713α';
 }
 
 /* 處理連線字串/連接 */
@@ -31,7 +42,7 @@ function dbInit() {
 		if(!is_file($value)){ // 檔案不存在
 			$fp = fopen($value, 'w');
 			stream_set_write_buffer($fp, 0);
-			if($value==LOGFILE) fwrite($fp, '1,05/01/01(六) 00:00 ID:00000000,無名氏,,無標題,無內文,,,,,,,,');
+			if($value==LOGFILE) fwrite($fp, '1,05/01/01(六)00:00,無名氏,,無標題,無內文,,,,,,,,');
 			if($value==TREEFILE) fwrite($fp, '1');
 			fclose($fp);
 			unset($fp);
@@ -45,7 +56,6 @@ function dbInit() {
 function dbPrepare($reload=false,$transaction=true) {
 	global $porder,$torder,$logs,$restono,$trees,$prepared;
 	if($prepared && !$reload) return true;
-	
 	if($reload && $prepared) unset($porder,$torder,$logs,$restono,$trees);
 	$lines = file(LOGFILE);
 	$tree = file(TREEFILE);
@@ -57,7 +67,6 @@ function dbPrepare($reload=false,$transaction=true) {
 		$porder[]=$tline['no'];
 		$logs[$tline['no']]=array_reverse($tline); // list()是由右至左代入的
 	}
-	
 	foreach($tree as $treeline) {
 		if($treeline=='') continue;
 		$tline=explode(',', rtrim($treeline));
@@ -65,8 +74,7 @@ function dbPrepare($reload=false,$transaction=true) {
 		$torder[]=$tline[0];
 		foreach($tline as $post) $restono[$post]=$tline[0];
 	}
-	
-	$prepared=1;
+	$prepared = 1;
 }
 
 /* 提交/儲存 */
@@ -75,7 +83,7 @@ function dbCommit() {
 	if(!$prepared) return false;
 	$pcount=postCount();
 	$tcount=threadCount();
-	
+
 	$log=$tree='';
 	for($post=0;$post<$pcount;$post++)
 		$log.=isset($logs[$porder[$post]])?implode(',',$logs[$porder[$post]]).",\n":'';
@@ -103,20 +111,11 @@ function dbOptimize($doit=false) {
 	return false; // 不支援
 }
 
-/* 將回文放進陣列 */
-/* private */ function includeReplies($posts) {
-	global $restono,$trees;
-	foreach($posts as $post) {
-		if($restono[$post]==$post) { // 討論串頭
-			$posts=array_merge($posts,$trees[$post]);
-		}
-	}
-	return array_merge(array(),array_unique($posts));
-}
-
 /* 刪除舊文 */
 function delOldPostes() {
-	global $porder,$torder,$restono,$logs,$trees;
+	global $porder,$torder,$restono,$logs,$trees,$prepared;
+	if(!$prepared) dbPrepare();
+
 	$delPosts=@array_splice($porder,LOG_MAX);
 	if(count($delPosts))
 		return removePosts(includeReplies($delPosts));
@@ -125,7 +124,9 @@ function delOldPostes() {
 
 /* 刪除文章 */
 function removePosts($posts) {
-	global $porder,$torder,$restono,$logs,$trees;
+	global $porder,$torder,$restono,$logs,$trees,$prepared;
+	if(!$prepared) dbPrepare();
+
 	$posts=includeReplies($posts);
 	$files=removeAttachments($posts);
 	$porder_flip=array_flip($porder);
@@ -153,6 +154,8 @@ function removePosts($posts) {
 /* 刪除舊附件 (輸出附件清單) */
 function delOldAttachments($total_size,$storage_max,$warnOnly=true) {
 	global $porder,$logs,$path;
+	if(!$prepared) dbPrepare();
+
 	$rpord=rsort($porder);
 	$arr_warn=$arr_kill=array();
 	foreach($rpord as $post) {
@@ -165,7 +168,9 @@ function delOldAttachments($total_size,$storage_max,$warnOnly=true) {
 
 /* 刪除附件 (輸出附件清單) */
 function removeAttachments($posts) {
-	global $logs,$path;
+	global $logs,$path,$prepared;
+	if(!$prepared) dbPrepare();
+
 	$files=array();
 	foreach($posts as $post) {
 		if($logs[$post]['ext']) {
@@ -181,6 +186,7 @@ function removeAttachments($posts) {
 function postCount($resno=0) {
 	global $porder,$trees,$prepared;
 	if(!$prepared) dbPrepare();
+
 	return ($resno)?is_Thread($resno)?count(@$trees[$resno])-1:0:count($porder);
 }
 
@@ -188,6 +194,7 @@ function postCount($resno=0) {
 function threadCount() {
 	global $torder,$prepared;
 	if(!$prepared) dbPrepare();
+
 	return count($torder);
 }
 
@@ -195,6 +202,7 @@ function threadCount() {
 function fetchPostList($resno=0,$start=0,$amount=0) {
 	global $porder,$trees,$prepared;
 	if(!$prepared) dbPrepare();
+
 	$plist=array();
 	if($resno) {
 		if(is_Thread($resno)) {
@@ -214,6 +222,7 @@ function fetchPostList($resno=0,$start=0,$amount=0) {
 function fetchThreadList($start=0,$amount=0) {
 	global $porder,$torder,$logs,$trees,$prepared;
 	if(!$prepared) dbPrepare();
+
 	return $amount?array_slice($torder,$start,$amount):$torder;
 }
 
@@ -221,6 +230,7 @@ function fetchThreadList($start=0,$amount=0) {
 function fetchPosts($postlist) {
 	global $porder,$torder,$logs,$trees,$prepared;
 	if(!$prepared) dbPrepare();
+
 	$posts=array();
 	if(!is_array($postlist)) { // Single Post
 		array_push($posts,$logs[$postlist]);
@@ -234,6 +244,7 @@ function fetchPosts($postlist) {
 function is_Thread($no) {
 	global $torder,$logs,$trees,$prepared;
 	if(!$prepared) dbPrepare();
+
 	return isset($trees[$no]);
 }
 
@@ -241,6 +252,7 @@ function is_Thread($no) {
 function searchPost($keyword,$field,$method) {
 	global $logs,$prepared;
 	if(!$prepared) dbPrepare();
+
 	$foundPosts=array();
 	$keyword_cnt=count($keyword);
 	foreach($logs as $log) {
@@ -257,6 +269,7 @@ function searchPost($keyword,$field,$method) {
 function addPost($no,$resno,$now,$name,$email,$sub,$com,$url,$host,$pass,$ext,$W,$H,$tim,$chk,$age=false) {
 	global $porder,$torder,$logs,$trees,$restono,$prepared;
 	if(!$prepared) dbPrepare();
+
 	$tline=array();
 	list($tline['no'],$tline['now'],$tline['name'],$tline['email'],$tline['sub'],$tline['com'],$tline['url'],$tline['host'],$tline['pw'],$tline['ext'],$tline['w'],$tline['h'],$tline['time'],$tline['chk'])=array($no,$now,$name,$email,$sub,$com,$url,$host,$pass,$ext,$W,$H,$tim,$chk);
 	$logs[$no]=array_reverse($tline);
@@ -281,6 +294,7 @@ function addPost($no,$resno,$now,$name,$email,$sub,$com,$url,$host,$pass,$ext,$W
 function getPostStatus($status,$statusType) {
 	global $porder,$torder,$logs,$trees,$prepared;
 	if(!$prepared) dbPrepare();
+
 	$returnValue = 0; // 回傳值
 
 	switch($statusType){
