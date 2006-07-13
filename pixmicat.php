@@ -4,7 +4,7 @@ function getMicrotime(){
     list($usec, $sec) = explode(' ', microtime());
     return ((double)$usec + (double)$sec);
 }
-define("PIXMICAT_VER", 'Pixmicat!-PIO 20060711'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 20060713'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -54,7 +54,7 @@ function updatelog($resno=0,$page_num=0){
 
 	$page_start = $page_end = 0; // 靜態頁面編號
 	$inner_for_count = 1; // 內部迴圈執行次數
-	$kill_sensor =  $old_sensor = false; // 預測系統啟動旗標
+	$kill_sensor = $old_sensor = false; // 預測系統啟動旗標
 	$arr_kill = $arr_old = array(); // 過舊編號陣列
 
 	if(!$resno){
@@ -88,6 +88,8 @@ function updatelog($resno=0,$page_num=0){
 		$arr_kill = delOldAttachments($tmp_total_size, $tmp_STORAGE_MAX); // 過舊附檔陣列
 	}
 
+	$PTE = USE_TEMPLATE ? new PTELibrary(TEMPLATE_FILE) : 0; // PTE Library
+
 	// 生成靜態頁面一頁份內容
 	for($page = $page_start; $page <= $page_end; $page++){
 		$dat = '';
@@ -114,14 +116,15 @@ function updatelog($resno=0,$page_num=0){
 			// 計算回應分頁範圍
 			$RES_start = $RES_amount = 0;
 			$hiddenReply = 0; // 被隱藏回應數
-			if($resno && RE_PAGE_DEF){ // RE_PAGE_DEF有設定 (開啟回應分頁)
-				if($tree_count){ // 有回應才做分頁動作
+			if($resno){ // 回應模式
+				if($tree_count && RE_PAGE_DEF){ // 有回應且RE_PAGE_DEF > 0才做分頁動作
 					if($page_num==='RE_PAGE_MAX') $page_num = ceil($tree_count / RE_PAGE_DEF) - 1; // 特殊值：最末頁
 					if($page_num < 0) $page_num = 0; // 負數
 					if($page_num * RE_PAGE_DEF >= $tree_count) error('對不起，您所要求的頁數並不存在');
 					$RES_start = $page_num * RE_PAGE_DEF + 1; // 開始
 					$RES_amount = RE_PAGE_DEF; // 取幾個
 				}elseif($page_num > 0) error('對不起，您所要求的頁數並不存在'); // 沒有回應的情況只允許page_num = 0 或負數
+				else{ $RES_start = 1; $RES_amount = $tree_count; } // 輸出全部回應
 			}else{ // 一般模式下的回應隱藏
 				$RES_start = $tree_count - RE_DEF + 1; if($RES_start < 1) $RES_start = 1; // 開始
 				$RES_amount = RE_DEF; // 取幾個
@@ -129,12 +132,8 @@ function updatelog($resno=0,$page_num=0){
 			}
 			// $RES_start, $RES_amount 拿去算新討論串結構 (分頁後, 部分回應隱藏)
 			$tree_cut = array_slice($tree, $RES_start, $RES_amount); array_unshift($tree_cut, $tID); // 取出特定範圍回應
-			$posts = fetchPosts($tree_cut); // 取得文章架構內容 
-			if(USE_TEMPLATE){ // 使用樣板
-				$PTE = new PmcTplEmbed(); // PTE物件
-				$PTE->LoadTemplate(TEMPLATE_FILE);
-			}
-			$dat .= arrangeThread($tree, $tree_cut, $posts, $hiddenReply, $resno); // 交給這個函式去搞討論串印出
+			$posts = fetchPosts($tree_cut); // 取得文章架構內容
+			$dat .= arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno, $arr_kill, $arr_old, $kill_sensor, $old_sensor); // 交給這個函式去搞討論串印出
 			//$dat .= '<div>吃掉回應'.$hiddenReply.'個orz<br />ALL ID='.implode(', ', $tree).'<br />SHOW ID='.implode(', ', $tree_cut).'<p /><a href="pixmicat.php?res='.$tID.'">[REPLY]</a><hr /></div>';
 		}
 		$dat .= '</div>
@@ -231,13 +230,8 @@ function updatelog($resno=0,$page_num=0){
 }
 
 /* 輸出討論串架構 */
-// $tree : 討論串架構 ex: 1,2,3,4,5,6,7
-// $tree_cut : 已設定範圍的討論串架構 ex: 1,5,6,7
-// $posts : 已設定範圍的討論串文章資料陣列 ex: Array([0]=>(['no']=>1, ['name']=> ...), [1]=>(['no']=>5, ...))
-// $hiddenReply : 隱藏回應數 ex: 3
-// $resno : 是否為回應模式 ex: 18 (是) or 0 (否)
-function arrangeThread($tree, $tree_cut, $posts, $hiddenReply, $resno=0){
-	global $path, $PTE, $arr_kill, $arr_old, $kill_sensor, $old_sensor;
+function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $arr_kill, $arr_old, $kill_sensor, $old_sensor){
+	global $path;
 
 	// exit(print_r($posts));
 	$thdat = ''; // 討論串輸出碼
@@ -300,7 +294,7 @@ function arrangeThread($tree, $tree_cut, $posts, $hiddenReply, $resno=0){
 		// 設定討論串屬性
 		if(STORAGE_LIMIT && $kill_sensor) if(isset($arr_kill[$no])) $WARN_BEKILL = '<span class="warn_txt">這篇因附加檔案容量限制，附加檔案不久後就會刪除。</span><br />'."\n"; // 預測刪除過大檔
 		if(!$i){ // 首篇 Only
-			if($old_sensor) if($arr_old[$no] >= LOG_MAX * 0.95) $WARN_OLD = '<span class="warn_txt">這篇已經很舊了，不久後就會刪除。</span><br />'."\n"; // 快要被刪除的提示
+			if($old_sensor) if($arr_old[$no] + 1 >= LOG_MAX * 0.95) $WARN_OLD = '<span class="warn_txt">這篇已經很舊了，不久後就會刪除。</span><br />'."\n"; // 快要被刪除的提示
 			if(getPostStatus($url, 'TS')) $WARN_ENDREPLY = '<span class="warn_txt">這篇討論串已被管理員標記為禁止回應。</span><br />'."\n"; // 被標記為禁止回應
 			if($hiddenReply) $WARN_HIDEPOST = '<span class="warn_txt2">有回應 '.$hiddenReply.' 篇被省略。要閱讀所有回應請按下回應連結。</span><br />'."\n"; // 有隱藏的回應
 		}
@@ -646,9 +640,10 @@ _REDIR_;
 
 /* 使用者刪除 */
 function usrdel($no,$pwd){
-	global $path, $onlyimgdel;
+	global $path;
 	// $pwd: 使用者輸入值, $pwdc: Cookie記錄密碼
 	$pwdc = isset($_COOKIE['pwdc']) ? $_COOKIE['pwdc'] : '';
+	$onlyimgdel = isset($_POST['onlyimgdel']) ? $_POST['onlyimgdel'] : '';
 	if($pwd=='' && $pwdc!='') $pwd = $pwdc;
 	$pwd_md5 = substr(md5($pwd),2,8);
 	$host = gethostbyaddr($_SERVER['REMOTE_ADDR']);
@@ -778,7 +773,7 @@ _N_EOT_;
 
 		// 從記錄抽出附加檔案使用量並生成連結
 		if($ext && file_func('exist', $path.IMG_DIR.$time.$ext)){
-			$clip = '<a href="'.IMG_DIR.$time.$ext.'\" rel="_blank">'.$time.$ext.'</a>';
+			$clip = '<a href="'.IMG_DIR.$time.$ext.'" rel="_blank">'.$time.$ext.'</a>';
 			$size = file_func('size', $path.IMG_DIR.$time.$ext);
 			if(file_func('exist', $path.THUMB_DIR.$time.'s.jpg')) $size += file_func('size', $path.THUMB_DIR.$time.'s.jpg');
 		}else{
@@ -1030,7 +1025,7 @@ $iniv = array('mode','name','email','sub','com','pwd','upfile','upfile_path','up
 foreach($iniv as $iniva){
 	if(!isset($$iniva)) $$iniva = '';
 }
-init(); // ←■■！程式環境初始化，跑過一次後請刪除此行！■■
+//init(); // ←■■！程式環境初始化，跑過一次後請刪除此行！■■
 
 switch($mode){
 	case 'regist':

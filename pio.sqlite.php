@@ -36,7 +36,7 @@ function _ArrangeArrayStructure($line){
 /* PIO模組版本 */
 /* 輸入 void, 輸出 版本號 as string */
 function pioVersion() {
-	return 'v20060710α';
+	return 'v20060713α';
 }
 
 /* 處理連線字串/連接 */
@@ -116,7 +116,7 @@ function dbCommit(){
 /* 輸入 是否作 as boolean, 輸出 優化成果 as boolean */
 function dbOptimize($doit=false){
 	if($doit){
-		dbPrepare(true,false);
+		dbPrepare(true, false);
 		if(_sqlite_call('VACUUM '.SQLLOG)) return true;
 		else return false;
 	}else return true; // 支援最佳化資料表
@@ -125,17 +125,21 @@ function dbOptimize($doit=false){
 /* 刪除舊文 */
 /* 輸入 void, 輸出 舊文之附加檔案列表 as array */
 function delOldPostes(){
-	global $con, $path;
+	global $con, $prepared, $path;
+	if(!$prepared) dbPrepare();
+
 	$oldAttachments = array(); // 舊文的附加檔案清單
 	$countline = postCount(); // 文章數目
 	$cutIndex = $countline - LOG_MAX + 1; // LIMIT用，取出最舊的幾篇
-	if(!$result=_sqlite_call('SELECT no,ext,tim FROM '.SQLLOG." WHERE ext <> '' ORDER BY no LIMIT 0, ".$cutIndex)) echo '[ERROR] 取出舊文失敗<br />';
+	if(!$result=_sqlite_call('SELECT no,ext,tim FROM '.SQLLOG." ORDER BY no LIMIT 0, ".$cutIndex)) echo '[ERROR] 取出舊文失敗<br />';
 	else{
 		while(list($dno, $dext, $dtim)=sqlite_fetch_array($result)){ // 個別跑舊文迴圈
-			$dfile = $path.IMG_DIR.$dtim.$dext; // 附加檔案名稱
-			$dthumb = $path.THUMB_DIR.$dtim.'s.jpg'; // 預覽檔案名稱
-			if(file_func('exist', $dfile)) $oldAttachments[] = $dfile;
-			if(file_func('exist', $dthumb)) $oldAttachments[] = $dthumb;
+			if($dext){
+				$dfile = $path.IMG_DIR.$dtim.$dext; // 附加檔案名稱
+				$dthumb = $path.THUMB_DIR.$dtim.'s.jpg'; // 預覽檔案名稱
+				if(file_func('exist', $dfile)) $oldAttachments[] = $dfile;
+				if(file_func('exist', $dthumb)) $oldAttachments[] = $dthumb;
+			}
 			// 逐次搜尋舊文之回應
 			if(!$resultres=_sqlite_call('SELECT ext,tim FROM '.SQLLOG." WHERE ext <> '' AND resto = $dno")) echo '[ERROR] 取出舊文之回應失敗<br />';
 			while(list($rext, $rtim)=sqlite_fetch_array($resultres)){
@@ -158,14 +162,16 @@ function removePosts($posts){
 
 	$files = removeAttachments($posts); // 先取得刪除文章附件清單
 	$pno = implode(', ', $posts); // ID字串
-	//if(!$result=_sqlite_call('DELETE FROM '.SQLLOG.' WHERE no IN ('.$pno.') OR resto IN('.$pno.')')) echo '[ERROR] 刪除文章及其回應失敗<br />'; // 刪掉文章
+	if(!$result=_sqlite_call('DELETE FROM '.SQLLOG.' WHERE no IN ('.$pno.') OR resto IN('.$pno.')')) echo '[ERROR] 刪除文章及其回應失敗<br />'; // 刪掉文章
 	return $files;
 }
 
 /* 刪除舊附件 (輸出附件清單) */
 /* 輸入 附加檔案總容量 as integer, 限制檔案儲存量 as integer, 只警告 as boolean, 輸出 警告旗標 / 舊附件列表 as array */
 function delOldAttachments($total_size,$storage_max,$warnOnly=true){
-	global $con, $path;
+	global $con, $prepared, $path;
+	if(!$prepared) dbPrepare();
+
 	$arr_warn = $arr_kill = array(); // 警告 / 即將被刪除標記陣列
 	if(!$result=_sqlite_call('SELECT no,ext,tim FROM '.SQLLOG." WHERE ext <> '' ORDER BY no")) echo '[ERROR] 取出舊文失敗<br />';
 	else{
@@ -183,7 +189,8 @@ function delOldAttachments($total_size,$storage_max,$warnOnly=true){
 /* 刪除附件 (輸出附件清單) */
 /* 輸入 文章編號 as array, 輸出 刪除附件列表 as array */
 function removeAttachments($posts){
-	global $con, $path;
+	global $con, $prepared, $path;
+	if(!$prepared) dbPrepare();
 
 	$files = array();
 	$pno = implode(', ', $posts); // ID字串
