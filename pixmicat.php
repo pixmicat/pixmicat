@@ -4,7 +4,7 @@ function getMicrotime(){
     list($usec, $sec) = explode(' ', microtime());
     return ((double)$usec + (double)$sec);
 }
-define("PIXMICAT_VER", 'Pixmicat!-PIO 20060713'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 3rd.Release b060714'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -12,13 +12,13 @@ http://pixmicat.openfoundry.org/
 
 版權聲明：
 此程式是基於レッツPHP!<http://php.s3.to/>的gazou.php、
-雙葉<http://www.2chan.net>的futaba.php所改寫之衍生著作程式，屬於自由軟體，
+双葉ちゃん<http://www.2chan.net>的futaba.php所改寫之衍生著作程式，屬於自由軟體，
 以The Clarified Artistic License作為發佈授權條款。
 您可以遵照The Clarified Artistic License來自由使用、散播、修改或製成衍生著作。
 更詳細的條款及定義請參考隨附"LICENSE"條款副本。
 
 發佈這一程式的目的是希望它有用，但沒有任何擔保，甚至沒有適合特定目的而隱含的擔保。
-關於此程式相關的問題請不要詢問レッツPHP!及雙葉。
+關於此程式相關的問題請不要詢問レッツPHP!及双葉ちゃん。
 
 如果您沒有隨著程式收到一份The Clarified Artistic License副本，
 請瀏覽http://pixmicat.openfoundry.org/license/以取得一份。
@@ -29,9 +29,10 @@ GD Version 2.0.28 / 21 July 2004 (ImageCreateFromGIF[GIF讀取支援])
 
 設置方法：
 根目錄的權限請設為777，
-只要將pixmicat.php執行過一遍，必要的檔案和資料夾權限皆會自動設定，
-自動設定完成後請刪除此檔案底部之init(); // ←■■！程式環境初始化(略)，
-以免無謂的迴圈費時。
+首先將pixmicat.php執行過一遍，必要的檔案和資料夾權限皆會自動設定，
+自動設定完成後請刪除或註解起來此檔案底部之init(); // ←■■！程式環境初始化(略)一行，
+然後再執行一遍pixmicat.php，即完成初始化程序，可以開始使用。
+
 細部的設定請打開config.php參考註解修改。
 */
 
@@ -63,16 +64,12 @@ function updatelog($resno=0,$page_num=0){
 			$threads_count = count($threads);
 			$inner_for_count = $threads_count > PAGE_DEF ? PAGE_DEF : $threads_count;
 			$page_end = ceil($threads_count / PAGE_DEF) - 1; // 頁面編號最後值
-			// $page_start = 0; $page_end = 3
-			// $threads = array(1,2,3,4,5,6,7,8,9,10);
 		}else{ // 討論串分頁模式 (PHP動態輸出一頁份)
 			$threads_count = threadCount(); // 討論串個數
 			if($page_num < 0 || ($page_num * PAGE_DEF) >= $threads_count) error('對不起，您所要求的頁數並不存在'); // $page_num超過範圍
 			$page_start = $page_end = $page_num; // 設定靜態頁面編號
 			$threads = fetchThreadList($page_num * PAGE_DEF, PAGE_DEF); // 取出分頁後的討論串首篇列表
 			$inner_for_count = count($threads); // 討論串個數就是迴圈次數
-			// $page_start = 3; $page_end = 3
-			// $threads = array(4,5,6);
 		}
 	}else if(!is_Thread($resno)) error('欲回應之文章並不存在！');
 
@@ -134,7 +131,6 @@ function updatelog($resno=0,$page_num=0){
 			$tree_cut = array_slice($tree, $RES_start, $RES_amount); array_unshift($tree_cut, $tID); // 取出特定範圍回應
 			$posts = fetchPosts($tree_cut); // 取得文章架構內容
 			$dat .= arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno, $arr_kill, $arr_old, $kill_sensor, $old_sensor); // 交給這個函式去搞討論串印出
-			//$dat .= '<div>吃掉回應'.$hiddenReply.'個orz<br />ALL ID='.implode(', ', $tree).'<br />SHOW ID='.implode(', ', $tree_cut).'<p /><a href="pixmicat.php?res='.$tID.'">[REPLY]</a><hr /></div>';
 		}
 		$dat .= '</div>
 
@@ -233,14 +229,12 @@ function updatelog($resno=0,$page_num=0){
 function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $arr_kill, $arr_old, $kill_sensor, $old_sensor){
 	global $path;
 
-	// exit(print_r($posts));
 	$thdat = ''; // 討論串輸出碼
 	$posts_count = count($posts); // 迴圈次數
 	// $i = 0 (首篇), $i = 1～n (回應)
 	for($i = 0; $i < $posts_count; $i++){
 		$imgsrc = $img_thumb = $imgwh_bar = '';
 		$IMG_BAR = $REPLYBTN = $QUOTEBTN = $WARN_OLD = $WARN_BEKILL = $WARN_ENDREPLY = $WARN_HIDEPOST = '';
-
 		extract($posts[$i]); // 取出討論串文章內容設定變數
 
 		// 設定欄位值
@@ -674,7 +668,7 @@ function valid($pass){
 	if($pass && $pass != ADMIN_PASS) error('密碼錯誤');
 	head($dat);
 	$dat .= '<div id="banner">
-[<a href="'.PHP_SELF2.'?'.time().substr(microtime(),2,3).'">回到版面</a>][<a href="'.PHP_SELF.'?mode=remake">更新文章</a>]
+[<a href="'.PHP_SELF2.'?'.time().'">回到版面</a>][<a href="'.PHP_SELF.'?mode=remake">更新文章</a>]
 <div class="bar_admin">管理模式</div>
 </div>
 <form action="'.PHP_SELF.'" method="post">
@@ -761,8 +755,8 @@ _N_EOT_;
 
 		// 修改欄位樣式
 		$now = preg_replace('/.{2}\/(.{5})\(.+?\)(.{5}).*/', '$1 $2', $now);
-		$name = str_cut(strip_tags($name), 8);
-		$sub = str_cut($sub, 8);
+		$name = htmlspecialchars(str_cut(html_entity_decode(strip_tags($name)), 8));
+		$sub = htmlspecialchars(str_cut(html_entity_decode($sub), 8));
 		if($email) $name = "<a href=\"mailto:$email\">$name</a>";
 		$com = str_replace('<br />',' ',$com);
 		$com = htmlspecialchars(str_cut(html_entity_decode($com), 20));
@@ -868,7 +862,7 @@ function search(){
 	$dat = '';
 	head($dat);
 	$dat .= '<div id="banner">
-[<a href="'.PHP_SELF2.'?'.time().substr(microtime(),2,3).'">回到版面</a>]
+[<a href="'.PHP_SELF2.'?'.time().'">回到版面</a>]
 <div class="bar_admin">搜尋</div>
 </div>
 ';
@@ -952,7 +946,7 @@ function showstatus(){
 	$dat = '';
 	head($dat);
 	$dat .= '<div id="banner">
-[<a href="'.PHP_SELF2.'?'.time().substr(microtime(),2,3).'">回到版面</a>]
+[<a href="'.PHP_SELF2.'?'.time().'">回到版面</a>]
 <div class="bar_admin">系統資訊</div>
 </div>
 ';
@@ -1051,7 +1045,7 @@ switch($mode){
 	case 'remake':
 		updatelog();
 		header('HTTP/1.1 302 Moved Temporarily');
-		header('Location: '.fullURL().PHP_SELF2.'?'.time().substr(microtime(),2,3));
+		header('Location: '.fullURL().PHP_SELF2.'?'.time());
 		break;
 	default:
 		if($res){
@@ -1061,7 +1055,7 @@ switch($mode){
 		}else{
 			if(!is_file(PHP_SELF2)) updatelog();
 			header('HTTP/1.1 302 Moved Temporarily');
-			header('Location: '.fullURL().PHP_SELF2.'?'.time().substr(microtime(),2,3));
+			header('Location: '.fullURL().PHP_SELF2.'?'.time());
 		}
 }
 if(($Encoding = CheckSupportGZip()) && GZIP_COMPRESS_LEVEL){ // 啟動Gzip

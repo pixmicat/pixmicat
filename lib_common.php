@@ -1,5 +1,5 @@
 <?php
-// Revision : 2006/06/17 12:42
+// Revision : 2006/07/14 14:42
 
 /* 輸出表頭 */
 function head(&$dat){
@@ -98,7 +98,7 @@ function form(&$dat, $resno){
 function foot(&$dat){
 	global $time1;
 	$dat .= '<div id="footer">
-<!-- GazouBBS v3.0 --><!-- 雙葉改0.8 --><!-- Pixmicat! -->
+<!-- GazouBBS v3.0 --><!-- ふたば改0.8 --><!-- Pixmicat! -->
 <small>- <a href="http://php.s3.to" rel="_top">GazouBBS</a> + <a href="http://www.2chan.net/" rel="_top">futaba</a> + <a href="http://pixmicat.openfoundry.org/" rel="_blank">Pixmicat!</a> -</small>
 Runtime :'.(getMicrotime()-$time1).'
 <script type="text/javascript">preset();</script>

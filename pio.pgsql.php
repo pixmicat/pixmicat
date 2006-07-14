@@ -5,6 +5,12 @@ PostgreSQL API
 */
 $prepared = 0;
 
+/* PIO模組版本 */
+/* 輸入 void, 輸出 版本號 as string */
+function pioVersion(){
+	return 'v20060714α';
+}
+
 /* private 使用SQL字串和PostgreSQL伺服器要求 */
 function _pgsql_call($query){
 	global $con;
@@ -20,19 +26,13 @@ function _ArrangeArrayStructure($line){
 
 	$posts = array();
 	$arrIDKey = array('no'=>'', 'now'=>'', 'name'=>'', 'email'=>'', 'sub'=>'', 'com'=>'', 'status'=>'url', 'host'=>'', 'pwd'=>'pw', 'ext'=>'', 'w'=>'', 'h'=>'', 'tim'=>'time', 'md5'=>'chk'); // PostgreSQL 欄位鍵 => 標準欄位鍵
-	while($row=pg_fetch_array($line,null,PGSQL_ASSOC)){
+	while($row=pg_fetch_array($line, null, PGSQL_ASSOC)){
 		$tline = array();
 		foreach($arrIDKey as $mID => $mVal) $tline[($mVal ? $mVal : $mID)] = $row[$mID]; // 逐個取值並代入
 		$posts[] = $tline;
 	}
 	pg_free_result($line);
 	return $posts;
-}
-
-/* PIO模組版本 */
-/* 輸入 void, 輸出 版本號 as string */
-function pioVersion(){
-	return 'v20060713α';
 }
 
 /* 處理連線字串/連接 */
@@ -55,7 +55,7 @@ function dbConnect($connStr){
 function dbInit(){
 	global $con, $prepared;
 	dbPrepare();
-	if(pg_num_rows(pg_query($con,"select relname from pg_class where relname='".SQLLOG."'"))!=1){ // 資料表不存在
+	if(pg_num_rows(pg_query($con,"SELECT relname FROM pg_class WHERE relname = '".SQLLOG."'"))!=1){ // 資料表不存在
 		$result = "CREATE SEQUENCE ".SQLLOG."_no_seq;
 CREATE TABLE ".SQLLOG." (
   \"no\" int NOT NULL DEFAULT nextval('".SQLLOG."_no_seq'),
@@ -87,7 +87,7 @@ CREATE TABLE ".SQLLOG." (
 
 /* 準備/讀入 */
 /* 輸入 是否重作 as boolean, 輸出 void */
-function dbPrepare($reload=false,$transaction=true){
+function dbPrepare($reload=false, $transaction=true){
 	global $con, $prepared;
 	if($prepared && !$reload) return true;
 
@@ -130,7 +130,7 @@ function delOldPostes(){
 	$oldAttachments = array(); // 舊文的附加檔案清單
 	$countline = postCount(); // 文章數目
 	$cutIndex = $countline - LOG_MAX + 1; // LIMIT用，取出最舊的幾篇
-	if(!$result=_pgsql_call('SELECT no,ext,tim FROM '.SQLLOG." ORDER BY no LIMIT ".$cutIndex)) echo '[ERROR] 取出舊文失敗<br />';
+	if(!$result=_pgsql_call('SELECT no,ext,tim FROM '.SQLLOG.' ORDER BY no LIMIT '.$cutIndex)) echo '[ERROR] 取出舊文失敗<br />';
 	else{
 		while(list($dno, $dext, $dtim)=pg_fetch_array($result)){ // 個別跑舊文迴圈
 			if($dext){
@@ -161,7 +161,7 @@ function removePosts($posts){
 	global $con, $prepared;
 	if(!$prepared) dbPrepare();
 
-	$files = removeAttachments($posts); // 先取得刪除文章附件清單
+	$files = removeAttachments($posts, true); // 先遞迴取得刪除文章及其回應附件清單
 	$pno = implode(', ', $posts); // ID字串
 	if(!$result=_pgsql_call('DELETE FROM '.SQLLOG.' WHERE no IN ('.$pno.') OR resto IN('.$pno.')')) echo '[ERROR] 刪除文章及其回應失敗<br />'; // 刪掉文章
 	return $files;
@@ -189,14 +189,17 @@ function delOldAttachments($total_size, $storage_max, $warnOnly=true){
 }
 
 /* 刪除附件 (輸出附件清單) */
-/* 輸入 文章編號 as array, 輸出 刪除附件列表 as array */
-function removeAttachments($posts){
+/* 輸入 文章編號 as array, 是否遞迴(附加其回應附件) as boolean, 輸出 刪除附件列表 as array */
+function removeAttachments($posts, $recursion=false){
 	global $con, $prepared, $path;
 	if(!$prepared) dbPrepare();
 
 	$files = array();
 	$pno = implode(', ', $posts); // ID字串
-	if(!$result=_pgsql_call('SELECT ext,tim FROM '.SQLLOG.' WHERE (no IN ('.$pno.') OR resto IN('.$pno.")) AND ext <> ''")) echo '[ERROR] 取出附件清單失敗<br />';
+	if($recursion) $tmpSQL = 'SELECT ext,tim FROM '.SQLLOG.' WHERE (no IN ('.$pno.') OR resto IN('.$pno.")) AND ext <> ''"; // 遞迴取出 (含回應附件)
+	else $tmpSQL = 'SELECT ext,tim FROM '.SQLLOG.' WHERE no IN ('.$pno.") AND ext <> ''"; // 只有指定的編號
+
+	if(!$result=_pgsql_call($tmpSQL)) echo '[ERROR] 取出附件清單失敗<br />';
 	else{
 		while(list($dext, $dtim)=pg_fetch_array($result)){ // 個別跑迴圈
 			$dfile = $path.IMG_DIR.$dtim.$dext; // 附加檔案名稱

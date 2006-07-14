@@ -5,6 +5,12 @@ SQLite API
 */
 $prepared = 0;
 
+/* PIO模組版本 */
+/* 輸入 void, 輸出 版本號 as string */
+function pioVersion() {
+	return 'v20060714β';
+}
+
 /* private 使用SQL字串和SQLite要求 */
 function _sqlite_call($query){
 	global $con;
@@ -31,12 +37,6 @@ function _ArrangeArrayStructure($line){
 /* private */ function sqlite_result($rh, $row, $field){
 	$currrow = sqlite_fetch_all($rh,SQLITE_NUM);
 	return $currrow[$row][$field];
-}
-
-/* PIO模組版本 */
-/* 輸入 void, 輸出 版本號 as string */
-function pioVersion() {
-	return 'v20060713β';
 }
 
 /* 處理連線字串/連接 */
@@ -160,7 +160,7 @@ function removePosts($posts){
 	global $con, $prepared;
 	if(!$prepared) dbPrepare();
 
-	$files = removeAttachments($posts); // 先取得刪除文章附件清單
+	$files = removeAttachments($posts, true); // 先遞迴取得刪除文章及其回應附件清單
 	$pno = implode(', ', $posts); // ID字串
 	if(!$result=_sqlite_call('DELETE FROM '.SQLLOG.' WHERE no IN ('.$pno.') OR resto IN('.$pno.')')) echo '[ERROR] 刪除文章及其回應失敗<br />'; // 刪掉文章
 	return $files;
@@ -187,14 +187,17 @@ function delOldAttachments($total_size,$storage_max,$warnOnly=true){
 }
 
 /* 刪除附件 (輸出附件清單) */
-/* 輸入 文章編號 as array, 輸出 刪除附件列表 as array */
-function removeAttachments($posts){
+/* 輸入 文章編號 as array, 是否遞迴(附加其回應附件) as boolean, 輸出 刪除附件列表 as array */
+function removeAttachments($posts, $recursion=false){
 	global $con, $prepared, $path;
 	if(!$prepared) dbPrepare();
 
 	$files = array();
 	$pno = implode(', ', $posts); // ID字串
-	if(!$result=_sqlite_call('SELECT ext,tim FROM '.SQLLOG.' WHERE (no IN ('.$pno.') OR resto IN('.$pno.")) AND ext <> ''")) echo '[ERROR] 取出附件清單失敗<br />';
+	if($recursion) $tmpSQL = 'SELECT ext,tim FROM '.SQLLOG.' WHERE (no IN ('.$pno.') OR resto IN('.$pno.")) AND ext <> ''"; // 遞迴取出 (含回應附件)
+	else $tmpSQL = 'SELECT ext,tim FROM '.SQLLOG.' WHERE no IN ('.$pno.") AND ext <> ''"; // 只有指定的編號
+
+	if(!$result=_sqlite_call($tmpSQL)) echo '[ERROR] 取出附件清單失敗<br />';
 	else{
 		while(list($dext, $dtim)=sqlite_fetch_array($result)){ // 個別跑迴圈
 			$dfile = $path.IMG_DIR.$dtim.$dext; // 附加檔案名稱

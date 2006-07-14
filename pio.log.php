@@ -10,6 +10,11 @@ $trees=array();
 $restono=array();
 $prepared=0;
 
+/* PIO模組版本 */
+function pioVersion() {
+	return 'v20060714β';
+}
+
 /* 將回文放進陣列 */
 /* private */ function includeReplies($posts) {
 	global $restono,$trees;
@@ -19,11 +24,6 @@ $prepared=0;
 		}
 	}
 	return array_merge(array(),array_unique($posts));
-}
-
-/* PIO模組版本 */
-function pioVersion() {
-	return 'v20060713β';
 }
 
 /* 處理連線字串/連接 */
