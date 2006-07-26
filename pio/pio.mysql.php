@@ -8,7 +8,7 @@ $prepared = 0;
 /* PIO模組版本 */
 /* 輸入 void, 輸出 版本號 as string */
 function pioVersion(){
-	return 'v20060714β';
+	return 'v20060726β';
 }
 
 /* private 使用SQL字串和MySQL伺服器要求 */
@@ -25,7 +25,7 @@ function _ArrangeArrayStructure($line){
 	global $con;
 
 	$posts = array();
-	$arrIDKey = array('no'=>'', 'now'=>'', 'name'=>'', 'email'=>'', 'sub'=>'', 'com'=>'', 'status'=>'url', 'host'=>'', 'pwd'=>'pw', 'ext'=>'', 'w'=>'', 'h'=>'', 'tim'=>'time', 'md5'=>'chk'); // MySQL 欄位鍵 => 標準欄位鍵
+	$arrIDKey = array('no'=>'', 'resto'=>'', 'now'=>'', 'name'=>'', 'email'=>'', 'sub'=>'', 'com'=>'', 'status'=>'url', 'host'=>'', 'pwd'=>'pw', 'ext'=>'', 'w'=>'', 'h'=>'', 'tim'=>'time', 'md5'=>'chk'); // MySQL 欄位鍵 => 標準欄位鍵
 	while($row=mysql_fetch_array($line, MYSQL_ASSOC)){
 		$tline = array();
 		foreach($arrIDKey as $mID => $mVal) $tline[($mVal ? $mVal : $mID)] = $row[$mID]; // 逐個取值並代入

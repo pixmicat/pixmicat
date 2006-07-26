@@ -12,7 +12,7 @@ $prepared=0;
 
 /* PIO模組版本 */
 function pioVersion() {
-	return 'v20060714β';
+	return 'v20060726β';
 }
 
 /* 將回文放進陣列 */
@@ -60,13 +60,6 @@ function dbPrepare($reload=false,$transaction=true) {
 	$lines = file(LOGFILE);
 	$tree = file(TREEFILE);
 
-	foreach($lines as $line) {
-		if($line=='') continue;
-		$tline=array();
-		list($tline['no'],$tline['now'],$tline['name'],$tline['email'],$tline['sub'],$tline['com'],$tline['url'],$tline['host'],$tline['pw'],$tline['ext'],$tline['w'],$tline['h'],$tline['time'],$tline['chk'])=explode(',', $line);
-		$porder[]=$tline['no'];
-		$logs[$tline['no']]=array_reverse($tline); // list()是由右至左代入的
-	}
 	foreach($tree as $treeline) {
 		if($treeline=='') continue;
 		$tline=explode(',', rtrim($treeline));
@@ -74,6 +67,15 @@ function dbPrepare($reload=false,$transaction=true) {
 		$torder[]=$tline[0];
 		foreach($tline as $post) $restono[$post]=$tline[0];
 	}
+	foreach($lines as $line) {
+		if($line=='') continue;
+		$tline=array();
+		list($tline['no'],$tline['now'],$tline['name'],$tline['email'],$tline['sub'],$tline['com'],$tline['url'],$tline['host'],$tline['pw'],$tline['ext'],$tline['w'],$tline['h'],$tline['time'],$tline['chk'])=explode(',', $line);
+		$tline['resto']=$restono[$tline['no']]; // 欲回應編號
+		$porder[]=$tline['no'];
+		$logs[$tline['no']]=array_reverse($tline); // list()是由右至左代入的
+	}
+
 	$prepared = 1;
 }
 
@@ -85,9 +87,12 @@ function dbCommit() {
 	$tcount=threadCount();
 
 	$log=$tree='';
-	for($post=0;$post<$pcount;$post++)
-		$log.=isset($logs[$porder[$post]])?implode(',',$logs[$porder[$post]]).",\n":'';
-
+	for($post=0;$post<$pcount;$post++){
+		if(isset($logs[$porder[$post]])){
+			if(array_key_exists('resto', $logs[$porder[$post]])) array_shift($logs[$porder[$post]]); // resto不屬於原log架構故除去
+			$log .= implode(',',$logs[$porder[$post]]).",\n";
+		}
+	}
 	for($tline=0;$tline<$tcount;$tline++)
 		$tree.=is_Thread($torder[$tline])?implode(',',$trees[$torder[$tline]])."\n":'';
 
