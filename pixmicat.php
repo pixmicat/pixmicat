@@ -244,7 +244,7 @@ function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $
 		$com = quoteLight($com);
 		$name = preg_replace('/(◆.{10})/', '<span class="nor">$1</span>', $name); // Trip取消粗體
 		if(USE_QUOTESYSTEM && $i){ // 啟用引用瀏覽系統
-			if(preg_match_all('/((?:&gt;|>|＞)+)(?:No\.)?(\d+)/i', $com, $matches, PREG_SET_ORDER)){ // 找尋>>No.xxx
+			if(preg_match_all('/((?:&gt;|＞)+)(?:No\.)?(\d+)/i', $com, $matches, PREG_SET_ORDER)){ // 找尋>>No.xxx
 				foreach($matches as $val){
 					if($r_page=array_search($val[2], $tree)){ // $r_page !==0 (首篇) 就算找到
 						// 在顯示區間內，輸出錨點即可

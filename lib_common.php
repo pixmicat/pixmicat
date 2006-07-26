@@ -115,7 +115,7 @@ function auto_link($proto){
 
 /* 引用標註 */
 function quoteLight($comment){
-	return preg_replace('/(^|<br \/>)((?:&gt;|>|＞).*?)(?=<br \/>|$)/u', '$1<span style="color: '.RE_COL.';">$2</span>', $comment);
+	return preg_replace('/(^|<br \/>)((?:&gt;|＞).*?)(?=<br \/>|$)/u', '$1<span style="color: '.RE_COL.';">$2</span>', $comment);
 }
 
 /* 輸出錯誤畫面 */
