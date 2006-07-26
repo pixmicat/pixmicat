@@ -4,7 +4,7 @@ function getMicrotime(){
     list($usec, $sec) = explode(' ', microtime());
     return ((double)$usec + (double)$sec);
 }
-define("PIXMICAT_VER", 'Pixmicat!-PIO 3rd.Release b060714'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 3rd.Release b060726'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -78,7 +78,7 @@ function updatelog($resno=0,$page_num=0){
 		$old_sensor = true; // 標記打開
 		$arr_old = array_flip(fetchPostList()); // 過舊文章陣列
 	}
-	$tmp_total_size = total_size(); // 目前附加檔案使用量
+	$tmp_total_size = total_size(); // 目前附加圖檔使用量
 	$tmp_STORAGE_MAX = STORAGE_MAX * (($tmp_total_size >= STORAGE_MAX) ? 1 : 0.95); // 預估上限值
 	if(STORAGE_LIMIT && ($tmp_total_size >= $tmp_STORAGE_MAX)){
 		$kill_sensor = true; // 標記打開
@@ -138,7 +138,7 @@ function updatelog($resno=0,$page_num=0){
 <table style="float: right;">
 <tr><td align="center" style="white-space: nowrap;">
 <input type="hidden" name="mode" value="usrdel" />
-【刪除文章】[<input type="checkbox" name="onlyimgdel" id="onlyimgdel" value="on" /><label for="onlyimgdel">僅刪除附加檔案</label>]<br />
+【刪除文章】[<input type="checkbox" name="onlyimgdel" id="onlyimgdel" value="on" /><label for="onlyimgdel">僅刪除附加圖檔</label>]<br />
 刪除用密碼: <input type="password" name="pwd" size="8" maxlength="8" value="" />
 <input type="submit" value=" 刪除 " />
 <script type="text/javascript">l();</script>
@@ -244,7 +244,7 @@ function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $
 		$com = quoteLight($com);
 		$name = preg_replace('/(◆.{10})/', '<span class="nor">$1</span>', $name); // Trip取消粗體
 		if(USE_QUOTESYSTEM && $i){ // 啟用引用瀏覽系統
-			if(preg_match_all('/((?:&gt;)+|＞)(?:No\.)?(\d+)/i', $com, $matches, PREG_SET_ORDER)){ // 找尋>>No.xxx
+			if(preg_match_all('/((?:&gt;|>|＞)+)(?:No\.)?(\d+)/i', $com, $matches, PREG_SET_ORDER)){ // 找尋>>No.xxx
 				foreach($matches as $val){
 					if($r_page=array_search($val[2], $tree)){ // $r_page !==0 (首篇) 就算找到
 						// 在顯示區間內，輸出錨點即可
@@ -257,7 +257,7 @@ function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $
 			}
 		}
 
-		// 設定附加檔案顯示
+		// 設定附加圖檔顯示
 		$src = IMG_DIR.$time.$ext; $img = $path.$src;
 		if($ext && file_func('exist', $img)){
 			$size = file_func('size', $img);
@@ -269,7 +269,7 @@ function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $
 					$imgsrc = '<a href="'.IMGLINK_URL_PREFIX.$src.'" rel="_blank"><img src="'.THUMB_URL_PREFIX.THUMB_DIR.$time.'s.jpg" style="width: '.$w.'px; height: '.$h.'px;" class="img" alt="'.$size.'B" title="'.$size.'B" /></a>';
 				}elseif($ext=='.swf') $imgsrc = ''; // swf檔案不需預覽圖
 			}
-			if(SHOW_IMGWH) $imgwh_bar = ', '.file_func('imgsize', $img); // 顯示附加檔案之原檔長寬尺寸
+			if(SHOW_IMGWH) $imgwh_bar = ', '.file_func('imgsize', $img); // 顯示附加圖檔之原檔長寬尺寸
 			$IMG_BAR = '檔名：<a href="'.IMG_URL_PREFIX.$src.'" rel="_blank">'.$time.$ext.'</a>-('.$size.'B'.$imgwh_bar.') '.$img_thumb;
 			if(!USE_TEMPLATE){
 				if($i) $IMG_BAR = '<br />&nbsp;'.$IMG_BAR; // 只有回應的IMG_BAR有資料時需要換行
@@ -286,7 +286,7 @@ function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $
 		}
 
 		// 設定討論串屬性
-		if(STORAGE_LIMIT && $kill_sensor) if(isset($arr_kill[$no])) $WARN_BEKILL = '<span class="warn_txt">這篇因附加檔案容量限制，附加檔案不久後就會刪除。</span><br />'."\n"; // 預測刪除過大檔
+		if(STORAGE_LIMIT && $kill_sensor) if(isset($arr_kill[$no])) $WARN_BEKILL = '<span class="warn_txt">這篇因附加圖檔容量限制，附加圖檔不久後就會刪除。</span><br />'."\n"; // 預測刪除過大檔
 		if(!$i){ // 首篇 Only
 			if($old_sensor) if($arr_old[$no] + 1 >= LOG_MAX * 0.95) $WARN_OLD = '<span class="warn_txt">這篇已經很舊了，不久後就會刪除。</span><br />'."\n"; // 快要被刪除的提示
 			if(getPostStatus($url, 'TS')) $WARN_ENDREPLY = '<span class="warn_txt">這篇討論串已被管理員標記為禁止回應。</span><br />'."\n"; // 被標記為禁止回應
@@ -350,13 +350,13 @@ function regist($name,$email,$sub,$com,$pwd,$upfile,$upfile_path,$upfile_name,$u
 	// 判斷上傳狀態
 	switch($upfile_status){
 		case 1:
-			error('上傳失敗<br />上傳的附加檔案容量超過PHP內定值');
+			error('上傳失敗<br />上傳的附加圖檔容量超過PHP內定值');
 			break;
 		case 2:
-			error('上傳失敗<br />上傳的附加檔案容量超過上傳容量限制');
+			error('上傳失敗<br />上傳的附加圖檔容量超過上傳容量限制');
 			break;
 		case 3:
-			error('上傳失敗<br />上傳的附加檔案不完整，請回版面再重試');
+			error('上傳失敗<br />上傳的附加圖檔不完整，請回版面再重試');
 			break;
 		case 6:
 			error('上傳失敗<br />上傳的暫存資料夾設定錯誤，請通報系統管理員');
@@ -366,7 +366,7 @@ function regist($name,$email,$sub,$com,$pwd,$upfile,$upfile_path,$upfile_name,$u
 		default:
 	}
 
-	// 如果有上傳檔案則處理附加檔案
+	// 如果有上傳檔案則處理附加圖檔
 	if($upfile && is_file($upfile)){
 		// 一‧先儲存檔案
 		$dest = $path.$tim.'.tmp';
@@ -374,7 +374,7 @@ function regist($name,$email,$sub,$com,$pwd,$upfile,$upfile_path,$upfile_name,$u
 		@chmod($dest, 0666);
 		if(!is_file($dest)) error('上傳失敗<br />伺服器有可能禁止上傳、沒有權限，或不支援此格式', $dest);
 
-		// 二‧判斷上傳附加檔案途中是否有中斷
+		// 二‧判斷上傳附加圖檔途中是否有中斷
 		$upsizeTTL = $_SERVER['CONTENT_LENGTH'];
 		$upsizeHDR = 0;
 		// 檔案路徑：IE附完整路徑，故得從隱藏表單取得
@@ -385,12 +385,12 @@ function regist($name,$email,$sub,$com,$pwd,$upfile,$upfile_path,$upfile_name,$u
 			$upsizeHDR += strlen('--'.$boundary."\r\n");
 			$upsizeHDR += strlen('Content-Disposition: form-data; name="$header"'."\r\n\r\n".(get_magic_quotes_gpc()?stripslashes($value):$value)."\r\n");
 		}
-		// 附加檔案欄位傳送資料
+		// 附加圖檔欄位傳送資料
 		$upsizeHDR += strlen('--'.$boundary."\r\n");
 		$upsizeHDR += strlen('Content-Disposition: form-data; name="upfile"; filename="'.$tmp_upfile_path."\"\r\n".'Content-Type: '.$_FILES['upfile']['type']."\r\n\r\n");
 		$upsizeHDR += strlen("\r\n--".$boundary."--\r\n");
-		$upsizeHDR += $_FILES['upfile']['size']; // 傳送附加檔案資料量
-		// 上傳位元組差值超過 HTTP_UPLOAD_DIFF：上傳附加檔案不完全
+		$upsizeHDR += $_FILES['upfile']['size']; // 傳送附加圖檔資料量
+		// 上傳位元組差值超過 HTTP_UPLOAD_DIFF：上傳附加圖檔不完全
 		if(($upsizeTTL - $upsizeHDR) > HTTP_UPLOAD_DIFF){
 			if(KILL_INCOMPLETE_UPLOAD){
 				unlink($dest);
@@ -401,7 +401,7 @@ function regist($name,$email,$sub,$com,$pwd,$upfile,$upfile_path,$upfile_name,$u
 		// 三‧檢查是否為可接受的檔案
 		$size = @getimagesize($dest);
 		if(!is_array($size)) error('上傳失敗<br />不接受圖片以外的檔案', $dest); // $size不為陣列就不是圖檔
-		switch($size[2]){ // 判斷上傳附加檔案之格式
+		switch($size[2]){ // 判斷上傳附加圖檔之格式
 			case 1 : $ext = ".gif"; break;
 			case 2 : $ext = ".jpg"; break;
 			case 3 : $ext = ".png"; break;
@@ -409,15 +409,15 @@ function regist($name,$email,$sub,$com,$pwd,$upfile,$upfile_path,$upfile_name,$u
 			case 5 : $ext = ".psd"; break;
 			case 6 : $ext = ".bmp"; break;
 			case 13 : $ext = ".swf"; break;
-			default : $ext = ".xxx"; error('附加檔案為系統不支援的格式', $dest);
+			default : $ext = ".xxx"; error('附加圖檔為系統不支援的格式', $dest);
 		}
-		$allow_exts = explode('|', strtolower(ALLOW_UPLOAD_EXT)); // 接受之附加檔案副檔名
-		if(array_search(substr($ext, 1), $allow_exts)===false) error('附加檔案為系統不支援的格式', $dest); // 並無在接受副檔名之列
-		// 封鎖設定：限制上傳附加檔案之MD5檢查碼
+		$allow_exts = explode('|', strtolower(ALLOW_UPLOAD_EXT)); // 接受之附加圖檔副檔名
+		if(array_search(substr($ext, 1), $allow_exts)===false) error('附加圖檔為系統不支援的格式', $dest); // 並無在接受副檔名之列
+		// 封鎖設定：限制上傳附加圖檔之MD5檢查碼
 		$chk = md5_file($dest); // 檔案MD5
-		if(array_search($chk, $BAD_FILEMD5)!==FALSE) error('上傳失敗<br />此附加檔案被管理員列為禁止上傳', $dest); // 在封鎖設定內則阻擋
+		if(array_search($chk, $BAD_FILEMD5)!==FALSE) error('上傳失敗<br />此附加圖檔被管理員列為禁止上傳', $dest); // 在封鎖設定內則阻擋
 
-		// 四‧計算附加檔案圖檔縮圖顯示尺寸
+		// 四‧計算附加圖檔圖檔縮圖顯示尺寸
 		$W = $imgW = $size[0];
 		$H = $imgH = $size[1];
 		$MAXW = $resto ? MAX_RW : MAX_W;
@@ -429,7 +429,7 @@ function regist($name,$email,$sub,$com,$pwd,$upfile,$upfile_path,$upfile_name,$u
 			$W = ceil($W * $key);
 			$H = ceil($H * $key);
 		}
-		$mes = '附加檔案'.CleanStr($upfile_name).'上傳完畢<br />';
+		$mes = '附加圖檔'.CleanStr($upfile_name).'上傳完畢<br />';
 	}
 
 	// 檢查是否輸入櫻花日文假名
@@ -441,7 +441,7 @@ function regist($name,$email,$sub,$com,$pwd,$upfile,$upfile_path,$upfile_name,$u
 		if(ALLOW_NONAME) $name = '無名氏';
 		else error('您沒有填寫名稱', $dest);
 	}
-	if(!$com && $upfile_status==4) error('在沒有附加檔案的情況下，請寫入內文');
+	if(!$com && $upfile_status==4) error('在沒有附加圖檔的情況下，請寫入內文');
 	if(!$com || ereg("^[ |　|\t]*$", $com)) $com = '無內文';
 	if(!$sub || ereg("^[ |　|]*$", $sub)) $sub = '無標題';
 	if(strlen($name) > 100) error('名稱過長', $dest);
@@ -489,7 +489,7 @@ function regist($name,$email,$sub,$com,$pwd,$upfile,$upfile_path,$upfile_name,$u
 	$com = ereg_replace("\n((　| )*\n){3,}","\n", $com);
 	if(!BR_CHECK || substr_count($com,"\n") < BR_CHECK) $com = nl2br($com); // 換行字元用<br />代替
 	$com = str_replace("\n",'', $com); // 若還有\n換行字元則取消換行
-	if($up_incomplete) $com .= '<br /><br /><span class="warn_txt">注意：附加檔案上傳不完全</span>'; // 上傳附加檔案不完全的提示
+	if($up_incomplete) $com .= '<br /><br /><span class="warn_txt">注意：附加圖檔上傳不完全</span>'; // 上傳附加圖檔不完全的提示
 
 	// 時間和密碼的樣式
 	if($pwd=='') $pwd = ($pwdc=='') ? substr(rand(),0,8) : $pwdc;
@@ -508,7 +508,7 @@ function regist($name,$email,$sub,$com,$pwd,$upfile,$upfile_path,$upfile_name,$u
 	$posts = fetchPosts($line); // 取出前幾筆文章內容
 	$posts_count = count($posts);
 
-	// 連續投稿 / 相同附加檔案判斷
+	// 連續投稿 / 相同附加圖檔判斷
 	$pwdc = substr(md5($pwdc), 2, 8); // Cookies密碼
   	for($i = 0; $i < $posts_count; $i++){
   		$post = $posts[$i]; // 取出單一文章
@@ -518,10 +518,10 @@ function regist($name,$email,$sub,$com,$pwd,$upfile,$upfile_path,$upfile_name,$u
 		else $pchk = 0;
 		if(RENZOKU && $pchk){ // 密碼比對符合且開啟連續投稿時間限制
 			if($time - $ltime2 < RENZOKU) error('連續投稿請稍候一段時間', $dest); // 投稿時間相距太短
-			if($time - $ltime2 < RENZOKU2 && $upfile_name) error('連續附加檔案投稿請稍候一段時間', $dest); // 附加檔案的投稿時間相距太短
+			if($time - $ltime2 < RENZOKU2 && $upfile_name) error('連續附加圖檔投稿請稍候一段時間', $dest); // 附加圖檔的投稿時間相距太短
 			if($com == $lcom && !$upfile_name) error('連續投稿請稍候一段時間', $dest); // 內文一樣
 		}
-		if($dest && $lchk==$chk && file_func('exist', $path.IMG_DIR.$ltime.$lext)) error('上傳失敗<br />近期已經有相同的附加檔案', $dest); // 相同的附加檔案
+		if($dest && $lchk==$chk && file_func('exist', $path.IMG_DIR.$ltime.$lext)) error('上傳失敗<br />近期已經有相同的附加圖檔', $dest); // 相同的附加圖檔
 	}
 
 	if($resto) $ThreadExistsBefore = is_Thread($resto);
@@ -531,9 +531,9 @@ function regist($name,$email,$sub,$com,$pwd,$upfile,$upfile_path,$upfile_name,$u
 		if(count($files)) file_func('del',$files);
 	}
 
-	// 附加檔案容量限制功能啟動：刪除過大檔
+	// 附加圖檔容量限制功能啟動：刪除過大檔
 	if(STORAGE_LIMIT){
-		$tmp_total_size = total_size(); // 取得目前附加檔案使用量
+		$tmp_total_size = total_size(); // 取得目前附加圖檔使用量
 		if($tmp_total_size >= STORAGE_MAX){
 			$files = delOldAttachments($tmp_total_size, STORAGE_MAX, false);
 			file_func('del', $files);
@@ -742,10 +742,10 @@ function ChangePage(page){
 <input type="hidden" name="admin" value="del" />
 <input type="hidden" name="pass" value="$pass" />
 <input type="hidden" name="page" value="$page" />
-<div style="text-align: left;"><ul><li>想刪除文章，請勾選該文章前之「刪除」核取框之後按下執行按鈕</li><li>只想刪除文章的附加檔案，請先勾選「僅刪除附加檔案」再按照一般刪文方式</li><li>想停止／繼續討論串，請勾選該文章前之「停止」核取框之後按下執行按鈕</li><li>勾選後換頁亦相當於執行，請慎用此功能</li><li>管理文章完畢，記得順手按下「更新文章」以更新靜態快取</li></ul></div>
-<p><input type="submit" value=" 執行 " /> <input type="reset" value=" 重置 " /> [<input type="checkbox" name="onlyimgdel" id="onlyimgdel" value="on" /><label for="onlyimgdel">僅刪除附加檔案</label>]</p>
+<div style="text-align: left;"><ul><li>想刪除文章，請勾選該文章前之「刪除」核取框之後按下執行按鈕</li><li>只想刪除文章的附加圖檔，請先勾選「僅刪除附加圖檔」再按照一般刪文方式</li><li>想停止／繼續討論串，請勾選該文章前之「停止」核取框之後按下執行按鈕</li><li>勾選後換頁亦相當於執行，請慎用此功能</li><li>管理文章完畢，記得順手按下「更新文章」以更新靜態快取</li></ul></div>
+<p><input type="submit" value=" 執行 " /> <input type="reset" value=" 重置 " /> [<input type="checkbox" name="onlyimgdel" id="onlyimgdel" value="on" /><label for="onlyimgdel">僅刪除附加圖檔</label>]</p>
 <table border="1" cellspacing="0" style="margin: 0px auto;">
-<tr style="background-color: #6080f6;"><th>停止</th><th>刪除</th><th>投稿日</th><th>標題</th><th>名稱</th><th>內文</th><th>主機位置名稱</th><th>附加檔案 (Bytes)<br />MD5 檢查碼</th></tr>
+<tr style="background-color: #6080f6;"><th>停止</th><th>刪除</th><th>投稿日</th><th>標題</th><th>名稱</th><th>內文</th><th>主機位置名稱</th><th>附加圖檔 (Bytes)<br />MD5 檢查碼</th></tr>
 
 _N_EOT_;
 
@@ -765,7 +765,7 @@ _N_EOT_;
 		if(isset($tno[$no])) $THstop = '<input type="checkbox" name="stop[]" value="'.$no.'" />'.((getPostStatus($url, 'TS')==1)?'停':'');
 		else $THstop = '--';
 
-		// 從記錄抽出附加檔案使用量並生成連結
+		// 從記錄抽出附加圖檔使用量並生成連結
 		if($ext && file_func('exist', $path.IMG_DIR.$time.$ext)){
 			$clip = '<a href="'.IMG_DIR.$time.$ext.'" rel="_blank">'.$time.$ext.'</a>';
 			$size = file_func('size', $path.IMG_DIR.$time.$ext);
@@ -785,7 +785,7 @@ _ADMINEOF_;
 	}
 	echo '</table>
 <p><input type="submit" value=" 執行 " /> <input type="reset" value=" 重置 " /></p>
-<p>【 附加檔案使用容量總計 : <b>'.total_size().'</b> KB 】</p>
+<p>【 附加圖檔使用容量總計 : <b>'.total_size().'</b> KB 】</p>
 <hr />
 ';
 
@@ -809,12 +809,12 @@ _ADMINEOF_;
 </html>');
 }
 
-/* 計算目前附加檔案使用容量 (單位：KB) */
+/* 計算目前附加圖檔使用容量 (單位：KB) */
 function total_size($isupdate=false){
 	global $path;
 
 	$size = 0; $all = 0;
-	$cache_file = "./sizecache.dat"; // 附加檔案使用容量值快取檔案
+	$cache_file = "./sizecache.dat"; // 附加圖檔使用容量值快取檔案
 
 	if($isupdate){ // 刪除舊快取
 		if(is_file($cache_file)) unlink($cache_file);
@@ -826,8 +826,8 @@ function total_size($isupdate=false){
 		$linecount = count($posts);
 		for($i = 0; $i < $linecount; $i++){
 			extract($posts[$i]);
-			// 從記錄檔抽出計算附加檔案使用量
-			if($ext && file_func('exist', $path.IMG_DIR.$time.$ext)) $all += file_func('size', $path.IMG_DIR.$time.$ext); // 附加檔案合計計算
+			// 從記錄檔抽出計算附加圖檔使用量
+			if($ext && file_func('exist', $path.IMG_DIR.$time.$ext)) $all += file_func('size', $path.IMG_DIR.$time.$ext); // 附加圖檔合計計算
 			if(file_func('exist', $path.THUMB_DIR.$time.'s.jpg')) $all += file_func('size', $path.THUMB_DIR.$time.'s.jpg'); // 預覽圖合計計算
 		}
 		$sp = fopen($cache_file, 'w');
@@ -916,9 +916,9 @@ END_OF_TR;
 function showstatus(){
 	$countline = postCount(); // 計算投稿文字記錄檔目前資料筆數
 	$counttree = threadCount(); // 計算樹狀結構記錄檔目前資料筆數
-	$tmp_total_size = total_size(); // 附加檔案使用量總大小
+	$tmp_total_size = total_size(); // 附加圖檔使用量總大小
 	$tmp_log_ratio = $countline / LOG_MAX; // 記錄檔使用量
-	$tmp_ts_ratio = $tmp_total_size / STORAGE_MAX; // 附加檔案使用量
+	$tmp_ts_ratio = $tmp_total_size / STORAGE_MAX; // 附加圖檔使用量
 
 	// 決定「記錄檔使用量」提示文字顏色
   	if($tmp_log_ratio < 0.3 ) $clrflag_log = '235CFF';
@@ -927,7 +927,7 @@ function showstatus(){
 	elseif($tmp_log_ratio < 0.9 ) $clrflag_log = 'F200D3';
 	else $clrflag_log = 'F2004A';
 
-	// 決定「附加檔案使用量」提示文字顏色
+	// 決定「附加圖檔使用量」提示文字顏色
   	if($tmp_ts_ratio < 0.3 ) $clrflag_sl = '235CFF';
 	elseif($tmp_ts_ratio < 0.5 ) $clrflag_sl = '0CCE0C';
 	elseif($tmp_ts_ratio < 0.7 ) $clrflag_sl = 'F28612';
@@ -965,7 +965,7 @@ function showstatus(){
 <tr><td>URL文字自動作成超連結</td><td colspan="2"> '.AUTO_LINK.' (是：1 否：0)</td></tr>
 <tr><td>內文接受Bytes數</td><td colspan="2"> '.COMM_MAX.' Bytes (中文字為2Bytes)</td></tr>
 <tr><td>接受匿名發送</td><td colspan="2"> '.ALLOW_NONAME.' (是：1 否：0)</td></tr>
-<tr><td>自動刪除上傳不完整附加檔案</td><td colspan="2"> '.KILL_INCOMPLETE_UPLOAD.' (是：1 否：0)</td></tr>
+<tr><td>自動刪除上傳不完整附加圖檔</td><td colspan="2"> '.KILL_INCOMPLETE_UPLOAD.' (是：1 否：0)</td></tr>
 <tr><td>使用預覽圖機能 (品質：'.THUMB_Q.')</td><td colspan="2"> '.USE_THUMB.' (使用：1 不使用：0)</td></tr>';
 	if(USE_THUMB) $dat .= '<tr><td>└ 預覽圖生成功能</td><td colspan="2"> '.$thumb_IsAvailable.' </td></tr>'."\n";
 	$dat .= '<tr><td>限制Proxy寫入</td><td colspan="2"> '.PROXY_CHECK.' (是：1 否：0)</td></tr>
@@ -976,7 +976,7 @@ function showstatus(){
 <tr><td align="center" colspan="3">記錄檔使用量</td></tr>
 <tr align="center"><td>最大筆數</td><td>'.LOG_MAX.'</td><td rowspan="2">使用率<br /><span style="color: #'.$clrflag_log.';">'.substr(($tmp_log_ratio * 100), 0, 6).'</span> ％</td></tr>
 <tr align="center"><td>目前筆數</td><td><span style="color: #'.$clrflag_log.';">'.$countline.'</span></td></tr>
-<tr><td align="center" colspan="3">附加檔案容量限制功能：'.STORAGE_LIMIT.' (啟動：1 關閉：0)</td></tr>';
+<tr><td align="center" colspan="3">附加圖檔總容量限制功能：'.STORAGE_LIMIT.' (啟動：1 關閉：0)</td></tr>';
 
 	if(STORAGE_LIMIT){
 		$dat .= '

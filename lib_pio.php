@@ -5,7 +5,7 @@ if(defined('CONNECTION_STRING')){ // 有連線字串
 	}
 }
 
-$pio_file='./pio.'.PIXMICAT_BACKEND.'.php';
+$pio_file='./pio/pio.'.PIXMICAT_BACKEND.'.php';
 if(is_file($pio_file)) include_once($pio_file);
 if(defined('CONNECTION_STRING')) dbConnect(CONNECTION_STRING);
 ?>

@@ -1,5 +1,5 @@
 <?php
-// Revision : 2006/07/14 14:42
+// Revision : 2006/07/26 11:22
 
 /* 輸出表頭 */
 function head(&$dat){
@@ -67,7 +67,7 @@ function form(&$dat, $resno){
 <tr><td class="Form_bg"><b>內 文</b></td><td><textarea name="com" cols="48" rows="4" style="width: 400px; height: 80px;"></textarea></td></tr>
 ';
 	if(RESIMG || !$resno){
-		$dat .= '<tr><td class="Form_bg"><b>附加檔案</b></td><td><input type="file" name="upfile" size="25" />';
+		$dat .= '<tr><td class="Form_bg"><b>附加圖檔</b></td><td><input type="file" name="upfile" size="25" />';
 		if(USE_UPSERIES) $dat .= ' [<input type="checkbox" name="up_series" id="up_series" value="on"'.((isset($_GET["upseries"]) && $resno)?' checked="checked"':'').' /><label for="up_series">連貼機能</label>]'; // 啟動連貼機能
 		$dat .= '</td></tr>'."\n";
 	}
@@ -75,13 +75,13 @@ function form(&$dat, $resno){
 <tr><td colspan="2">
 <div id="postinfo">
 <ul>
-<li>可附加檔案類型：GIF, JPG, PNG，瀏覽器才能正常附加檔案</li>
-<li>附加檔案最大上傳資料量為 '.MAX_KB.' KB。當回文時E-mail填入sage為不推文功能</li>
+<li>可附加圖檔類型：GIF, JPG, PNG，瀏覽器才能正常附加圖檔</li>
+<li>附加圖檔最大上傳資料量為 '.MAX_KB.' KB。當回文時E-mail填入sage為不推文功能</li>
 <li>當檔案超過寬 '.MAX_W.' 像素、高 '.MAX_H.' 像素時會自動縮小尺寸顯示</li>'."\n";
-	if(STORAGE_LIMIT) $dat .= "<li>目前附加檔案使用量大小： ".total_size()." KB / ".STORAGE_MAX." KB</li>\n";
+	if(STORAGE_LIMIT) $dat .= "<li>目前附加圖檔使用量大小： ".total_size()." KB / ".STORAGE_MAX." KB</li>\n";
 	$dat .= $ADDITION_INFO.'
 </ul>
-<noscript><div>＊您選擇關閉了JavaScript，但這對您的瀏覽及貼文應無巨大影響</div></noscript>
+<noscript><div>＊您選擇關閉了JavaScript，但這對您的瀏覽及發文應無巨大影響</div></noscript>
 </div>
 </td></tr>
 </table>
@@ -115,7 +115,7 @@ function auto_link($proto){
 
 /* 引用標註 */
 function quoteLight($comment){
-	return preg_replace('/(^|<br \/>)((?:&gt;|＞).*?)(?=<br \/>|$)/u', '$1<span style="color: '.RE_COL.';">$2</span>', $comment);
+	return preg_replace('/(^|<br \/>)((?:&gt;|>|＞).*?)(?=<br \/>|$)/u', '$1<span style="color: '.RE_COL.';">$2</span>', $comment);
 }
 
 /* 輸出錯誤畫面 */
