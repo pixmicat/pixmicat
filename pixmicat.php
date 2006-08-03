@@ -4,7 +4,7 @@ function getMicrotime(){
     list($usec, $sec) = explode(' ', microtime());
     return ((double)$usec + (double)$sec);
 }
-define("PIXMICAT_VER", 'Pixmicat!-PIO 3rd.Release b060726'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 3rd.Release b060803'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -694,6 +694,9 @@ __VALID_EOF__;
 /* 管理文章模式 */
 function admindel($pass){
 	global $path, $onlyimgdel;
+
+	$mod_archiver = file_exists('./mod_archiver.php'); // 與mod_archiver連動
+	$make_archive = $mod_archiver ? '<th>庫存</th>' : ''; // 生成庫存功能
 	$page = isset($_POST['page']) ? $_POST['page'] : 0;
 	$delno = $thsno = array();
 	$delflag = isset($_POST['delete']); // 是否有「刪除」勾選
@@ -745,7 +748,7 @@ function ChangePage(page){
 <div style="text-align: left;"><ul><li>想刪除文章，請勾選該文章前之「刪除」核取框之後按下執行按鈕</li><li>只想刪除文章的附加圖檔，請先勾選「僅刪除附加圖檔」再按照一般刪文方式</li><li>想停止／繼續討論串，請勾選該文章前之「停止」核取框之後按下執行按鈕</li><li>勾選後換頁亦相當於執行，請慎用此功能</li><li>管理文章完畢，記得順手按下「更新文章」以更新靜態快取</li></ul></div>
 <p><input type="submit" value=" 執行 " /> <input type="reset" value=" 重置 " /> [<input type="checkbox" name="onlyimgdel" id="onlyimgdel" value="on" /><label for="onlyimgdel">僅刪除附加圖檔</label>]</p>
 <table border="1" cellspacing="0" style="margin: 0px auto;">
-<tr style="background-color: #6080f6;"><th>停止</th><th>刪除</th><th>投稿日</th><th>標題</th><th>名稱</th><th>內文</th><th>主機位置名稱</th><th>附加圖檔 (Bytes)<br />MD5 檢查碼</th></tr>
+<tr style="background-color: #6080f6;"> $make_archive <th>停止</th><th>刪除</th><th>投稿日</th><th>標題</th><th>名稱</th><th>內文</th><th>主機位置名稱</th><th>附加圖檔 (Bytes)<br />MD5 檢查碼</th></tr>
 
 _N_EOT_;
 
@@ -761,9 +764,15 @@ _N_EOT_;
 		$com = str_replace('<br />',' ',$com);
 		$com = htmlspecialchars(str_cut(html_entity_decode($com), 20));
 
-		// 討論串首篇停止勾選框
-		if(isset($tno[$no])) $THstop = '<input type="checkbox" name="stop[]" value="'.$no.'" />'.((getPostStatus($url, 'TS')==1)?'停':'');
-		else $THstop = '--';
+		// 討論串首篇停止勾選框 及 庫存功能
+		$make_archive_link = '';
+		if(isset($tno[$no])){
+			if($mod_archiver) $make_archive_link = '<th align="center"><a href="mod_archiver.php?res='.$no.'" rel="_blank">存</a></th>';
+			$THstop = '<input type="checkbox" name="stop[]" value="'.$no.'" />'.((getPostStatus($url, 'TS')==1)?'停':'');
+		}else{
+			if($mod_archiver) $make_archive_link = '<th align="center">--</th>';
+			$THstop = '--';
+		}
 
 		// 從記錄抽出附加圖檔使用量並生成連結
 		if($ext && file_func('exist', $path.IMG_DIR.$time.$ext)){
@@ -778,7 +787,7 @@ _N_EOT_;
 		// 印出介面
 		echo <<< _ADMINEOF_
 <tr class="$bg" align="left">
-<th align="center">$THstop</th><th><input type="checkbox" name="delete[]" value="$no" />$no</th><td><small>$now</small></td><td>$sub</td><td><b>$name</b></td><td><small>$com</small></td><td>$host</td><td align="center">$clip ($size)<br />$chk</td>
+$make_archive_link<th align="center">$THstop</th><th><input type="checkbox" name="delete[]" value="$no" />$no</th><td><small>$now</small></td><td>$sub</td><td><b>$name</b></td><td><small>$com</small></td><td>$host</td><td align="center">$clip ($size)<br />$chk</td>
 </tr>
 
 _ADMINEOF_;
