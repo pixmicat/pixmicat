@@ -4,7 +4,7 @@ function getMicrotime(){
     list($usec, $sec) = explode(' ', microtime());
     return ((double)$usec + (double)$sec);
 }
-define("PIXMICAT_VER", 'Pixmicat!-PIO 3rd.Release b060803'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 3rd.Release b060804'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -24,8 +24,12 @@ http://pixmicat.openfoundry.org/
 請瀏覽http://pixmicat.openfoundry.org/license/以取得一份。
 
 最低運行需求：
-PHP 4.3.0 / 27 December 2002 (gd_info[取得GD資訊], md5_file[取得檔案內容MD5], //u[PCRE_UTF8])
+PHP 4.3.0 / 27 December 2002 (gd_info[取得GD資訊], md5_file[取得檔案內容MD5], ob_get_clean[輸出並清空緩衝區], //u[PCRE_UTF8])
 GD Version 2.0.28 / 21 July 2004 (ImageCreateFromGIF[GIF讀取支援])
+
+建議運行環境：
+PHP 4.4.x或更高版本並開啟GD和zlib支援
+安裝PHP編譯快取套件 (如eAccelerator, APC) 或其他快取套件 (如memcached) 更佳
 
 設置方法：
 根目錄的權限請設為777，
@@ -1022,7 +1026,7 @@ function init(){
 }
 
 /*-----------程式各項功能主要判斷-------------*/
-if(GZIP_COMPRESS_LEVEL){ ob_start(); ob_implicit_flush(0); } // 啟動Gzip壓縮緩衝
+if(GZIP_COMPRESS_LEVEL && ($Encoding = CheckSupportGZip())){ ob_start(); ob_implicit_flush(0); } // 支援且開啟Gzip壓縮就設緩衝區
 $path = realpath("./").'/'; // 此資料夾的絕對位置
 $iniv = array('mode','name','email','sub','com','pwd','upfile','upfile_path','upfile_name','upfile_status','resto','pass','res','post','no');
 foreach($iniv as $iniva){
@@ -1067,11 +1071,11 @@ switch($mode){
 			header('Location: '.fullURL().PHP_SELF2.'?'.time());
 		}
 }
-if(($Encoding = CheckSupportGZip()) && GZIP_COMPRESS_LEVEL){ // 啟動Gzip
+if($Encoding && GZIP_COMPRESS_LEVEL){ // 有啟動Gzip
 	if(!ob_get_length()) exit; // 沒內容不必壓縮
 	header('Content-Encoding: '.$Encoding);
 	header('X-Content-Encoding-Level: '.GZIP_COMPRESS_LEVEL);
 	header('Vary: Accept-Encoding');
 	print gzencode(ob_get_clean(), GZIP_COMPRESS_LEVEL); // 壓縮內容
-}else ob_end_flush(); // 沒壓縮，直接印出緩衝區內容
+}
 ?>

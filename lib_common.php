@@ -294,11 +294,11 @@ function str_cut($str, $maxlen=20){
 	return $return_str;
 }
 
-/* 檢查瀏覽器是否支援gzip壓縮方式 */
+/* 檢查瀏覽器和伺服器是否支援gzip壓縮方式 */
 function CheckSupportGZip(){
 	$HTTP_ACCEPT_ENCODING = isset($_SERVER['HTTP_ACCEPT_ENCODING']) ? $_SERVER['HTTP_ACCEPT_ENCODING'] : '';
 	if(headers_sent() || connection_aborted()) return 0; // 已送出資料，取消
-	if(!extension_loaded('zlib')) return 0; // 未啟動zlib函式庫無法壓縮
+	if(!extension_loaded('zlib') && !function_exists('gzencode') || !function_exists('ob_start') || !function_exists('ob_get_clean')) return 0; // 伺服器相關的套件或函式無法使用，取消
 	if(strpos($HTTP_ACCEPT_ENCODING, 'gzip')!==false) return 'gzip';
 	return 0;
 }
