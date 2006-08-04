@@ -48,7 +48,7 @@ function form(&$dat, $resno){
 	$msg = '';
 	if($resno){
 		$msg .= '
-[<a href="'.PHP_SELF2.'?'.time().substr(microtime(),2,3).'">回到版面</a>]
+[<a href="'.PHP_SELF2.'?'.time().'">回到版面</a>]
 <div class="bar_reply">回應模式</div>';
 	}
 	if(USE_FLOATFORM && !$resno) $msg .= "\n".'[<span id="show" class="hide" onmouseover="showform();" onclick="showform();">投稿</span><span id="hide" class="show" onmouseover="hideform();" onclick="hideform();">隱藏表單</span>]';
@@ -126,7 +126,7 @@ function error($mes, $dest=''){
 	echo '<div id="error">
 <div style="text-align: center; font-size: 1.5em; font-weight: bold;">
 <span style="color: red;">'.$mes.'</span><p />
-<a href="'.PHP_SELF2.'?'.time().substr(microtime(),2,3).'">回到版面</a>　<a href="javascript:history.back();">回上頁</a>
+<a href="'.PHP_SELF2.'?'.time().'">回到版面</a>　<a href="javascript:history.back();">回上頁</a>
 </div>
 <hr />
 </div>
