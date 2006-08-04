@@ -1,5 +1,5 @@
 <?php
-// Revision : 2006/07/26 11:22
+// Revision : 2006/08/04 15:20
 
 /* 輸出表頭 */
 function head(&$dat){
@@ -264,7 +264,11 @@ function CleanStr($str, $IsAdmin=false){
 	$str = trim($str); // 去除前後多餘空白
 	if(get_magic_quotes_gpc()) $str = stripslashes($str); // "\"斜線符號去除
 	if(!($IsAdmin && CAP_ISHTML)) $str = preg_replace('/&(#[0-9]+|[a-z]+);/i', "&$1;", htmlspecialchars($str)); // 非管理員或管理員自己取消HTML使用：HTML標籤禁用
-	return str_replace(',', '&#44;', $str); // ","逗號用參照碼方式取代，以免和Log檔分隔字元衝突
+	else{ // 管理員開啟HTML
+		$str = str_replace('>', '&gt;', $str); // 先將每個 > 都轉碼
+		$str = preg_replace('/(<.*?)&gt;/', '$1>', $str); // 如果有<...&gt;則轉回<...>成為正常標籤
+	}
+	return $str;
 }
 
 /* 適用UTF-8環境的擬substr，取出特定數目字元

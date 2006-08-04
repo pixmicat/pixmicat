@@ -12,7 +12,7 @@ $prepared=0;
 
 /* PIO模組版本 */
 function pioVersion() {
-	return 'v20060726β';
+	return 'v20060804β';
 }
 
 /* 將回文放進陣列 */
@@ -24,6 +24,11 @@ function pioVersion() {
 		}
 	}
 	return array_merge(array(),array_unique($posts));
+}
+
+/* 取代 , 成為 &#44; 避免衝突 */
+/* private */ function _replaceComma($txt) {
+	return str_replace(',', '&#44;', $txt);
 }
 
 /* 處理連線字串/連接 */
@@ -276,6 +281,7 @@ function addPost($no,$resno,$now,$name,$email,$sub,$com,$url,$host,$pass,$ext,$W
 
 	$tline=array();
 	list($tline['no'],$tline['now'],$tline['name'],$tline['email'],$tline['sub'],$tline['com'],$tline['url'],$tline['host'],$tline['pw'],$tline['ext'],$tline['w'],$tline['h'],$tline['time'],$tline['chk'])=array($no,$now,$name,$email,$sub,$com,$url,$host,$pass,$ext,$W,$H,$tim,$chk);
+	$tline = array_map('_replaceComma', $tline); // 只有Log版需要將資料內的 , 轉換
 	$logs[$no]=array_reverse($tline);
 	array_unshift($porder,$no);
 
