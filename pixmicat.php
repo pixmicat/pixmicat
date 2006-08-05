@@ -4,7 +4,7 @@ function getMicrotime(){
     list($usec, $sec) = explode(' ', microtime());
     return ((double)$usec + (double)$sec);
 }
-define("PIXMICAT_VER", 'Pixmicat!-PIO 3rd.Release-dev b060804'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 3rd.Release-dev b060805'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -730,7 +730,6 @@ function admindel($pass){
 	}
 	if(($delflag || $thsflag) && $is_modified) dbCommit(); // 無論如何都有檔案操作，回寫檔案
 
-	$tno = array_flip(fetchThreadList()); // 討論串首篇編號陣列
 	$line = fetchPostList(0, $page * ADMIN_PAGE_DEF, ADMIN_PAGE_DEF); // 分頁過的文章列表
 	$posts_count = count($line); // 迴圈次數
 	$posts = fetchPosts($line); // 文章內容陣列
@@ -770,7 +769,7 @@ _N_EOT_;
 
 		// 討論串首篇停止勾選框 及 庫存功能
 		$make_archive_link = '';
-		if(isset($tno[$no])){
+		if($resto==0 || $resto==$no){ // $resto = 0 或等於 $no (即討論串首篇)
 			if($mod_archiver) $make_archive_link = '<th align="center"><a href="mod_archiver.php?res='.$no.'" rel="_blank">存</a></th>';
 			$THstop = '<input type="checkbox" name="stop[]" value="'.$no.'" />'.((getPostStatus($url, 'TS')==1)?'停':'');
 		}else{
