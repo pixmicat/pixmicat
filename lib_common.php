@@ -141,7 +141,6 @@ function proxy_connect($port){
 	if(!$fp){ return 0; }else{ return 1; }
 }
 
-
 /* 生成預覽圖：需要開啟GD模組 (GD 2.0.28以上) */
 function thumb($path, $tim, $ext, $in_w, $in_h, $out_w, $out_h){
 	if(!function_exists('ImageCreateTrueColor')) return; // GD未開或版本太舊

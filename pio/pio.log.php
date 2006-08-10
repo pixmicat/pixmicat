@@ -1,6 +1,6 @@
 <?php
 /*
-PIO - Pixmicat! database I/O
+PIO - Pixmicat! data source I/O
 Log API
 */
 $porder=array();
@@ -12,7 +12,7 @@ $prepared=0;
 
 /* PIO模組版本 */
 function pioVersion() {
-	return 'v20060804β';
+	return 'v200608xx';
 }
 
 /* 將回文放進陣列 */

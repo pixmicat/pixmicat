@@ -1,6 +1,6 @@
 <?php
 /*
-PIO - Pixmicat! database I/O
+PIO - Pixmicat! data source I/O
 PostgreSQL API
 */
 $prepared = 0;
@@ -8,7 +8,7 @@ $prepared = 0;
 /* PIO模組版本 */
 /* 輸入 void, 輸出 版本號 as string */
 function pioVersion(){
-	return 'v20060726α';
+	return 'v200608xxα';
 }
 
 /* private 使用SQL字串和PostgreSQL伺服器要求 */
