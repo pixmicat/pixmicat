@@ -4,4 +4,5 @@
 01.[pixmicat] PIO版本決議將繼續開發直到成熟為止
 02.[PIO] PIOlog, mysql, sqlite, pgsql物件化
 03.[pixmicat] 加回Refresh標籤，發文完成即使關閉JavaScript也能跳轉頁面
-04.[pixmicat] 配合PIO物件化修改
+04.[pixmicat] 配合PIO物件化修改，連續投稿 / 相同附加圖檔檢查給PIO處理
+05.[PIO] 新增checkSuccessivePost及checkDuplicateAttechment函式

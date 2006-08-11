@@ -225,6 +225,42 @@ class PIOmysql{
 		return $files;
 	}
 
+	/* 檢查是否連續投稿 */
+	/* 輸入 檢查筆數 as integer, 內文 as string, 時間戳記 as integer, 密碼 as string, Cookie儲存密碼 as string, 主機名 as string, 上傳檔案名 as string, 輸出 是否連續發文 as boolean */
+	function checkSuccessivePost($lcount, $com, $timestamp, $pass, $passcookie, $host, $upload_filename){
+		global $con, $prepared, $path;
+		if(!$prepared) $this->dbPrepare();
+
+		if(!$result=$this->_mysql_call('SELECT time,pwd,com,host FROM '.$this->tablename." WHERE  ORDER BY no DESC")) echo '[ERROR] 取出文章判斷連續發文失敗<br />';
+		else{
+			while(list($ltime, $lpwd, $lcom, $lhost)=mysql_fetch_row($result)){
+				$pchk = 0;
+				if($host==$lhost || $pass==$lpwd || $passcookie==$lpwd) $pchk = 1; // 判斷為同一人發文
+				if(RENZOKU && $pchk){ // 密碼比對符合且開啟連續投稿時間限制
+					if($timestamp - $ltime < RENZOKU){ return true; break; } ; // 投稿時間相距太短
+					if($timestamp - $ltime < RENZOKU2 && $upload_filename){ return true; break; } // 附加圖檔的投稿時間相距太短
+					if($com == $lcom && !$upload_filename){ return true; break; } // 內文一樣
+				}
+			}
+			return false;
+		}
+	}
+
+	/* 檢查是否重複貼圖 */
+	/* 輸入 檢查筆數 as integer, MD5雜湊值 as string, 輸出 是否重複貼圖 as boolean */
+	function checkDuplicateAttechment($lcount, $md5hash){
+		global $con, $prepared, $path;
+		if(!$prepared) $this->dbPrepare();
+
+		if(!$result=$this->_mysql_call('SELECT tim,ext FROM '.$this->tablename." WHERE ext <> '' AND md5 = '$md5hash' ORDER BY no DESC")) echo '[ERROR] 取出文章判斷重複貼圖失敗<br />';
+		else{
+			while(list($ltim, $lext)=mysql_fetch_row($result)){
+				if(file_func('exist', $path.IMG_DIR.$ltime.$lext)){ return true; break; } // 有相同檔案
+			}
+			return false;
+		}
+	}
+
 	/* 文章數目 */
 	/* 輸入 討論串ID as integer, 輸出 討論串文章 / 總文章數目 as integer */
 	function postCount($resno=0){

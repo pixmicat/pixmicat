@@ -506,31 +506,15 @@ function regist($name,$email,$sub,$com,$pwd,$upfile,$upfile_path,$upfile_name,$u
 		else $now .= ' ID:'.substr(crypt(md5($_SERVER['REMOTE_ADDR'].IDSEED.gmdate('Ymd', $time+TIME_ZONE*60*60)),'id'), -8);
 	}
 
-	$countline = $pio->postCount();
-	$imax = $countline > 50 ? 50 : $countline;
-	$line = $pio->fetchPostList(0, 0, $imax); // 取出前幾筆新文章編號
-	$posts = $pio->fetchPosts($line); // 取出前幾筆文章內容
-	$posts_count = count($posts);
-
-	// 連續投稿 / 相同附加圖檔判斷
+	// 連續投稿 / 相同附加圖檔檢查
+	$checkcount = 50; // 預設檢查50筆資料
 	$pwdc = substr(md5($pwdc), 2, 8); // Cookies密碼
-  	for($i = 0; $i < $posts_count; $i++){
-  		$post = $posts[$i]; // 取出單一文章
-		list(,,$lcom,$lhost,$lpwd,$lext,$ltime,$lchk) = array($post['no'],$post['name'],$post['com'],$post['host'],$post['pw'],$post['ext'],$post['time'],$post['chk']);
-		$ltime2 = substr($ltime, 0, -3);
-		if($host==$lhost || $pass==$lpwd || $pwdc==$lpwd) $pchk = 1;
-		else $pchk = 0;
-		if(RENZOKU && $pchk){ // 密碼比對符合且開啟連續投稿時間限制
-			if($time - $ltime2 < RENZOKU) error('連續投稿請稍候一段時間', $dest); // 投稿時間相距太短
-			if($time - $ltime2 < RENZOKU2 && $upfile_name) error('連續附加圖檔投稿請稍候一段時間', $dest); // 附加圖檔的投稿時間相距太短
-			if($com == $lcom && !$upfile_name) error('連續投稿請稍候一段時間', $dest); // 內文一樣
-		}
-		if($dest && $lchk==$chk && file_func('exist', $path.IMG_DIR.$ltime.$lext)) error('上傳失敗<br />近期已經有相同的附加圖檔', $dest); // 相同的附加圖檔
-	}
+	if($pio->checkDuplicatePost($checkcount, $com, $time, $pass, $pwdc, $host, $upfile_name)) error('連續投稿請稍候一段時間', $dest); // 連續投稿檢查
+	if($dest){ if($pio->checkDuplicateAttechment($checkcount, $chk)) error('上傳失敗<br />近期已經有相同的附加圖檔', $dest); } // 相同附加圖檔檢查
 
 	if($resto) $ThreadExistsBefore = $pio->is_Thread($resto);
 	// 記錄檔行數已達上限：刪除過舊檔
-	if($countline >= LOG_MAX){
+	if($pio->postCount() >= LOG_MAX){
 		$files = $pio->delOldPostes();
 		if(count($files)) file_func('del',$files);
 	}

@@ -16,7 +16,7 @@ class PIO {
 		$this->realPIO='PIO'.$backend;
 		$this->realPIO=new $this->realPIO($connstr);
 	}
-	
+
 	/* PIO模組版本 */
 	function pioVersion() { return $this->realPIO->pioVersion(); }
 	/* 處理連線字串/連接 */
@@ -37,6 +37,10 @@ class PIO {
 	function delOldAttachments($total_size,$storage_max,$warnOnly=true) { return $this->realPIO->delOldAttachments($total_size,$storage_max,$warnOnly); }
 	/* 刪除附件 (輸出附件清單) */
 	function removeAttachments($posts) { return $this->realPIO->removeAttachments($posts); }
+	/* 檢查是否連續投稿 */
+	function checkSuccessivePost($lcount,$com,$timestamp,$pass,$passcookie,$host,$upload_filename) { return $this->realPIO->checkSuccessivePost($lcount,$com,$timestamp,$pass,$passcookie,$host,$upload_filename); }
+	/* 檢查是否重複貼圖 */
+	function checkDuplicateAttechment($lcount,$md5hash) { return $this->realPIO->checkDuplicateAttechment($lcount,$md5hash); }
 	/* 文章數目 */
 	function postCount($resno=0) { return $this->realPIO->postCount($resno); }
 	/* 討論串數目 */
