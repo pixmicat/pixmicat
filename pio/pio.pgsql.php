@@ -8,31 +8,26 @@ class PIOpgsql{
 	var $username, $password, $server, $port, $dbname, $tablename; // Local Constant
 	var $con, $prepared; // Local Global
 
-	function PIOpgsql($connstr=''){
-		global $prepared;
-		$prepared = 0;
-		if($connstr) $this->dbConnect($connstr);
+	function PIOpgsql($this->connstr=''){
+		$this->prepared = 0;
+		if($this->connstr) $this->dbConnect($this->connstr);
 	}
 
 	/* PIO模組版本 */
 	/* 輸入 void, 輸出 版本號 as string */
 	function pioVersion(){
-		return 'v20060811β';
+		return 'v20060812β';
 	}
 
 	/* private 使用SQL字串和PostgreSQL伺服器要求 */
 	function _pgsql_call($query){
-		global $con;
-
-		$ret = @pg_query($con,$query);
-		if(!$ret) error('PostgreSQL SQL指令錯誤：<p />指令: '.$query.'<br/>錯誤訊息: '.pg_last_error($con));
+		$ret = @pg_query($this->con, $query);
+		if(!$ret) error('PostgreSQL SQL指令錯誤：<p />指令: '.$query.'<br/>錯誤訊息: '.pg_last_error($this->con));
 		return $ret;
 	}
 
 	/* private 輸出符合標準的索引鍵陣列 */
 	function _ArrangeArrayStructure($line){
-		global $con;
-
 		$posts = array();
 		$arrIDKey = array('no'=>'', 'resto'=>'', 'now'=>'', 'name'=>'', 'email'=>'', 'sub'=>'', 'com'=>'', 'status'=>'url', 'host'=>'', 'pwd'=>'pw', 'ext'=>'', 'w'=>'', 'h'=>'', 'tim'=>'time', 'md5'=>'chk'); // PostgreSQL 欄位鍵 => 標準欄位鍵
 		while($row=pg_fetch_array($line, null, PGSQL_ASSOC)){
@@ -46,10 +41,10 @@ class PIOpgsql{
 
 	/* 處理連線字串/連接 */
 	/* 輸入 連線字串 as string, 輸出 void */
-	function dbConnect($connStr){
+	function dbConnect($this->connStr){
 		// 格式： pgsql://帳號:密碼@伺服器位置:埠號(可省略)/資料庫/資料表/
 		// 示例： pgsql://pixmicat:1234@127.0.0.1/pixmicat_use/imglog/
-		if(preg_match('/^pgsql:\/\/(.*)\:(.*)\@([^\:]*)((\:)([0-9]+)){0,1}\/(.*)\/(.*)\/$/i', $connStr, $linkinfos)){
+		if(preg_match('/^pgsql:\/\/(.*)\:(.*)\@([^\:]*)((\:)([0-9]+)){0,1}\/(.*)\/(.*)\/$/i', $this->connStr, $linkinfos)){
 			$this->username = $linkinfos[1]; // 登入帳號
 			$this->password = $linkinfos[2]; // 登入密碼
 			$this->server = $linkinfos[3]; // 登入伺服器
@@ -62,9 +57,8 @@ class PIOpgsql{
 	/* 初始化 */
 	/* 輸入 void, 輸出 void */
 	function dbInit(){
-		global $con, $prepared;
 		$this->dbPrepare();
-		if(pg_num_rows(pg_query($con, "SELECT relname FROM pg_class WHERE relname = '".$this->tablename."'"))!=1){ // 資料表不存在
+		if(pg_num_rows(pg_query($this->con, "SELECT relname FROM pg_class WHERE relname = '".$this->tablename."'"))!=1){ // 資料表不存在
 			$result = "CREATE SEQUENCE ".$this->tablename."_no_seq;
 	CREATE TABLE ".$this->tablename." (
 	  \"no\" int NOT NULL DEFAULT nextval('".$this->tablename."_no_seq'),
@@ -88,8 +82,8 @@ class PIOpgsql{
 	);";
 			$idxs = array('resto', 'root', 'time');
 			foreach($idxs as $idx) $result .= 'CREATE INDEX '.$this->tablename.'_'.$idx.'_index ON '.$this->tablename.' ('.$idx.');';
-			pg_query($con, $result); // 正式新增資料表
-			addPost(1, 0, '05/01/01(六)00:00', '無名氏', 0, '無標題', '無內文', '', '', '', '', 0, 0, 0, '');
+			pg_query($this->con, $result); // 正式新增資料表
+			$this->addPost(1, 0, '05/01/01(六)00:00', '無名氏', 0, '無標題', '無內文', '', '', '', '', 0, 0, 0, '');
 			$this->dbCommit();
 		}
 	}
@@ -97,27 +91,25 @@ class PIOpgsql{
 	/* 準備/讀入 */
 	/* 輸入 是否重作 as boolean, 是否啟動交易模式 as boolean, 輸出 void */
 	function dbPrepare($reload=false, $transaction=true){
-		global $con, $prepared;
-		if($prepared && !$reload) return true;
+		if($this->prepared && !$reload) return true;
 
-		if($reload && $con) pg_close($con);
-		if(@!$con=pg_pconnect('host='.$this->server.' port='.$this->port.' dbname='.$this->dbname.' user='.$this->username.' password='.$this->password)){
+		if($reload && $this->con) pg_close($this->con);
+		if(@!$this->con=pg_pconnect('host='.$this->server.' port='.$this->port.' dbname='.$this->dbname.' user='.$this->username.' password='.$this->password)){
 			echo 'It occurred a fatal error when connecting to the PostgreSQL server.<p>';
 			echo 'Check your PostgreSQL login setting in config file or the PostgreSQL server status.';
 			exit;
 		}
-		if($transaction) @pg_query($con, 'START TRANSACTION;'); // 啟動交易性能模式 (據說會降低效能，但可防止資料寫入不一致)
+		if($transaction) @pg_query($this->con, 'START TRANSACTION;'); // 啟動交易性能模式 (據說會降低效能，但可防止資料寫入不一致)
 
-		$prepared = 1;
+		$this->prepared = 1;
 	}
 
 	/* 提交/儲存 */
 	/* 輸入 void, 輸出 void */
 	function dbCommit(){
-		global $con, $prepared;
-		if(!$prepared) return false;
+		if(!$this->prepared) return false;
 
-		@pg_query($con, 'COMMIT;'); // 交易性能模式提交
+		@pg_query($this->con, 'COMMIT;'); // 交易性能模式提交
 	}
 
 	/* 優化資料表 */
@@ -133,8 +125,8 @@ class PIOpgsql{
 	/* 刪除舊文 */
 	/* 輸入 void, 輸出 舊文之附加檔案列表 as array */
 	function delOldPostes(){
-		global $con, $prepared, $path;
-		if(!$prepared) $this->dbPrepare();
+		global $path;
+		if(!$this->prepared) $this->dbPrepare();
 
 		$oldAttachments = array(); // 舊文的附加檔案清單
 		$countline = $this->postCount(); // 文章數目
@@ -167,8 +159,7 @@ class PIOpgsql{
 	/* 刪除文章 */
 	/* 輸入 文章編號 as array, 輸出 刪除附加檔案列表 as array */
 	function removePosts($posts){
-		global $con, $prepared;
-		if(!$prepared) $this->dbPrepare();
+		if(!$this->prepared) $this->dbPrepare();
 
 		$files = $this->removeAttachments($posts, true); // 先遞迴取得刪除文章及其回應附件清單
 		$pno = implode(', ', $posts); // ID字串
@@ -179,8 +170,8 @@ class PIOpgsql{
 	/* 刪除舊附件 (輸出附件清單) */
 	/* 輸入 附加檔案總容量 as integer, 限制檔案儲存量 as integer, 只警告 as boolean, 輸出 警告旗標 / 舊附件列表 as array */
 	function delOldAttachments($total_size, $storage_max, $warnOnly=true){
-		global $con, $prepared, $path;
-		if(!$prepared) $this->dbPrepare();
+		global $path;
+		if(!$this->prepared) $this->dbPrepare();
 
 		$arr_warn = $arr_kill = array(); // 警告 / 即將被刪除標記陣列
 		if(!$result=$this->_pgsql_call('SELECT no,ext,tim FROM '.$this->tablename." WHERE ext <> '' ORDER BY no")) echo '[ERROR] 取出舊文失敗<br />';
@@ -200,8 +191,8 @@ class PIOpgsql{
 	/* 刪除附件 (輸出附件清單) */
 	/* 輸入 文章編號 as array, 是否遞迴(附加其回應附件) as boolean, 輸出 刪除附件列表 as array */
 	function removeAttachments($posts, $recursion=false){
-		global $con, $prepared, $path;
-		if(!$prepared) $this->dbPrepare();
+		global $path;
+		if(!$this->prepared) $this->dbPrepare();
 
 		$files = array();
 		$pno = implode(', ', $posts); // ID字串
@@ -221,11 +212,46 @@ class PIOpgsql{
 		return $files;
 	}
 
+	/* 檢查是否連續投稿 */
+	/* 輸入 檢查筆數 as integer, 內文 as string, 時間戳記 as integer, 密碼 as string, Cookie儲存密碼 as string, 主機名 as string, 上傳檔案名 as string, 輸出 是否連續發文 as boolean */
+	function checkSuccessivePost($lcount, $com, $timestamp, $pass, $passcookie, $host, $upload_filename){
+		global $path;
+		if(!$this->prepared) $this->dbPrepare();
+
+		if(!RENZOKU) return false; // 關閉連續投稿檢查
+		$tmpSQL = 'SELECT pwd,host FROM '.$this->tablename.' WHERE time > '.($timestamp - RENZOKU); // 一般投稿時間檢查
+		if($upload_filename) $tmpSQL .= ' OR time > '.($timestamp - RENZOKU2); // 附加圖檔的投稿時間檢查 (與下者兩者擇一)
+		else $tmpSQL .= ' OR md5(com) = "'.md5($com).'"'; // 內文一樣的檢查 (與上者兩者擇一)
+		if(!$result=$this->_pgsql_call($tmpSQL)) echo '[ERROR] 取出文章判斷連續發文失敗<br />';
+		else{
+			while(list($lpwd, $lhost)=pg_fetch_array($result)){
+				$pchk = 0;
+				if($host==$lhost || $pass==$lpwd || $passcookie==$lpwd) $pchk = 1;
+				if($pchk) return true; break; // 判斷為同一人發文且符合連續投稿條件
+			}
+			return false;
+		}
+	}
+
+	/* 檢查是否重複貼圖 */
+	/* 輸入 檢查筆數 as integer, MD5雜湊值 as string, 輸出 是否重複貼圖 as boolean */
+	function checkDuplicateAttechment($lcount, $md5hash){
+		global $path;
+		if(!$this->prepared) $this->dbPrepare();
+
+		if(!$result=$this->_pgsql_call('SELECT tim,ext FROM '.$this->tablename." WHERE ext <> '' AND md5 = '$md5hash' ORDER BY no DESC")) echo '[ERROR] 取出文章判斷重複貼圖失敗<br />';
+		else{
+			while(list($ltim, $lext)=pg_fetch_array($result)){
+				if(file_func('exist', $path.IMG_DIR.$ltim.$lext)){ return true; break; } // 有相同檔案
+			}
+			return false;
+		}
+	}
+
 	/* 文章數目 */
 	/* 輸入 討論串ID as integer, 輸出 討論串文章 / 總文章數目 as integer */
 	function postCount($resno=0){
-		global $con, $prepared;
-		if(!$prepared) $this->dbPrepare();
+		if(!$this->prepared) $this->dbPrepare();
 
 		if($resno){ // 回傳討論串總回應數目 (含本文故要加1)
 			$line = $this->_pgsql_call('SELECT COUNT(no) FROM '.$this->tablename.' WHERE resto = '.$resno);
@@ -241,8 +267,7 @@ class PIOpgsql{
 	/* 討論串數目 */
 	/* 輸入 void, 輸出 討論串數目 as integer */
 	function threadCount(){
-		global $con, $prepared;
-		if(!$prepared) $this->dbPrepare();
+		if(!$this->prepared) $this->dbPrepare();
 
 		$tree = $this->_pgsql_call('SELECT COUNT(no) FROM '.$this->tablename.' WHERE resto = 0');
 		$counttree = pg_fetch_result($tree, 0, 0); pg_free_result($tree); // 計算討論串目前資料筆數
@@ -252,8 +277,7 @@ class PIOpgsql{
 	/* 輸出文章清單 */
 	/* 輸入 討論串編號, 開始值, 數目 as integer, 輸出 討論串結構 as array */
 	function fetchPostList($resno=0, $start=0, $amount=0){
-		global $con, $prepared;
-		if(!$prepared) $this->dbPrepare();
+		if(!$this->prepared) $this->dbPrepare();
 
 		$line = array();
 		if($resno){ // 輸出討論串的結構 (含自己, EX : 1,2,3,4,5,6)
@@ -272,8 +296,7 @@ class PIOpgsql{
 	/* 輸出討論串清單 */
 	/* 輸入 開始值, 數目 as integer, 輸出 討論串首篇編號 as array */
 	function fetchThreadList($start=0, $amount=0){
-		global $con, $prepared;
-		if(!$prepared) $this->dbPrepare();
+		if(!$this->prepared) $this->dbPrepare();
 
 		$treeline = array();
 		$tmpSQL = 'SELECT no FROM '.$this->tablename.' WHERE resto = 0 ORDER BY root DESC';
@@ -288,8 +311,7 @@ class PIOpgsql{
 	/* 輸出文章 */
 	/* 輸入 文章編號 as array, 輸出 文章資料 as array */
 	function fetchPosts($postlist){
-		global $con, $prepared;
-		if(!$prepared) $this->dbPrepare();
+		if(!$this->prepared) $this->dbPrepare();
 
 		if(is_array($postlist)){ // 取多串
 			if(!count($postlist)) return array();
@@ -305,8 +327,7 @@ class PIOpgsql{
 	/* 有此討論串? */
 	/* 輸入 討論串編號 as integer, 輸出 是否存在 as boolean */
 	function is_Thread($no){
-		global $con, $prepared;
-		if(!$prepared) $this->dbPrepare();
+		if(!$this->prepared) $this->dbPrepare();
 
 		$result = $this->_pgsql_call('SELECT no FROM '.$this->tablename.' WHERE no = '.$no.' AND resto = 0');
 		return pg_fetch_array($result);
@@ -315,8 +336,7 @@ class PIOpgsql{
 	/* 搜尋文章 */
 	/* 輸入 關鍵字 as array, 搜尋目標 as string, 搜尋方式 as string, 輸出 文章資料 as array */
 	function searchPost($keyword, $field, $method){
-		global $prepared;
-		if(!$prepared) $this->dbPrepare();
+		if(!$this->prepared) $this->dbPrepare();
 
 		$keyword_cnt = count($keyword);
 		$SearchQuery = 'SELECT * FROM '.$this->tablename." WHERE {$field} LIKE '%".($keyword[0])."%'";
@@ -330,8 +350,7 @@ class PIOpgsql{
 	/* 新增文章/討論串 */
 	/* 輸入 各種欄位值 as any, 輸出 void */
 	function addPost($no, $resno, $now, $name, $email, $sub, $com, $url, $host, $pass, $ext, $W, $H, $tim, $chk, $age=false){
-		global $con, $prepared;
-		if(!$prepared) $this->dbPrepare();
+		if(!$this->prepared) $this->dbPrepare();
 
 		$time = (int)substr($tim, 0, -3); // 13位數的數字串是檔名，10位數的才是時間數值
 		if($resno){ // 新增回應
@@ -362,8 +381,7 @@ class PIOpgsql{
 	/* 取出單一文章狀態 */
 	/* 輸入 狀態字串 as integer, 狀態類型 as string, 輸出 狀態值 as integer */
 	function getPostStatus($status, $statusType){
-		global $con, $prepared;
-		if(!$prepared) $this->dbPrepare();
+		if(!$this->prepared) $this->dbPrepare();
 		$returnValue = 0; // 回傳值
 
 		switch($statusType){
@@ -378,8 +396,7 @@ class PIOpgsql{
 	/* 設定文章狀態 */
 	/* 輸入 處理文章編號 as array, 舊值 as array, 狀態類型 as array, 新值 as array, 輸出 void */
 	function setPostStatus($no, $status, $statusType, $newValue){
-		global $con, $prepared;
-		if(!$prepared) $this->dbPrepare();
+		if(!$this->prepared) $this->dbPrepare();
 
 		$forcount = count($no);
 		for($i = 0; $i < $forcount; $i++){
@@ -397,8 +414,7 @@ class PIOpgsql{
 	/* 取得最後文章編號 */
 	/* 輸入 使用狀態 as string,輸出 編號 as integer */
 	function getLastPostNo($state){
-		global $con, $prepared;
-		if(!$prepared) $this->dbPrepare();
+		if(!$this->prepared) $this->dbPrepare();
 
 		if($state=='afterCommit'){ // 送出後的最後文章編號
 			$tree = $this->_pgsql_call('SELECT MAX(no) FROM '.$this->tablename);

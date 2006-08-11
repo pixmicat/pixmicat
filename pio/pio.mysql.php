@@ -223,8 +223,8 @@ class PIOmysql{
 		if(!$this->prepared) $this->dbPrepare();
 
 		if(!RENZOKU) return false; // 關閉連續投稿檢查
-		$tmpSQL = 'SELECT pwd,host FROM '.$this->tablename.' WHERE time > '.$timestamp - RENZOKU; // 一般投稿時間檢查
-		if($upload_filename) $tmpSQL .= ' OR time > '.$timestamp - RENZOKU2; // 附加圖檔的投稿時間檢查 (與下者兩者擇一)
+		$tmpSQL = 'SELECT pwd,host FROM '.$this->tablename.' WHERE time > '.($timestamp - RENZOKU); // 一般投稿時間檢查
+		if($upload_filename) $tmpSQL .= ' OR time > '.($timestamp - RENZOKU2); // 附加圖檔的投稿時間檢查 (與下者兩者擇一)
 		else $tmpSQL .= ' OR md5(com) = "'.md5($com).'"'; // 內文一樣的檢查 (與上者兩者擇一)
 		if(!$result=$this->_mysql_call($tmpSQL)) echo '[ERROR] 取出文章判斷連續發文失敗<br />';
 		else{
