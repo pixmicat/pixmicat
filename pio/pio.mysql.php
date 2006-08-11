@@ -246,7 +246,7 @@ class PIOmysql{
 		if(!$result=$this->_mysql_call('SELECT tim,ext FROM '.$this->tablename." WHERE ext <> '' AND md5 = '$md5hash' ORDER BY no DESC")) echo '[ERROR] 取出文章判斷重複貼圖失敗<br />';
 		else{
 			while(list($ltim, $lext)=mysql_fetch_row($result)){
-				if(file_func('exist', $path.IMG_DIR.$ltime.$lext)){ return true; break; } // 有相同檔案
+				if(file_func('exist', $path.IMG_DIR.$ltim.$lext)){ return true; break; } // 有相同檔案
 			}
 			return false;
 		}
