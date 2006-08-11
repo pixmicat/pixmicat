@@ -4,7 +4,7 @@ function getMicrotime(){
     list($usec, $sec) = explode(' ', microtime());
     return ((double)$usec + (double)$sec);
 }
-define("PIXMICAT_VER", 'Pixmicat!-PIO 3rd.Release-dev (v0608xx)'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 3rd.Release-dev b060811'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -55,7 +55,7 @@ if(USE_TEMPLATE) include_once('./lib_pte.php'); // 引入PTE外部函式庫
 
 /* 更新記錄檔檔案／輸出討論串 */
 function updatelog($resno=0,$page_num=0){
-	global $path;
+	global $path, $pio;
 
 	$page_start = $page_end = 0; // 靜態頁面編號
 	$inner_for_count = 1; // 內部迴圈執行次數
@@ -64,29 +64,29 @@ function updatelog($resno=0,$page_num=0){
 
 	if(!$resno){
 		if($page_num==0){ // remake模式 (PHP動態輸出多頁份)
-			$threads = fetchThreadList(); // 取得全討論串列表
+			$threads = $pio->fetchThreadList(); // 取得全討論串列表
 			$threads_count = count($threads);
 			$inner_for_count = $threads_count > PAGE_DEF ? PAGE_DEF : $threads_count;
 			$page_end = ceil($threads_count / PAGE_DEF) - 1; // 頁面編號最後值
 		}else{ // 討論串分頁模式 (PHP動態輸出一頁份)
-			$threads_count = threadCount(); // 討論串個數
+			$threads_count = $pio->threadCount(); // 討論串個數
 			if($page_num < 0 || ($page_num * PAGE_DEF) >= $threads_count) error('對不起，您所要求的頁數並不存在'); // $page_num超過範圍
 			$page_start = $page_end = $page_num; // 設定靜態頁面編號
-			$threads = fetchThreadList($page_num * PAGE_DEF, PAGE_DEF); // 取出分頁後的討論串首篇列表
+			$threads = $pio->fetchThreadList($page_num * PAGE_DEF, PAGE_DEF); // 取出分頁後的討論串首篇列表
 			$inner_for_count = count($threads); // 討論串個數就是迴圈次數
 		}
-	}else if(!is_Thread($resno)) error('欲回應之文章並不存在！');
+	}else if(!$pio->is_Thread($resno)) error('欲回應之文章並不存在！');
 
 	// 預測過舊文章和將被刪除檔案
-	if(postCount() >= LOG_MAX * 0.95){
+	if($pio->postCount() >= LOG_MAX * 0.95){
 		$old_sensor = true; // 標記打開
-		$arr_old = array_flip(fetchPostList()); // 過舊文章陣列
+		$arr_old = array_flip($pio->fetchPostList()); // 過舊文章陣列
 	}
 	$tmp_total_size = total_size(); // 目前附加圖檔使用量
 	$tmp_STORAGE_MAX = STORAGE_MAX * (($tmp_total_size >= STORAGE_MAX) ? 1 : 0.95); // 預估上限值
 	if(STORAGE_LIMIT && ($tmp_total_size >= $tmp_STORAGE_MAX)){
 		$kill_sensor = true; // 標記打開
-		$arr_kill = delOldAttachments($tmp_total_size, $tmp_STORAGE_MAX); // 過舊附檔陣列
+		$arr_kill = $pio->delOldAttachments($tmp_total_size, $tmp_STORAGE_MAX); // 過舊附檔陣列
 	}
 
 	$PTE = USE_TEMPLATE ? new PTELibrary(TEMPLATE_FILE) : 0; // PTE Library
@@ -112,7 +112,7 @@ function updatelog($resno=0,$page_num=0){
 				$tID = $threads[$page * PAGE_DEF + $i];
 			}
 			// 取出討論串結構及回應個數等資訊
-			$tree = fetchPostList($tID); // 整個討論串樹狀結構
+			$tree = $pio->fetchPostList($tID); // 整個討論串樹狀結構
 			$tree_count = count($tree) - 1; // 討論串回應個數
 			// 計算回應分頁範圍
 			$RES_start = $RES_amount = 0;
@@ -133,7 +133,7 @@ function updatelog($resno=0,$page_num=0){
 			}
 			// $RES_start, $RES_amount 拿去算新討論串結構 (分頁後, 部分回應隱藏)
 			$tree_cut = array_slice($tree, $RES_start, $RES_amount); array_unshift($tree_cut, $tID); // 取出特定範圍回應
-			$posts = fetchPosts($tree_cut); // 取得文章架構內容
+			$posts = $pio->fetchPosts($tree_cut); // 取得文章架構內容
 			$dat .= arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno, $arr_kill, $arr_old, $kill_sensor, $old_sensor); // 交給這個函式去搞討論串印出
 		}
 		$dat .= '</div>
@@ -231,7 +231,7 @@ function updatelog($resno=0,$page_num=0){
 
 /* 輸出討論串架構 */
 function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $arr_kill, $arr_old, $kill_sensor, $old_sensor){
-	global $path;
+	global $path, $pio;
 
 	$thdat = ''; // 討論串輸出碼
 	$posts_count = count($posts); // 迴圈次數
@@ -293,7 +293,7 @@ function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $
 		if(STORAGE_LIMIT && $kill_sensor) if(isset($arr_kill[$no])) $WARN_BEKILL = '<span class="warn_txt">這篇因附加圖檔容量限制，附加圖檔不久後就會刪除。</span><br />'."\n"; // 預測刪除過大檔
 		if(!$i){ // 首篇 Only
 			if($old_sensor) if($arr_old[$no] + 1 >= LOG_MAX * 0.95) $WARN_OLD = '<span class="warn_txt">這篇已經很舊了，不久後就會刪除。</span><br />'."\n"; // 快要被刪除的提示
-			if(getPostStatus($url, 'TS')) $WARN_ENDREPLY = '<span class="warn_txt">這篇討論串已被管理員標記為禁止回應。</span><br />'."\n"; // 被標記為禁止回應
+			if($pio->getPostStatus($url, 'TS')) $WARN_ENDREPLY = '<span class="warn_txt">這篇討論串已被管理員標記為禁止回應。</span><br />'."\n"; // 被標記為禁止回應
 			if($hiddenReply) $WARN_HIDEPOST = '<span class="warn_txt2">有回應 '.$hiddenReply.' 篇被省略。要閱讀所有回應請按下回應連結。</span><br />'."\n"; // 有隱藏的回應
 		}
 
@@ -323,7 +323,7 @@ function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $
 
 /* 寫入記錄檔 */
 function regist($name,$email,$sub,$com,$pwd,$upfile,$upfile_path,$upfile_name,$upfile_status,$resto){
-	global $path, $BAD_STRING, $BAD_FILEMD5, $BAD_IPADDR;
+	global $path, $pio, $BAD_STRING, $BAD_FILEMD5, $BAD_IPADDR;
 	$dest = ''; $mes = ''; $up_incomplete = 0; $is_admin = false;
 	$pwdc = isset($_COOKIE['pwdc']) ? $_COOKIE['pwdc'] : '';
 
@@ -506,10 +506,10 @@ function regist($name,$email,$sub,$com,$pwd,$upfile,$upfile_path,$upfile_name,$u
 		else $now .= ' ID:'.substr(crypt(md5($_SERVER['REMOTE_ADDR'].IDSEED.gmdate('Ymd', $time+TIME_ZONE*60*60)),'id'), -8);
 	}
 
-	$countline = postCount();
+	$countline = $pio->postCount();
 	$imax = $countline > 50 ? 50 : $countline;
-	$line = fetchPostList(0, 0, $imax); // 取出前幾筆新文章編號
-	$posts = fetchPosts($line); // 取出前幾筆文章內容
+	$line = $pio->fetchPostList(0, 0, $imax); // 取出前幾筆新文章編號
+	$posts = $pio->fetchPosts($line); // 取出前幾筆文章內容
 	$posts_count = count($posts);
 
 	// 連續投稿 / 相同附加圖檔判斷
@@ -528,10 +528,10 @@ function regist($name,$email,$sub,$com,$pwd,$upfile,$upfile_path,$upfile_name,$u
 		if($dest && $lchk==$chk && file_func('exist', $path.IMG_DIR.$ltime.$lext)) error('上傳失敗<br />近期已經有相同的附加圖檔', $dest); // 相同的附加圖檔
 	}
 
-	if($resto) $ThreadExistsBefore = is_Thread($resto);
+	if($resto) $ThreadExistsBefore = $pio->is_Thread($resto);
 	// 記錄檔行數已達上限：刪除過舊檔
 	if($countline >= LOG_MAX){
-		$files = delOldPostes();
+		$files = $pio->delOldPostes();
 		if(count($files)) file_func('del',$files);
 	}
 
@@ -539,7 +539,7 @@ function regist($name,$email,$sub,$com,$pwd,$upfile,$upfile_path,$upfile_name,$u
 	if(STORAGE_LIMIT){
 		$tmp_total_size = total_size(); // 取得目前附加圖檔使用量
 		if($tmp_total_size >= STORAGE_MAX){
-			$files = delOldAttachments($tmp_total_size, STORAGE_MAX, false);
+			$files = $pio->delOldAttachments($tmp_total_size, STORAGE_MAX, false);
 			file_func('del', $files);
 		}
 	}
@@ -547,36 +547,36 @@ function regist($name,$email,$sub,$com,$pwd,$upfile,$upfile_path,$upfile_name,$u
 	// 判斷欲回應的文章是不是剛剛被刪掉了
 	if($resto){
 		if($ThreadExistsBefore){ // 欲回應的討論串是否存在 (看逆轉換成功與否)
-			if(!is_Thread($resto)){ // 被回應的討論串存在但已被刪
+			if(!$pio->is_Thread($resto)){ // 被回應的討論串存在但已被刪
 				// 提前更新資料來源，此筆新增亦不紀錄
-				dbCommit();
+				$pio->dbCommit();
 				updatelog();
 				error('此討論串因為過舊已被刪除！', $dest);
 			}else{ // 檢查是否討論串被設為禁止回應 (順便取出原討論串的貼文時間)
-				$post = fetchPosts($resto); // [特殊] 取單篇文章內容，但是回傳的$post同樣靠[$i]切換文章！
+				$post = $pio->fetchPosts($resto); // [特殊] 取單篇文章內容，但是回傳的$post同樣靠[$i]切換文章！
 				list($chkurl, $chktime) = array($post[0]['url'], $post[0]['time']);
 				$chktime = substr($chktime, 0, -3); // 拿掉微秒 (後面三個字元)
-				if(getPostStatus($chkurl, 'TS')) error('這篇討論串已被管理員標記為禁止回應！', $dest);
+				if($pio->getPostStatus($chkurl, 'TS')) error('這篇討論串已被管理員標記為禁止回應！', $dest);
 			}
 		}else error('無此討論串！', $dest); // 不存在
 	}
 
 	// 計算某些欄位值
-	$no = getLastPostNo('beforeCommit') + 1;
+	$no = $pio->getLastPostNo('beforeCommit') + 1;
 	isset($ext) ? 0 : $ext = '';
 	isset($W) ? 0 : $W = '';
 	isset($H) ? 0 : $H = '';
 	isset($chk) ? 0 : $chk = '';
 	$age = false;
 	if($resto){
-		if(!stristr($email, 'sage') && (postCount($resto) < MAX_RES || MAX_RES==0)){
+		if(!stristr($email, 'sage') && ($pio->postCount($resto) < MAX_RES || MAX_RES==0)){
 			if(!MAX_AGE_TIME || (($time - $chktime) < (MAX_AGE_TIME * 60 * 60))) $age = true; // 討論串並無過期，推文
 		}
 	}
 
 	// 正式寫入儲存
-	addPost($no,$resto,$now,$name,$email,$sub,$com,'',$host,$pass,$ext,$W,$H,$tim,$chk,$age);
-	dbCommit();
+	$pio->addPost($no,$resto,$now,$name,$email,$sub,$com,'',$host,$pass,$ext,$W,$H,$tim,$chk,$age);
+	$pio->dbCommit();
 
 	// Cookies儲存：密碼與E-mail部分，期限是一週
 	setcookie('pwdc', $pwd, time()+7*24*3600);
@@ -603,7 +603,7 @@ function regist($name,$email,$sub,$com,$pwd,$upfile,$upfile_path,$upfile_name,$u
 	if(isset($_POST['up_series'])){ // 勾選連貼機能
 		if($resto) $RedirURL = PHP_SELF.'?res='.$resto.'&amp;upseries=1'; // 回應後繼續轉回此主題下
 		else{
-			$lastno = getLastPostNo('afterCommit'); // 取得此新文章編號
+			$lastno = $pio->getLastPostNo('afterCommit'); // 取得此新文章編號
 			$RedirURL = PHP_SELF.'?res='.$lastno.'&amp;upseries=1'; // 新增主題後繼續轉到此主題下
 		}
 	}
@@ -638,7 +638,7 @@ _REDIR_;
 
 /* 使用者刪除 */
 function usrdel($no,$pwd){
-	global $path;
+	global $path, $pio;
 	// $pwd: 使用者輸入值, $pwdc: Cookie記錄密碼
 	$pwdc = isset($_COOKIE['pwdc']) ? $_COOKIE['pwdc'] : '';
 	$onlyimgdel = isset($_POST['onlyimgdel']) ? $_POST['onlyimgdel'] : '';
@@ -652,7 +652,7 @@ function usrdel($no,$pwd){
 	if(!count($delno)) error('你真的有要刪除嗎？請回頁面重勾選');
 
 	$delposts = array(); // 真正符合刪除條件文章
-	$posts = fetchPosts($delno);
+	$posts = $pio->fetchPosts($delno);
 	foreach($posts as $post){
 		if($pwd_md5==$post['pw'] || $host==$post['host'] || $pwd==ADMIN_PASS){
 			$search_flag = true; // 有搜尋到
@@ -660,10 +660,10 @@ function usrdel($no,$pwd){
 		}
 	}
 	if($search_flag){
-		$files = $onlyimgdel ? removeAttachments($delposts) : removePosts($delposts);
+		$files = $onlyimgdel ? $pio->removeAttachments($delposts) : $pio->removePosts($delposts);
 		file_func('del', $files);
 		total_size(true); // 刪除容量快取
-		dbCommit();
+		$pio->dbCommit();
 	}else error('無此文章或是密碼錯誤');
 }
 
@@ -697,7 +697,7 @@ __VALID_EOF__;
 
 /* 管理文章模式 */
 function admindel($pass){
-	global $path, $onlyimgdel;
+	global $path, $pio, $onlyimgdel;
 
 	$mod_archiver = file_exists('./mod_archiver.php'); // 與mod_archiver連動
 	$make_archive = $mod_archiver ? '<th>庫存</th>' : ''; // 生成庫存功能
@@ -710,7 +710,7 @@ function admindel($pass){
 	// 刪除文章區塊
 	if($delflag){
 		$delno = array_merge($delno, $_POST['delete']);
-		$files = ($onlyimgdel != 'on') ? removePosts($delno) : removeAttachments($delno);
+		$files = ($onlyimgdel != 'on') ? $pio->removePosts($delno) : $pio->removeAttachments($delno);
 		file_func('del', $files);
 		total_size(true); // 刪除容量快取
 		$is_modified = TRUE;
@@ -718,21 +718,21 @@ function admindel($pass){
 	// 討論串停止區塊
 	if($thsflag){
 		$thsno = array_merge($thsno, $_POST['stop']);
-		$threads = fetchPosts($thsno); // 取得文章
+		$threads = $pio->fetchPosts($thsno); // 取得文章
 		$turl = $tstatus = $tsval = array();
 		foreach($threads as $th){
 			array_push($turl, $th['url']);
 			array_push($tstatus, 'TS');
-			array_push($tsval, (getPostStatus($th['url'], 'TS')==1 ? 0 : 1));
+			array_push($tsval, ($pio->getPostStatus($th['url'], 'TS')==1 ? 0 : 1));
 		}
-		setPostStatus($thsno, $turl, $tstatus, $tsval);
+		$pio->setPostStatus($thsno, $turl, $tstatus, $tsval);
 		$is_modified = true;
 	}
-	if(($delflag || $thsflag) && $is_modified) dbCommit(); // 無論如何都有檔案操作，回寫檔案
+	if(($delflag || $thsflag) && $is_modified) $pio->dbCommit(); // 無論如何都有檔案操作，回寫檔案
 
-	$line = fetchPostList(0, $page * ADMIN_PAGE_DEF, ADMIN_PAGE_DEF); // 分頁過的文章列表
+	$line = $pio->fetchPostList(0, $page * ADMIN_PAGE_DEF, ADMIN_PAGE_DEF); // 分頁過的文章列表
 	$posts_count = count($line); // 迴圈次數
-	$posts = fetchPosts($line); // 文章內容陣列
+	$posts = $pio->fetchPosts($line); // 文章內容陣列
 
 	// 印出刪除表格
 	echo <<< _N_EOT_
@@ -771,7 +771,7 @@ _N_EOT_;
 		$make_archive_link = '';
 		if($resto==0 || $resto==$no){ // $resto = 0 或等於 $no (即討論串首篇)
 			if($mod_archiver) $make_archive_link = '<th align="center"><a href="mod_archiver.php?res='.$no.'" rel="_blank">存</a></th>';
-			$THstop = '<input type="checkbox" name="stop[]" value="'.$no.'" />'.((getPostStatus($url, 'TS')==1)?'停':'');
+			$THstop = '<input type="checkbox" name="stop[]" value="'.$no.'" />'.(($pio->getPostStatus($url, 'TS')==1)?'停':'');
 		}else{
 			if($mod_archiver) $make_archive_link = '<th align="center">--</th>';
 			$THstop = '--';
@@ -801,7 +801,7 @@ _ADMINEOF_;
 <hr />
 ';
 
-	$countline = postCount(); // 總文章數
+	$countline = $pio->postCount(); // 總文章數
 	$page_max = ceil($countline / ADMIN_PAGE_DEF) - 1; // 總頁數
 	echo '<table border="1" style="float: left;"><tr>';
 	if($page) echo '<td><input type="button" value="上一頁" onclick="ChangePage('.($page - 1).');" /></td>';
@@ -823,7 +823,7 @@ _ADMINEOF_;
 
 /* 計算目前附加圖檔使用容量 (單位：KB) */
 function total_size($isupdate=false){
-	global $path;
+	global $path, $pio;
 
 	$size = 0; $all = 0;
 	$cache_file = "./sizecache.dat"; // 附加圖檔使用容量值快取檔案
@@ -833,8 +833,8 @@ function total_size($isupdate=false){
 		return;
 	}
 	if(!is_file($cache_file)){ // 無快取，新增
-		$line = fetchPostList(); // 取出所有文章編號
-		$posts = fetchPosts($line);
+		$line = $pio->fetchPostList(); // 取出所有文章編號
+		$posts = $pio->fetchPosts($line);
 		$linecount = count($posts);
 		for($i = 0; $i < $linecount; $i++){
 			extract($posts[$i]);
@@ -902,7 +902,7 @@ END_OF_HTML;
 		$searchField = $_POST['field']; // 搜尋目標 (no:編號, name:名稱, sub:標題, com:內文)
 		$searchMethod = $_POST['method']; // 搜尋方法
 		$searchKeyword = preg_split('/(　| )+/', trim($searchKeyword)); // 搜尋文字用空格切割
-		$hitPosts = searchPost($searchKeyword, $searchField, $searchMethod); // 直接傳回符合的文章內容陣列
+		$hitPosts = $pio->searchPost($searchKeyword, $searchField, $searchMethod); // 直接傳回符合的文章內容陣列
 
 		echo '<div id="search_result" style="text-align: center;">
 <table border="0" style="margin: 0px auto; text-align: left; width: 100%;">
@@ -926,8 +926,9 @@ END_OF_TR;
 
 /* 顯示系統各項資訊 */
 function showstatus(){
-	$countline = postCount(); // 計算投稿文字記錄檔目前資料筆數
-	$counttree = threadCount(); // 計算樹狀結構記錄檔目前資料筆數
+	global $pio;
+	$countline = $pio->postCount(); // 計算投稿文字記錄檔目前資料筆數
+	$counttree = $pio->threadCount(); // 計算樹狀結構記錄檔目前資料筆數
 	$tmp_total_size = total_size(); // 附加圖檔使用量總大小
 	$tmp_log_ratio = $countline / LOG_MAX; // 記錄檔使用量
 	$tmp_ts_ratio = $tmp_total_size / STORAGE_MAX; // 附加圖檔使用量
@@ -968,7 +969,7 @@ function showstatus(){
 <table border="1" style="margin: 0px auto; text-align: left;">
 <tr><td align="center" colspan="3">基本設定</td></tr>
 <tr><td style="width: 240px;">程式版本</td><td colspan="2"> '.PIXMICAT_VER.' </td></tr>
-<tr><td>PIO 函式庫後端及版本</td><td colspan="2"> '.PIXMICAT_BACKEND.' : '.pioVersion().'</td></tr>
+<tr><td>PIO 函式庫後端及版本</td><td colspan="2"> '.PIXMICAT_BACKEND.' : '.$pio->pioVersion().'</td></tr>
 <tr><td>一頁顯示幾篇討論串</td><td colspan="2"> '.PAGE_DEF.' 篇</td></tr>
 <tr><td>一篇討論串最多顯示之回應筆數</td><td colspan="2"> '.RE_DEF.' 筆</td></tr>
 <tr><td>回應模式一頁顯示幾筆回應內容</td><td colspan="2"> '.RE_PAGE_DEF.' 筆 (全部顯示：0)</td></tr>
@@ -1012,13 +1013,14 @@ function showstatus(){
 
 /* 程式首次執行之初始化 */
 function init(){
+	global $pio;
 	if(!is_writable(realpath('./'))) error('根目錄沒有寫入權限，請修改權限<br />');
 
 	$chkfolder = array(IMG_DIR, THUMB_DIR);
 	// 逐一自動建置IMG_DIR和THUMB_DIR
 	foreach($chkfolder as $value) if(!is_dir($value)){ mkdir($value); @chmod($value, 0777); }  // 沒有就建立
 
-	dbInit(); // PIO Init
+	$pio->dbInit(); // PIO Init
 	file_func('init'); // FileIO Init
 
 	error('環境初始化成功！<br />請現在打開此程式刪除init()程式環境初始化區段<br />');
@@ -1041,8 +1043,8 @@ switch($mode){
 		valid($pass);
 		if($admin=='del') admindel($pass);
 		if($admin=='opt'){
-			if(!dbOptimize()) echo '後端並不支援此動作';
-			else echo '資料表最佳化'.(dbOptimize(true)?'成功':'失敗').'！';
+			if(!$pio->dbOptimize()) echo '後端並不支援此動作';
+			else echo '資料表最佳化'.($pio->dbOptimize(true)?'成功':'失敗').'！';
 			die("</div></form></body>\n</html>");
 		}
 		break;
