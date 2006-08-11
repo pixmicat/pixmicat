@@ -21,7 +21,7 @@ class PIOlog {
 
 	/* PIO模組版本 */
 	function pioVersion() {
-		return 'v20060811β';
+		return 'v200608xx';
 	}
 
 	/* 將回文放進陣列 */
@@ -193,6 +193,43 @@ class PIOlog {
 			}
 		}
 		return $files;
+	}
+
+	/* 檢查是否連續投稿 */
+	function checkSuccessivePost($lcount, $com, $timestamp, $pass, $passcookie, $host, $upload_filename){
+		if(!$this->prepared) $this->dbPrepare();
+		
+		for($i=0;$i<$lcount;$i++) {
+			$post=$this->logs[$this->porder[$i]];
+			list($lastno,$lname,$lcom,$lhost,$lpwd,$lext,$ltime,$lchk) = array($post['no'],$post['name'],$post['com'],$post['host'],$post['pw'],$post['ext'],$post['time'],$post['chk']);
+			$ltime2 = substr($ltime, 0, -3);
+			if($host==$lhost || $pass==$lpwd || $passcookie==$lpwd) $pchk = 1;
+			else $pchk = 0;
+			if(RENZOKU && $pchk){ // 密碼比對符合且開啟連續投稿時間限制
+				if($timestamp - $ltime2 < RENZOKU) return true; // 投稿時間相距太短
+				if($timestamp - $ltime2 < RENZOKU2 && $upload_filename) return true; // 附加圖檔的投稿時間相距太短
+				if($com == $lcom && !$upload_filename) return true; // 內文一樣
+			}
+		}
+		return false;
+	}
+
+	/* 檢查是否重複貼圖 */
+	function checkDuplicateAttechment($lcount, $md5hash){
+		$count=0;
+		$pcount=$this->postCount();
+		if(!$md5hash) return false; // 無附加圖檔
+		while($count<$lcount) {
+			if($count>=$pcount) return false; // 到盡頭了
+			if(!$this->logs[$this->porder[$i]]['chk']) { // 無附加圖檔
+				$count++;
+				continue;
+			}
+			if($this->logs[$this->porder[$i]]['chk']==$md5hash) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/* 文章數目 */

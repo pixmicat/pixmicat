@@ -509,7 +509,7 @@ function regist($name,$email,$sub,$com,$pwd,$upfile,$upfile_path,$upfile_name,$u
 	// 連續投稿 / 相同附加圖檔檢查
 	$checkcount = 50; // 預設檢查50筆資料
 	$pwdc = substr(md5($pwdc), 2, 8); // Cookies密碼
-	if($pio->checkDuplicatePost($checkcount, $com, $time, $pass, $pwdc, $host, $upfile_name)) error('連續投稿請稍候一段時間', $dest); // 連續投稿檢查
+	if($pio->checkSuccessivePost($checkcount, $com, $time, $pass, $pwdc, $host, $upfile_name)) error('連續投稿請稍候一段時間', $dest); // 連續投稿檢查
 	if($dest){ if($pio->checkDuplicateAttechment($checkcount, $chk)) error('上傳失敗<br />近期已經有相同的附加圖檔', $dest); } // 相同附加圖檔檢查
 
 	if($resto) $ThreadExistsBefore = $pio->is_Thread($resto);
