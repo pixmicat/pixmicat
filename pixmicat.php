@@ -490,7 +490,7 @@ function regist($name,$email,$sub,$com,$pwd,$upfile,$upfile_path,$upfile_name,$u
 	$com = CleanStr($com, $is_admin); // 引入$is_admin參數是因為當管理員キャップ啟動時，允許管理員依config設定是否使用HTML
 	$com = str_replace("\r\n","\n", $com);
 	$com = str_replace("\r","\n", $com);
-	$com = ereg_replace("\n((　| )*\n){3,}","\n", $com);
+	$com = ereg_replace("\n((　| )*\n){3,}", "\n", $com);
 	if(!BR_CHECK || substr_count($com,"\n") < BR_CHECK) $com = nl2br($com); // 換行字元用<br />代替
 	$com = str_replace("\n",'', $com); // 若還有\n換行字元則取消換行
 	if($up_incomplete) $com .= '<br /><br /><span class="warn_txt">注意：附加圖檔上傳不完全</span>'; // 上傳附加圖檔不完全的提示
@@ -516,7 +516,7 @@ function regist($name,$email,$sub,$com,$pwd,$upfile,$upfile_path,$upfile_name,$u
 	$pwdc = substr(md5($pwdc), 2, 8); // Cookies密碼
   	for($i = 0; $i < $posts_count; $i++){
   		$post = $posts[$i]; // 取出單一文章
-		list($lastno,$lname,$lcom,$lhost,$lpwd,$lext,$ltime,$lchk) = array($post['no'],$post['name'],$post['com'],$post['host'],$post['pw'],$post['ext'],$post['time'],$post['chk']);
+		list(,,$lcom,$lhost,$lpwd,$lext,$ltime,$lchk) = array($post['no'],$post['name'],$post['com'],$post['host'],$post['pw'],$post['ext'],$post['time'],$post['chk']);
 		$ltime2 = substr($ltime, 0, -3);
 		if($host==$lhost || $pass==$lpwd || $pwdc==$lpwd) $pchk = 1;
 		else $pchk = 0;
@@ -616,6 +616,7 @@ function regist($name,$email,$sub,$com,$pwd,$upfile,$upfile_path,$upfile_name,$u
 <head>
 <title></title>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta http-equiv="Refresh" content="1;URL=$RedirURL" />
 <script type="text/javascript">
 // Redirection (use JS)
 // <![CDATA[
@@ -869,6 +870,8 @@ function anti_sakura($str){
 
 /* 搜尋(全文檢索)功能 */
 function search(){
+	global $pio;
+
 	if(!USE_SEARCH) error('管理員選擇不開放搜尋功能！');
 	$searchKeyword = isset($_POST['keyword']) ? trim($_POST['keyword']) : ''; // 欲搜尋的文字
 	$dat = '';
