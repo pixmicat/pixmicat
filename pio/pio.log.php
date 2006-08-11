@@ -7,7 +7,7 @@ Log API
 class PIOlog {
 	var $logfile,$treefile; // Local Constant
 	var $porder,$torder,$logs,$trees,$restono,$prepared; // Local Global
-	
+
 	function PIOlog($connstr='') {
 		$this->porder=array();
 		$this->torder=array();
@@ -15,13 +15,13 @@ class PIOlog {
 		$this->trees=array();
 		$this->restono=array();
 		$this->prepared=0;
-		
+
 		if($connstr) $this->dbConnect($connstr);
 	}
 
 	/* PIO模組版本 */
 	function pioVersion() {
-		return 'v200608xx';
+		return 'v20060812β';
 	}
 
 	/* 將回文放進陣列 */
@@ -198,10 +198,12 @@ class PIOlog {
 	/* 檢查是否連續投稿 */
 	function checkSuccessivePost($lcount, $com, $timestamp, $pass, $passcookie, $host, $upload_filename){
 		if(!$this->prepared) $this->dbPrepare();
-		
+
+		$pcount = $this->postCount();
+		$lcount = ($pcount > $lcount) ? $lcount : $pcount;
 		for($i=0;$i<$lcount;$i++) {
 			$post=$this->logs[$this->porder[$i]];
-			list($lastno,$lname,$lcom,$lhost,$lpwd,$lext,$ltime,$lchk) = array($post['no'],$post['name'],$post['com'],$post['host'],$post['pw'],$post['ext'],$post['time'],$post['chk']);
+			list($lcom,$lhost,$lpwd,$ltime) = array($post['com'],$post['host'],$post['pw'],$post['time']);
 			$ltime2 = substr($ltime, 0, -3);
 			if($host==$lhost || $pass==$lpwd || $passcookie==$lpwd) $pchk = 1;
 			else $pchk = 0;
@@ -216,17 +218,16 @@ class PIOlog {
 
 	/* 檢查是否重複貼圖 */
 	function checkDuplicateAttechment($lcount, $md5hash){
-		$count=0;
-		$pcount=$this->postCount();
+		global $path;
+
+		$pcount = $this->postCount();
+		$lcount = ($pcount > $lcount) ? $lcount : $pcount;
 		if(!$md5hash) return false; // 無附加圖檔
-		while($count<$lcount) {
-			if($count>=$pcount) return false; // 到盡頭了
-			if(!$this->logs[$this->porder[$i]]['chk']) { // 無附加圖檔
-				$count++;
-				continue;
-			}
+		for($i=0;$i<$lcount;$i++) {
+			if(!$this->logs[$this->porder[$i]]['chk']) continue; // 無附加圖檔
 			if($this->logs[$this->porder[$i]]['chk']==$md5hash) {
-				return true;
+				$dfile = $path.IMG_DIR.$this->logs[$this->porder[$i]]['time'].$this->logs[$this->porder[$i]]['ext'];
+				if(file_func('exist', $dfile)) return true; // 存在MD5雜湊相同的檔案
 			}
 		}
 		return false;
