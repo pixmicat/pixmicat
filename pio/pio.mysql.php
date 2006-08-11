@@ -92,15 +92,17 @@ class PIOmysql{
 			}
 			mysql_query($result); // 正式新增資料表
 			addPost(1, 0, '05/01/01(六)00:00', '無名氏', '', '無標題', '無內文', '', '', '', '', 0, 0, 0, ''); // 追加一筆新資料
+			$this->dbCommit();
 		}
 	}
 
 	/* 準備/讀入 */
-	/* 輸入 是否重作 as boolean, 輸出 void */
-	function dbPrepare($reload=false){
+	/* 輸入 是否重作 as boolean, 是否啟動交易模式 as boolean, 輸出 void */
+	function dbPrepare($reload=false, $transaction=false){
 		global $con, $prepared;
 		if($prepared && !$reload) return true;
 
+		if($reload && $con) mysql_close($con);
 		if(@!$con=mysql_pconnect($this->server, $this->username, $this->password)){
 			echo 'It occurred a fatal error when connecting to the MySQL server.<p>';
 			echo 'Check your MySQL login setting in config file or the MySQL server status.';
@@ -108,7 +110,7 @@ class PIOmysql{
 		}
 		@mysql_select_db($this->dbname, $con);
 		@mysql_query("SET NAMES 'utf8'"); // MySQL資料以UTF-8模式傳送
-		//@mysql_query('START TRANSACTION'); // 啟動交易性能模式 (據說會降低效能，但可防止資料寫入不一致)
+		if($transaction) @mysql_query('START TRANSACTION'); // 啟動交易性能模式 (據說會降低效能，但可防止資料寫入不一致)
 
 		$prepared = 1;
 	}
@@ -125,10 +127,8 @@ class PIOmysql{
 	/* 優化資料表 */
 	/* 輸入 是否作 as boolean, 輸出 優化成果 as boolean */
 	function dbOptimize($doit=false){
-		global $con, $prepared;
-
 		if($doit){
-			if(!$prepared) $this->dbPrepare();
+			$this->dbPrepare(true, false);
 			if($this->_mysql_call('OPTIMIZE TABLES '.$this->tablename)) return true;
 			else return false;
 		}else return true; // 支援最佳化資料表
@@ -141,7 +141,7 @@ class PIOmysql{
 		if(!$prepared) $this->dbPrepare();
 
 		$oldAttachments = array(); // 舊文的附加檔案清單
-		$countline = postCount(); // 文章數目
+		$countline = $this->postCount(); // 文章數目
 		$cutIndex = $countline - LOG_MAX + 1; // LIMIT用，取出最舊的幾篇
 		if(!$result=$this->_mysql_call('SELECT no,ext,tim FROM '.$this->tablename.' ORDER BY no LIMIT 0, '.$cutIndex)) echo '[ERROR] 取出舊文失敗<br />';
 		else{
@@ -174,7 +174,7 @@ class PIOmysql{
 		global $con, $prepared;
 		if(!$prepared) $this->dbPrepare();
 
-		$files = removeAttachments($posts, true); // 先遞迴取得刪除文章及其回應附件清單
+		$files = $this->removeAttachments($posts, true); // 先遞迴取得刪除文章及其回應附件清單
 		$pno = implode(', ', $posts); // ID字串
 		if(!$result=$this->_mysql_call('DELETE FROM '.$this->tablename.' WHERE no IN ('.$pno.') OR resto IN('.$pno.')')) echo '[ERROR] 刪除文章及其回應失敗<br />'; // 刪掉文章
 		return $files;
@@ -198,7 +198,7 @@ class PIOmysql{
 			}
 		}
 		mysql_free_result($result);
-		return $warnOnly ? $arr_warn : removeAttachments($arr_kill);
+		return $warnOnly ? $arr_warn : $this->removeAttachments($arr_kill);
 	}
 
 	/* 刪除附件 (輸出附件清單) */

@@ -22,7 +22,7 @@ class PIOlog {
 
 	/* PIO模組版本 */
 	function pioVersion() {
-		return 'v200608xx';
+		return 'v20060811β';
 	}
 
 	/* 將回文放進陣列 */
