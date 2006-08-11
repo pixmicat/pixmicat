@@ -9,13 +9,12 @@ class PIOlog {
 	var $porder,$torder,$logs,$trees,$restono,$prepared; // Local Global
 	
 	function PIOlog($connstr='') {
-		global $porder,$torder,$logs,$trees,$restono,$prepared;
-		$porder=array();
-		$torder=array();
-		$logs=array();
-		$trees=array();
-		$restono=array();
-		$prepared=0;
+		$this->porder=array();
+		$this->torder=array();
+		$this->logs=array();
+		$this->trees=array();
+		$this->restono=array();
+		$this->prepared=0;
 		
 		if($connstr) $this->dbConnect($connstr);
 	}
@@ -27,10 +26,9 @@ class PIOlog {
 
 	/* 將回文放進陣列 */
 	/* private */ function includeReplies($posts) {
-		global $restono,$trees;
 		foreach($posts as $post) {
-			if($restono[$post]==$post) { // 討論串頭
-				$posts=array_merge($posts,$trees[$post]);
+			if($this->restono[$post]==$post) { // 討論串頭
+				$posts=array_merge($posts,$this->trees[$post]);
 			}
 		}
 		return array_merge(array(),array_unique($posts));
@@ -69,47 +67,45 @@ class PIOlog {
 
 	/* 準備/讀入 */
 	function dbPrepare($reload=false,$transaction=true) {
-		global $porder,$torder,$logs,$restono,$trees,$prepared;
-		if($prepared && !$reload) return true;
-		if($reload && $prepared) unset($porder,$torder,$logs,$restono,$trees);
+		if($this->prepared && !$reload) return true;
+		if($reload && $this->prepared) $this->porder=$this->torder=$this->logs=$this->restono=$this->trees=array();
 		$lines = file($this->logfile);
 		$tree = file($this->treefile);
 
 		foreach($tree as $treeline) {
 			if($treeline=='') continue;
 			$tline=explode(',', rtrim($treeline));
-			$trees[$tline[0]]=$tline;
-			$torder[]=$tline[0];
-			foreach($tline as $post) $restono[$post]=$tline[0];
+			$this->trees[$tline[0]]=$tline;
+			$this->torder[]=$tline[0];
+			foreach($tline as $post) $this->restono[$post]=$tline[0];
 		}
 		foreach($lines as $line) {
 			if($line=='') continue;
 			$tline=array();
 			list($tline['no'],$tline['now'],$tline['name'],$tline['email'],$tline['sub'],$tline['com'],$tline['url'],$tline['host'],$tline['pw'],$tline['ext'],$tline['w'],$tline['h'],$tline['time'],$tline['chk'])=explode(',', $line);
-			$tline['resto']=$restono[$tline['no']]; // 欲回應編號
-			$porder[]=$tline['no'];
-			$logs[$tline['no']]=array_reverse($tline); // list()是由右至左代入的
+			$tline['resto']=$this->restono[$tline['no']]; // 欲回應編號
+			$this->porder[]=$tline['no'];
+			$this->logs[$tline['no']]=array_reverse($tline); // list()是由右至左代入的
 		}
 
-		$prepared = 1;
+		$this->prepared = 1;
 	}
 
 	/* 提交/儲存 */
 	function dbCommit() {
-		global $porder,$torder,$logs,$trees,$prepared;
-		if(!$prepared) return false;
+		if(!$this->prepared) return false;
 		$pcount=$this->postCount();
 		$tcount=$this->threadCount();
 
 		$log=$tree='';
 		for($post=0;$post<$pcount;$post++){
-			if(isset($logs[$porder[$post]])){
-				if(array_key_exists('resto', $logs[$porder[$post]])) array_shift($logs[$porder[$post]]); // resto不屬於原log架構故除去
-				$log .= implode(',',$logs[$porder[$post]]).",\n";
+			if(isset($this->logs[$this->porder[$post]])){
+				if(array_key_exists('resto', $this->logs[$this->porder[$post]])) array_shift($this->logs[$this->porder[$post]]); // resto不屬於原log架構故除去
+				$log .= implode(',',$this->logs[$this->porder[$post]]).",\n";
 			}
 		}
 		for($tline=0;$tline<$tcount;$tline++)
-			$tree.=$this->is_Thread($torder[$tline])?implode(',',$trees[$torder[$tline]])."\n":'';
+			$tree.=$this->is_Thread($this->torder[$tline])?implode(',',$this->trees[$this->torder[$tline]])."\n":'';
 
 		$fp = fopen($this->logfile, 'w');
 		stream_set_write_buffer($fp, 0);
@@ -133,53 +129,51 @@ class PIOlog {
 
 	/* 刪除舊文 */
 	function delOldPostes() {
-		global $porder,$torder,$restono,$logs,$trees,$prepared;
-		if(!$prepared) $this->dbPrepare();
+		if(!$this->prepared) $this->dbPrepare();
 
-		$delPosts=@array_splice($porder,LOG_MAX);
+		$delPosts=@array_splice($this->porder,LOG_MAX);
 		if(count($delPosts)) return $this->removePosts(includeReplies($delPosts));
 		else return false;
 	}
 
 	/* 刪除文章 */
 	function removePosts($posts) {
-		global $porder,$torder,$restono,$logs,$trees,$prepared;
-		if(!$prepared) $this->dbPrepare();
+		if(!$this->prepared) $this->dbPrepare();
 
 		$posts=$this->includeReplies($posts);
 		$files=$this->removeAttachments($posts);
-		$porder_flip=array_flip($porder);
-		$torder_flip=array_flip($torder);
+		$porder_flip=array_flip($this->porder);
+		$torder_flip=array_flip($this->torder);
 		$pcount=count($posts);
 		for($p=0;$p<$pcount;$p++) {
-			if(!isset($logs[$posts[$p]])) continue;
-			if($restono[$posts[$p]]==$posts[$p]) { // 討論串頭
-				unset($trees[$posts[$p]]); // 刪除樹狀記錄
-				if(array_key_exists($posts[$p],$torder_flip)) unset($torder[$torder_flip[$posts[$p]]]);
+			if(!isset($this->logs[$posts[$p]])) continue;
+			if($this->restono[$posts[$p]]==$posts[$p]) { // 討論串頭
+				unset($this->trees[$posts[$p]]); // 刪除樹狀記錄
+				if(array_key_exists($posts[$p],$torder_flip)) unset($this->torder[$torder_flip[$posts[$p]]]);
 			}
-			unset($logs[$posts[$p]]);
-			if(array_key_exists($restono[$posts[$p]],$trees)) {
-				$tr_flip=array_flip($trees[$restono[$posts[$p]]]);
-				unset($trees[$restono[$posts[$p]]][$tr_flip[$posts[$p]]]);
+			unset($this->logs[$posts[$p]]);
+			if(array_key_exists($this->restono[$posts[$p]],$this->trees)) {
+				$tr_flip=array_flip($this->trees[$this->restono[$posts[$p]]]);
+				unset($this->trees[$this->restono[$posts[$p]]][$tr_flip[$posts[$p]]]);
 			}
-			unset($restono[$posts[$p]]);
-			if(array_key_exists($posts[$p],$porder_flip)) unset($porder[$porder_flip[$posts[$p]]]);
+			unset($this->restono[$posts[$p]]);
+			if(array_key_exists($posts[$p],$porder_flip)) unset($this->porder[$porder_flip[$posts[$p]]]);
 		}
-		$porder=array_merge(array(),$porder);
-		$torder=array_merge(array(),$torder);
+		$this->porder=array_merge(array(),$this->porder);
+		$this->torder=array_merge(array(),$this->torder);
 		return $files;
 	}
 
 	/* 刪除舊附件 (輸出附件清單) */
 	function delOldAttachments($total_size,$storage_max,$warnOnly=true) {
-		global $porder,$logs,$path,$prepared;
-		if(!$prepared) $this->dbPrepare();
+		global $path;
+		if(!$this->prepared) $this->dbPrepare();
 
-		$rpord = $porder; sort($rpord); // 由舊排到新 (小->大)
+		$rpord = $this->porder; sort($rpord); // 由舊排到新 (小->大)
 		$arr_warn = $arr_kill = array();
 		foreach($rpord as $post) {
-			if(file_func('exist',$path.IMG_DIR.$logs[$post]['time'].$logs[$post]['ext'])) { $total_size -= file_func('size',$path.IMG_DIR.$logs[$post]['time'].$logs[$post]['ext']) / 1024; $arr_kill[] = $post;$arr_warn[$post] = 1; } // 標記刪除
-			if(file_func('exist',$path.THUMB_DIR.$logs[$post]['time'].'s.jpg')) { $total_size -= file_func('size',$path.THUMB_DIR.$logs[$post]['time'].'s.jpg') / 1024; }
+			if(file_func('exist',$path.IMG_DIR.$this->logs[$post]['time'].$this->logs[$post]['ext'])) { $total_size -= file_func('size',$path.IMG_DIR.$this->logs[$post]['time'].$this->logs[$post]['ext']) / 1024; $arr_kill[] = $post;$arr_warn[$post] = 1; } // 標記刪除
+			if(file_func('exist',$path.THUMB_DIR.$this->logs[$post]['time'].'s.jpg')) { $total_size -= file_func('size',$path.THUMB_DIR.$this->logs[$post]['time'].'s.jpg') / 1024; }
 			if($total_size<$storage_max) break;
 		}
 		return $warnOnly?$arr_warn:$this->removeAttachments($arr_kill);
@@ -187,15 +181,15 @@ class PIOlog {
 
 	/* 刪除附件 (輸出附件清單) */
 	function removeAttachments($posts) {
-		global $logs,$path,$prepared;
-		if(!$prepared) $this->dbPrepare();
+		global $path;
+		if(!$this->prepared) $this->dbPrepare();
 
 		$files=array();
 		foreach($posts as $post) {
-			if($logs[$post]['ext']) {
-				if(file_func('exist',$path.IMG_DIR.$logs[$post]['time'].$logs[$post]['ext'])) $files[]=IMG_DIR.$logs[$post]['time'].$logs[$post]['ext'];
-				if(file_func('exist',$path.THUMB_DIR.$logs[$post]['time'].'s.jpg')) $files[]=THUMB_DIR.$logs[$post]['time'].'s.jpg';
-				$logs[$post]['ext']='';
+			if($this->logs[$post]['ext']) {
+				if(file_func('exist',$path.IMG_DIR.$this->logs[$post]['time'].$this->logs[$post]['ext'])) $files[]=IMG_DIR.$this->logs[$post]['time'].$this->logs[$post]['ext'];
+				if(file_func('exist',$path.THUMB_DIR.$this->logs[$post]['time'].'s.jpg')) $files[]=THUMB_DIR.$this->logs[$post]['time'].'s.jpg';
+				$this->logs[$post]['ext']='';
 			}
 		}
 		return $files;
@@ -203,78 +197,71 @@ class PIOlog {
 
 	/* 文章數目 */
 	function postCount($resno=0) {
-		global $porder,$trees,$prepared;
-		if(!$prepared) $this->dbPrepare();
+		if(!$this->prepared) $this->dbPrepare();
 
-		return ($resno)?$this->is_Thread($resno)?count(@$trees[$resno])-1:0:count($porder);
+		return ($resno)?$this->is_Thread($resno)?count(@$this->trees[$resno])-1:0:count($this->porder);
 	}
 
 	/* 討論串數目 */
 	function threadCount() {
-		global $torder,$prepared;
-		if(!$prepared) $this->dbPrepare();
+		if(!$this->prepared) $this->dbPrepare();
 
-		return count($torder);
+		return count($this->torder);
 	}
 
 	/* 輸出文章清單 */
 	function fetchPostList($resno=0,$start=0,$amount=0) {
-		global $porder,$trees,$prepared;
-		if(!$prepared) $this->dbPrepare();
+		if(!$this->prepared) $this->dbPrepare();
 
 		$plist=array();
 		if($resno) {
 			if($this->is_Thread($resno)) {
 				if($start && $amount) {
-					$plist=array_slice($trees[$resno],$start,$amount);array_unshift($plist,$resno);
+					$plist=array_slice($this->trees[$resno],$start,$amount);array_unshift($plist,$resno);
 				}
-				if(!$start && $amount) $plist=array_slice($trees[$resno],0,$amount);
-				if(!$start && !$amount) $plist=$trees[$resno];
+				if(!$start && $amount) $plist=array_slice($this->trees[$resno],0,$amount);
+				if(!$start && !$amount) $plist=$this->trees[$resno];
 			}
 		} else {
-			$plist=$amount?array_slice($porder,$start,$amount):$porder;
+			$plist=$amount?array_slice($this->porder,$start,$amount):$this->porder;
 		}
 		return $plist;
 	}
 
 	/* 輸出討論串清單 */
 	function fetchThreadList($start=0,$amount=0) {
-		global $porder,$torder,$logs,$trees,$prepared;
-		if(!$prepared) $this->dbPrepare();
+		if(!$this->prepared) $this->dbPrepare();
 
-		return $amount?array_slice($torder,$start,$amount):$torder;
+		return $amount?array_slice($this->torder,$start,$amount):$this->torder;
 	}
 
 	/* 輸出文章 */
 	function fetchPosts($postlist) {
-		global $porder,$torder,$logs,$trees,$prepared;
-		if(!$prepared) $this->dbPrepare();
+		if(!$this->prepared) $this->dbPrepare();
 
 		$posts=array();
 		if(!is_array($postlist)) { // Single Post
-			array_push($posts,$logs[$postlist]);
+			array_push($posts,$this->logs[$postlist]);
 		} else {
-			foreach($postlist as $p) array_push($posts,$logs[$p]);
+			foreach($postlist as $p) array_push($posts,$this->logs[$p]);
 		}
 		return $posts;
 	}
 
 	/* 有此討論串? */
 	function is_Thread($no) {
-		global $torder,$logs,$trees,$prepared;
-		if(!$prepared) $this->dbPrepare();
+		if(!$this->prepared) $this->dbPrepare();
 
-		return isset($trees[$no]);
+		return isset($this->trees[$no]);
 	}
 
 	/* 搜尋文章 */
 	function searchPost($keyword,$field,$method) {
-		global $logs,$prepared;
-		if(!$prepared) $this->dbPrepare();
+		if(!$this->prepared) $this->dbPrepare();
 
 		$foundPosts=array();
 		$keyword_cnt=count($keyword);
-		foreach($logs as $log) {
+		foreach($this->logs as $log) {
 			$found=0;
 			foreach($keyword as $k)
 				if(strpos($log[$field], $k)!==FALSE) $found++;
@@ -286,34 +273,32 @@ class PIOlog {
 
 	/* 新增文章/討論串 */
 	function addPost($no,$resno,$now,$name,$email,$sub,$com,$url,$host,$pass,$ext,$W,$H,$tim,$chk,$age=false) {
-		global $porder,$torder,$logs,$trees,$restono,$prepared;
-		if(!$prepared) $this->dbPrepare();
+		if(!$this->prepared) $this->dbPrepare();
 
 		$tline=array();
 		list($tline['no'],$tline['now'],$tline['name'],$tline['email'],$tline['sub'],$tline['com'],$tline['url'],$tline['host'],$tline['pw'],$tline['ext'],$tline['w'],$tline['h'],$tline['time'],$tline['chk'])=array($no,$now,$name,$email,$sub,$com,$url,$host,$pass,$ext,$W,$H,$tim,$chk);
 		$tline = array_map(array($this,'_replaceComma'), $tline); // 只有Log版需要將資料內的 , 轉換
-		$logs[$no]=array_reverse($tline);
-		array_unshift($porder,$no);
+		$this->logs[$no]=array_reverse($tline);
+		array_unshift($this->porder,$no);
 
 		if($resno) {
-			$trees[$resno][]=$no;
-			$restono[$no]=$resno;
+			$this->trees[$resno][]=$no;
+			$this->restono[$no]=$resno;
 			if($age) {
-				$torder_flip=array_flip($torder);
-				array_splice($torder,$torder_flip[$resno],1);
-				array_unshift($torder,$resno);
+				$torder_flip=array_flip($this->torder);
+				array_splice($this->torder,$torder_flip[$resno],1);
+				array_unshift($this->torder,$resno);
 			}
 		} else {
-			$trees[$no][0]=$no;
-			$restono[$no]=$no;
-			array_unshift($torder,$no);
+			$this->trees[$no][0]=$no;
+			$rthis->estono[$no]=$no;
+			array_unshift($this->torder,$no);
 		}
 	}
 
 	/* 取得文章屬性 */
 	function getPostStatus($status,$statusType) {
-		global $porder,$torder,$logs,$trees,$prepared;
-		if(!$prepared) $this->dbPrepare();
+		if(!$this->prepared) $this->dbPrepare();
 
 		$returnValue = 0; // 回傳值
 
@@ -328,8 +313,7 @@ class PIOlog {
 
 	/* 設定文章屬性 */
 	function setPostStatus($no, $status, $statusType, $newValue) {
-		global $logs,$prepared;
-		if(!$prepared) $this->dbPrepare();
+		if(!$this->prepared) $this->dbPrepare();
 
 		$scount=count($no);
 		for($i=0;$i<$scount;$i++) {
@@ -347,19 +331,18 @@ class PIOlog {
 					default:
 				}
 			}
-			$logs[$no[$i]]['url']=$status[$i];
+			$this->logs[$no[$i]]['url']=$status[$i];
 		}
 	}
 
 	/* 取得最後的文章編號 */
 	function getLastPostNo($state) {
-		global $porder,$logs,$prepared;
-		if(!$prepared) $this->dbPrepare();
+		if(!$this->prepared) $this->dbPrepare();
 
 		switch($state) {
 			case 'beforeCommit':
 			case 'afterCommit':
-				return $porder[0];
+				return $this->porder[0];
 		}
 	}
 }
