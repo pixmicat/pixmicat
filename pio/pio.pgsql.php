@@ -8,9 +8,9 @@ class PIOpgsql{
 	var $username, $password, $server, $port, $dbname, $tablename; // Local Constant
 	var $con, $prepared; // Local Global
 
-	function PIOpgsql($this->connstr=''){
+	function PIOpgsql($connstr=''){
 		$this->prepared = 0;
-		if($this->connstr) $this->dbConnect($this->connstr);
+		if($connstr) $this->dbConnect($connstr);
 	}
 
 	/* PIO模組版本 */
@@ -41,10 +41,10 @@ class PIOpgsql{
 
 	/* 處理連線字串/連接 */
 	/* 輸入 連線字串 as string, 輸出 void */
-	function dbConnect($this->connStr){
+	function dbConnect($connStr){
 		// 格式： pgsql://帳號:密碼@伺服器位置:埠號(可省略)/資料庫/資料表/
 		// 示例： pgsql://pixmicat:1234@127.0.0.1/pixmicat_use/imglog/
-		if(preg_match('/^pgsql:\/\/(.*)\:(.*)\@([^\:]*)((\:)([0-9]+)){0,1}\/(.*)\/(.*)\/$/i', $this->connStr, $linkinfos)){
+		if(preg_match('/^pgsql:\/\/(.*)\:(.*)\@([^\:]*)((\:)([0-9]+)){0,1}\/(.*)\/(.*)\/$/i', $connStr, $linkinfos)){
 			$this->username = $linkinfos[1]; // 登入帳號
 			$this->password = $linkinfos[2]; // 登入密碼
 			$this->server = $linkinfos[3]; // 登入伺服器
