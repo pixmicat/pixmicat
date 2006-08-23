@@ -56,7 +56,7 @@ class PIO {
 	/* 搜尋文章 */
 	function searchPost($keyword,$field,$method) { return $this->realPIO->searchPost($keyword,$field,$method); }
 	/* 新增文章/討論串 */
-	function addPost($no,$resno,$now,$name,$email,$sub,$com,$url,$host,$pass,$ext,$W,$H,$tim,$chk,$age=false) { return $this->realPIO->addPost($no,$resno,$now,$name,$email,$sub,$com,$url,$host,$pass,$ext,$W,$H,$tim,$chk,$age); }
+	function addPost($no, $resto, $md5chksum, $catalog, $tim, $ext, $imgw, $imgh, $imgsize, $tw, $th, $pwd, $now, $name, $email, $sub, $com, $host, $age=false) { return $this->realPIO->addPost($no, $resto, $md5chksum, $catalog, $tim, $ext, $imgw, $imgh, $imgsize, $tw, $th, $pwd, $now, $name, $email, $sub, $com, $host, $age); }
 	/* 取得文章屬性 */
 	function getPostStatus($status,$statusType) { return $this->realPIO->getPostStatus($status,$statusType); }
 	/* 設定文章屬性 */

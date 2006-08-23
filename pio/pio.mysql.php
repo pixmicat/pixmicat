@@ -16,7 +16,7 @@ class PIOmysql{
 	/* PIO模組版本 */
 	/* 輸入 void, 輸出 版本號 as string */
 	function pioVersion(){
-		return 'v20060812β';
+		return 'v20060823β';
 	}
 
 	/* private 使用SQL字串和MySQL伺服器要求 */
@@ -26,15 +26,10 @@ class PIOmysql{
 		return $ret;
 	}
 
-	/* private 輸出符合標準的索引鍵陣列 */
+	/* private 由資源輸出陣列 */
 	function _ArrangeArrayStructure($line){
 		$posts = array();
-		$arrIDKey = array('no'=>'', 'resto'=>'', 'now'=>'', 'name'=>'', 'email'=>'', 'sub'=>'', 'com'=>'', 'status'=>'url', 'host'=>'', 'pwd'=>'pw', 'ext'=>'', 'w'=>'', 'h'=>'', 'tim'=>'time', 'md5'=>'chk'); // MySQL 欄位鍵 => 標準欄位鍵
-		while($row=mysql_fetch_array($line, MYSQL_ASSOC)){
-			$tline = array();
-			foreach($arrIDKey as $mID => $mVal) $tline[($mVal ? $mVal : $mID)] = $row[$mID]; // 逐個取值並代入
-			$posts[] = $tline;
-		}
+		while($row=mysql_fetch_array($line, MYSQL_ASSOC)) $posts[] = $row;
 		mysql_free_result($line);
 		return $posts;
 	}
@@ -64,11 +59,15 @@ class PIOmysql{
 	resto int(1) not null,
 	root timestamp(14) null DEFAULT 0,
 	time int(1) not null,
-	md5 varchar(32) not null,
+	md5chksum varchar(32) not null,
+	catalog varchar(255) not null,
 	tim bigint(1) not null,
 	ext varchar(4) not null,
-	w smallint(1) not null,
-	h smallint(1) not null,
+	imgw smallint(1) not null,
+	imgh smallint(1) not null,
+	imgsize varchar(10) not null,
+	tw smallint(1) not null,
+	th smallint(1) not null,
 	pwd varchar(8) not null,
 	now varchar(255) not null,
 	name varchar(255) not null,
@@ -78,14 +77,14 @@ class PIOmysql{
 	host varchar(255) not null,
 	status varchar(4) not null)
 	TYPE = MYISAM
-	COMMENT = 'For Pixmicat! use'";
+	COMMENT = 'For Pixmicat!-PIO [Structure V2]'";
 			$result2 = @mysql_query("SHOW CHARACTER SET like 'utf8'"); // 是否支援UTF-8 (MySQL 4.1.1開始支援)
 			if($result2 && mysql_num_rows($result2)){
 				$result .= ' CHARACTER SET utf8 COLLATE utf8_general_ci'; // 資料表追加UTF-8編碼
 				mysql_free_result($result2);
 			}
 			mysql_query($result); // 正式新增資料表
-			$this->addPost(1, 0, '05/01/01(六)00:00', '無名氏', '', '無標題', '無內文', '', '', '', '', 0, 0, 0, ''); // 追加一筆新資料
+			$this->addPost(1, 0, '', '', 0, '', 0, 0, '', 0, 0, '', '05/01/01(六)00:00', '無名氏', '', '無標題', '無內文', ''); // 追加一筆新資料
 			$this->dbCommit();
 		}
 	}
@@ -243,7 +242,7 @@ class PIOmysql{
 		global $path;
 		if(!$this->prepared) $this->dbPrepare();
 
-		if(!$result=$this->_mysql_call('SELECT tim,ext FROM '.$this->tablename." WHERE ext <> '' AND md5 = '$md5hash' ORDER BY no DESC")) echo '[ERROR] 取出文章判斷重複貼圖失敗<br />';
+		if(!$result=$this->_mysql_call('SELECT tim,ext FROM '.$this->tablename." WHERE ext <> '' AND md5chksum = '$md5hash' ORDER BY no DESC")) echo '[ERROR] 取出文章判斷重複貼圖失敗<br />';
 		else{
 			while(list($ltim, $lext)=mysql_fetch_row($result)){
 				if(file_func('exist', $path.IMG_DIR.$ltim.$lext)){ return true; break; } // 有相同檔案
@@ -352,26 +351,27 @@ class PIOmysql{
 
 	/* 新增文章/討論串 */
 	/* 輸入 各種欄位值 as any, 輸出 void */
-	function addPost($no, $resno, $now, $name, $email, $sub, $com, $url, $host, $pass, $ext, $W, $H, $tim, $chk, $age=false){
+	function addPost($no, $resto, $md5chksum, $catalog, $tim, $ext, $imgw, $imgh, $imgsize, $tw, $th, $pwd, $now, $name, $email, $sub, $com, $host, $age=false){
 		if(!$this->prepared) $this->dbPrepare();
 
 		$time = (int)substr($tim, 0, -3); // 13位數的數字串是檔名，10位數的才是時間數值
-		if($resno){ // 新增回應
-			$rootqu = 0;
+		if($resto){ // 新增回應
+			$root = 0;
 			if($age){ // 推文
 				$query = 'UPDATE '.$this->tablename.' SET root = now() WHERE no = '.$resno; // 將被回應的文章往上移動
 				if(!$result=$this->_mysql_call($query)) echo '[ERROR] 推文失敗<br />';
 			}
-		}else $rootqu = 'now()'; // 新增討論串, 討論串最後被更新時間
+		}else $root = 'now()'; // 新增討論串, 討論串最後被更新時間
 
-		$query = 'INSERT INTO '.$this->tablename.' (resto,root,time,md5,tim,ext,w,h,pwd,now,name,email,sub,com,host,status) VALUES ('.
-	(int)$resno.','. // 回應編號
-	$rootqu.','. // 最後更新時間
+		$query = 'INSERT INTO '.$this->tablename.' (resto,root,time,md5chksum,catalog,tim,ext,imgw,imgh,imgsize,tw,th,pwd,now,name,email,sub,com,host,status) VALUES ('.
+	(int)$resto.','. // 回應編號
+	$root.','. // 最後更新時間
 	$time.','. // 發文時間數值
-	"'$chk',". // 附加檔案md5
+	"'$md5chksum',". // 附加檔案md5
+	"'".mysql_escape_string($catalog)."',". // 分類標籤
 	"'$tim', '$ext',". // 附加檔名
-	(int)$W.', '.(int)$H.','. // 預覽圖長寬
-	"'".mysql_escape_string($pass)."',".
+	$imgw.','.$imgh.",'".$imgsize."',".$tw.','.$th.','. // 圖檔長寬及檔案大小；預覽圖長寬
+	"'".mysql_escape_string($pwd)."',".
 	"'$now',". // 時間(含ID)字串
 	"'".mysql_escape_string($name)."',".
 	"'".mysql_escape_string($email)."',".

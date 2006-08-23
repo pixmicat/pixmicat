@@ -1,5 +1,10 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2006/08/23
+01.[PIO] 修改資料結構，增加catalog和imgw, imgh, imgsize等欄位
+02.[pixmicat] 去除extract POST, GET以增強安全性和效率，需要時再解析取得
+03.[pixmicat] 去除對URL「?mode=search」POST的不符標準
+
 2006/08/11
 01.[pixmicat] PIO版本決議將繼續開發直到成熟為止
 02.[PIO] PIOlog, mysql, sqlite, pgsql物件化

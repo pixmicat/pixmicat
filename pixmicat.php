@@ -4,7 +4,7 @@ function getMicrotime(){
     list($usec, $sec) = explode(' ', microtime());
     return ((double)$usec + (double)$sec);
 }
-define("PIXMICAT_VER", 'Pixmicat!-PIO 3rd.Release-dev b060811'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 3rd.Release-dev b060823'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -39,13 +39,6 @@ PHP 4.4.x或更高版本並開啟GD和zlib支援
 
 細部的設定請打開config.php參考註解修改。
 */
-
-extract($_POST);
-extract($_GET);
-
-$upfile = isset($_FILES['upfile']['tmp_name']) ? $_FILES['upfile']['tmp_name'] : '';
-$upfile_name = isset($_FILES['upfile']['name']) ? $_FILES['upfile']['name'] : '';
-$upfile_status = isset($_FILES['upfile']['error']) ? $_FILES['upfile']['error'] : 4;
 
 include_once('./config.php'); // 引入設定檔
 include_once('./lib_common.php'); // 引入共通函式檔案
@@ -262,19 +255,18 @@ function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $
 		}
 
 		// 設定附加圖檔顯示
-		$src = IMG_DIR.$time.$ext; $img = $path.$src;
+		$src = IMG_DIR.$tim.$ext; $img = $path.$src; // 圖檔位置
+		$thumbsrc = THUMB_DIR.$tim.'s.jpg'; $thumbimg = $path.$thumbsrc; // 預覽圖位置
 		if($ext && file_func('exist', $img)){
-			$size = file_func('size', $img);
-			$size = ($size>=1024) ? (int)($size/1024).' K' : $size.' '; // KB和B的判別
-			$imgsrc = '<a href="'.IMGLINK_URL_PREFIX.$src.'" rel="_blank"><img src="nothumb.gif" class="img" alt="'.$size.'B" title="'.$size.'B" /></a>'; // 預設顯示圖樣式 (無預覽圖時)
-			if($w && $h){
-				if(file_func('exist', $path.THUMB_DIR.$time.'s.jpg')){ // 有預覽圖
+			$imgsrc = '<a href="'.IMGLINK_URL_PREFIX.$src.'" rel="_blank"><img src="nothumb.gif" class="img" alt="'.$imgsize.'" title="'.$imgsize.'" /></a>'; // 預設顯示圖樣式 (無預覽圖時)
+			if($tw && $th){
+				if(file_func('exist', $thumbimg)){ // 有預覽圖
 					$img_thumb = '<small>[以預覽圖顯示]</small>';
-					$imgsrc = '<a href="'.IMGLINK_URL_PREFIX.$src.'" rel="_blank"><img src="'.THUMB_URL_PREFIX.THUMB_DIR.$time.'s.jpg" style="width: '.$w.'px; height: '.$h.'px;" class="img" alt="'.$size.'B" title="'.$size.'B" /></a>';
+					$imgsrc = '<a href="'.IMGLINK_URL_PREFIX.$src.'" rel="_blank"><img src="'.THUMB_URL_PREFIX.$thumbsrc.'" style="width: '.$tw.'px; height: '.$th.'px;" class="img" alt="'.$imgsize.'B" title="'.$imgsize.'B" /></a>';
 				}elseif($ext=='.swf') $imgsrc = ''; // swf檔案不需預覽圖
 			}
-			if(SHOW_IMGWH) $imgwh_bar = ', '.file_func('imgsize', $img); // 顯示附加圖檔之原檔長寬尺寸
-			$IMG_BAR = '檔名：<a href="'.IMG_URL_PREFIX.$src.'" rel="_blank">'.$time.$ext.'</a>-('.$size.'B'.$imgwh_bar.') '.$img_thumb;
+			if(SHOW_IMGWH) $imgwh_bar = ', '.$imgw.'x'.$imgh; // 顯示附加圖檔之原檔長寬尺寸
+			$IMG_BAR = '檔名：<a href="'.IMG_URL_PREFIX.$src.'" rel="_blank">'.$tim.$ext.'</a>-('.$imgsize.$imgwh_bar.') '.$img_thumb;
 			if(!USE_TEMPLATE){
 				if($i) $IMG_BAR = '<br />&nbsp;'.$IMG_BAR; // 只有回應的IMG_BAR有資料時需要換行
 				$imgsrc = '<br />'.$imgsrc;
@@ -293,7 +285,7 @@ function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $
 		if(STORAGE_LIMIT && $kill_sensor) if(isset($arr_kill[$no])) $WARN_BEKILL = '<span class="warn_txt">這篇因附加圖檔容量限制，附加圖檔不久後就會刪除。</span><br />'."\n"; // 預測刪除過大檔
 		if(!$i){ // 首篇 Only
 			if($old_sensor) if($arr_old[$no] + 1 >= LOG_MAX * 0.95) $WARN_OLD = '<span class="warn_txt">這篇已經很舊了，不久後就會刪除。</span><br />'."\n"; // 快要被刪除的提示
-			if($pio->getPostStatus($url, 'TS')) $WARN_ENDREPLY = '<span class="warn_txt">這篇討論串已被管理員標記為禁止回應。</span><br />'."\n"; // 被標記為禁止回應
+			if($pio->getPostStatus($status, 'TS')) $WARN_ENDREPLY = '<span class="warn_txt">這篇討論串已被管理員標記為禁止回應。</span><br />'."\n"; // 被標記為禁止回應
 			if($hiddenReply) $WARN_HIDEPOST = '<span class="warn_txt2">有回應 '.$hiddenReply.' 篇被省略。要閱讀所有回應請按下回應連結。</span><br />'."\n"; // 有隱藏的回應
 		}
 
@@ -322,13 +314,25 @@ function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $
 }
 
 /* 寫入記錄檔 */
-function regist($name,$email,$sub,$com,$pwd,$upfile,$upfile_path,$upfile_name,$upfile_status,$resto){
+function regist(){
 	global $path, $pio, $BAD_STRING, $BAD_FILEMD5, $BAD_IPADDR;
 	$dest = ''; $mes = ''; $up_incomplete = 0; $is_admin = false;
+
+	if($_SERVER['REQUEST_METHOD'] != 'POST') error('請使用此版提供的表單來上傳'); // 非正規POST方式
+
+	$name = isset($_POST['name']) ? $_POST['name'] : '';
+	$email = isset($_POST['email']) ? $_POST['email'] : '';
+	$sub = isset($_POST['sub']) ? $_POST['sub'] : '';
+	$com = isset($_POST['com']) ? $_POST['com'] : '';
+	$pwd = isset($_POST['pwd']) ? $_POST['pwd'] : '';
+	$resto = isset($_POST['resto']) ? $_POST['resto'] : '';
+	$upfile = isset($_FILES['upfile']['tmp_name']) ? $_FILES['upfile']['tmp_name'] : '';
+	$upfile_path = isset($_POST['upfile_path']) ? $_POST['upfile_path'] : '';
+	$upfile_name = isset($_FILES['upfile']['name']) ? $_FILES['upfile']['name'] : '';
+	$upfile_status = isset($_FILES['upfile']['error']) ? $_FILES['upfile']['error'] : 4;
 	$pwdc = isset($_COOKIE['pwdc']) ? $_COOKIE['pwdc'] : '';
 
 	// 封鎖及阻擋措施
-	if($_SERVER['REQUEST_METHOD'] != 'POST') error('請使用此版提供的表單來上傳'); // 非正規POST方式
 	$host = gethostbyaddr($_SERVER["REMOTE_ADDR"]); // 取得主機位置名稱
 	// 封鎖設定：限制之主機位置名稱
 	if(array_search($host, $BAD_IPADDR)!==FALSE) error('您所使用的連線已被拒絕');
@@ -382,7 +386,7 @@ function regist($name,$email,$sub,$com,$pwd,$upfile,$upfile_path,$upfile_name,$u
 		$upsizeTTL = $_SERVER['CONTENT_LENGTH'];
 		$upsizeHDR = 0;
 		// 檔案路徑：IE附完整路徑，故得從隱藏表單取得
-		$tmp_upfile_path = $_FILES['upfile']['name'];
+		$tmp_upfile_path = $upfile_name;
 		if($upfile_path) $tmp_upfile_path = get_magic_quotes_gpc() ? stripslashes($upfile_path) : $upfile_path;
 		list(,$boundary) = explode('=', $_SERVER['CONTENT_TYPE']);
 		foreach($_POST as $header => $value){ // 表單欄位傳送資料
@@ -405,6 +409,8 @@ function regist($name,$email,$sub,$com,$pwd,$upfile,$upfile_path,$upfile_name,$u
 		// 三‧檢查是否為可接受的檔案
 		$size = @getimagesize($dest);
 		if(!is_array($size)) error('上傳失敗<br />不接受圖片以外的檔案', $dest); // $size不為陣列就不是圖檔
+		$imgsize = @filesize($dest); // 檔案大小
+		$imgsize = ($imgsize>=1024) ? (int)($imgsize/1024).' KB' : $imgsize.' B'; // KB和B的判別
 		switch($size[2]){ // 判斷上傳附加圖檔之格式
 			case 1 : $ext = ".gif"; break;
 			case 2 : $ext = ".jpg"; break;
@@ -418,8 +424,8 @@ function regist($name,$email,$sub,$com,$pwd,$upfile,$upfile_path,$upfile_name,$u
 		$allow_exts = explode('|', strtolower(ALLOW_UPLOAD_EXT)); // 接受之附加圖檔副檔名
 		if(array_search(substr($ext, 1), $allow_exts)===false) error('附加圖檔為系統不支援的格式', $dest); // 並無在接受副檔名之列
 		// 封鎖設定：限制上傳附加圖檔之MD5檢查碼
-		$chk = md5_file($dest); // 檔案MD5
-		if(array_search($chk, $BAD_FILEMD5)!==FALSE) error('上傳失敗<br />此附加圖檔被管理員列為禁止上傳', $dest); // 在封鎖設定內則阻擋
+		$md5chksum = md5_file($dest); // 檔案MD5
+		if(array_search($md5chksum, $BAD_FILEMD5)!==FALSE) error('上傳失敗<br />此附加圖檔被管理員列為禁止上傳', $dest); // 在封鎖設定內則阻擋
 
 		// 四‧計算附加圖檔圖檔縮圖顯示尺寸
 		$W = $imgW = $size[0];
@@ -495,9 +501,9 @@ function regist($name,$email,$sub,$com,$pwd,$upfile,$upfile_path,$upfile_name,$u
 	$com = str_replace("\n",'', $com); // 若還有\n換行字元則取消換行
 	if($up_incomplete) $com .= '<br /><br /><span class="warn_txt">注意：附加圖檔上傳不完全</span>'; // 上傳附加圖檔不完全的提示
 
-	// 時間和密碼的樣式
+	// 密碼和時間的樣式
 	if($pwd=='') $pwd = ($pwdc=='') ? substr(rand(),0,8) : $pwdc;
-	$pass = $pwd ? substr(md5($pwd), 2, 8) : '*';
+	$pass = $pwd ? substr(md5($pwd), 2, 8) : '*'; // 生成真正儲存判斷用的密碼
 	$youbi = array('日','一','二','三','四','五','六');
 	$yd = $youbi[gmdate('w', $time+TIME_ZONE*60*60)];
 	$now = gmdate('y/m/d', $time+TIME_ZONE*60*60).'('.(string)$yd.')'.gmdate('H:i', $time+TIME_ZONE*60*60);
@@ -510,7 +516,7 @@ function regist($name,$email,$sub,$com,$pwd,$upfile,$upfile_path,$upfile_name,$u
 	$checkcount = 50; // 預設檢查50筆資料
 	$pwdc = substr(md5($pwdc), 2, 8); // Cookies密碼
 	if($pio->checkSuccessivePost($checkcount, $com, $time, $pass, $pwdc, $host, $upfile_name)) error('連續投稿請稍候一段時間', $dest); // 連續投稿檢查
-	if($dest){ if($pio->checkDuplicateAttechment($checkcount, $chk)) error('上傳失敗<br />近期已經有相同的附加圖檔', $dest); } // 相同附加圖檔檢查
+	if($dest){ if($pio->checkDuplicateAttechment($checkcount, $md5chksum)) error('上傳失敗<br />近期已經有相同的附加圖檔', $dest); } // 相同附加圖檔檢查
 
 	if($resto) $ThreadExistsBefore = $pio->is_Thread($resto);
 	// 記錄檔行數已達上限：刪除過舊檔
@@ -538,9 +544,9 @@ function regist($name,$email,$sub,$com,$pwd,$upfile,$upfile_path,$upfile_name,$u
 				error('此討論串因為過舊已被刪除！', $dest);
 			}else{ // 檢查是否討論串被設為禁止回應 (順便取出原討論串的貼文時間)
 				$post = $pio->fetchPosts($resto); // [特殊] 取單篇文章內容，但是回傳的$post同樣靠[$i]切換文章！
-				list($chkurl, $chktime) = array($post[0]['url'], $post[0]['time']);
+				list($chkstatus, $chktime) = array($post[0]['status'], $post[0]['time']);
 				$chktime = substr($chktime, 0, -3); // 拿掉微秒 (後面三個字元)
-				if($pio->getPostStatus($chkurl, 'TS')) error('這篇討論串已被管理員標記為禁止回應！', $dest);
+				if($pio->getPostStatus($chkstatus, 'TS')) error('這篇討論串已被管理員標記為禁止回應！', $dest);
 			}
 		}else error('無此討論串！', $dest); // 不存在
 	}
@@ -548,9 +554,12 @@ function regist($name,$email,$sub,$com,$pwd,$upfile,$upfile_path,$upfile_name,$u
 	// 計算某些欄位值
 	$no = $pio->getLastPostNo('beforeCommit') + 1;
 	isset($ext) ? 0 : $ext = '';
-	isset($W) ? 0 : $W = '';
-	isset($H) ? 0 : $H = '';
-	isset($chk) ? 0 : $chk = '';
+	isset($imgW) ? 0 : $imgW = 0;
+	isset($imgH) ? 0 : $imgH = 0;
+	isset($imgsize) ? 0 : $imgsize = '';
+	isset($W) ? 0 : $W = 0;
+	isset($H) ? 0 : $H = 0;
+	isset($md5chksum) ? 0 : $md5chksum = '';
 	$age = false;
 	if($resto){
 		if(!stristr($email, 'sage') && ($pio->postCount($resto) < MAX_RES || MAX_RES==0)){
@@ -559,7 +568,7 @@ function regist($name,$email,$sub,$com,$pwd,$upfile,$upfile_path,$upfile_name,$u
 	}
 
 	// 正式寫入儲存
-	$pio->addPost($no,$resto,$now,$name,$email,$sub,$com,'',$host,$pass,$ext,$W,$H,$tim,$chk,$age);
+	$pio->addPost($no,$resto,$md5chksum,'',$tim,$ext,$imgW,$imgH,$imgsize,$W,$H,$pass,$now,$name,$email,$sub,$com,$host,$age);
 	$pio->dbCommit();
 
 	// Cookies儲存：密碼與E-mail部分，期限是一週
@@ -622,11 +631,13 @@ _REDIR_;
 }
 
 /* 使用者刪除 */
-function usrdel($no,$pwd){
+function usrdel(){
 	global $path, $pio;
 	// $pwd: 使用者輸入值, $pwdc: Cookie記錄密碼
+	$pwd = isset($_POST['pwd']) ? $_POST['pwd'] : '';
 	$pwdc = isset($_COOKIE['pwdc']) ? $_COOKIE['pwdc'] : '';
 	$onlyimgdel = isset($_POST['onlyimgdel']) ? $_POST['onlyimgdel'] : '';
+
 	if($pwd=='' && $pwdc!='') $pwd = $pwdc;
 	$pwd_md5 = substr(md5($pwd),2,8);
 	$host = gethostbyaddr($_SERVER['REMOTE_ADDR']);
@@ -653,7 +664,8 @@ function usrdel($no,$pwd){
 }
 
 /* 管理員密碼認證 */
-function valid($pass){
+function valid(){
+	$pass = isset($_POST['pass']) ? $_POST['pass'] : ''; // 管理者密碼
 	if($pass && $pass != ADMIN_PASS) error('密碼錯誤');
 	head($dat);
 	$dat .= '<div id="banner">
@@ -681,12 +693,14 @@ __VALID_EOF__;
 }
 
 /* 管理文章模式 */
-function admindel($pass){
-	global $path, $pio, $onlyimgdel;
+function admindel(){
+	global $path, $pio;
 
+	$pass = isset($_POST['pass']) ? $_POST['pass'] : ''; // 管理者密碼
+	$page = isset($_POST['page']) ? $_POST['page'] : 0; // 切換頁數
+	$onlyimgdel = isset($_POST['onlyimgdel']) ? $_POST['onlyimgdel'] : ''; // 只刪圖
 	$mod_archiver = file_exists('./mod_archiver.php'); // 與mod_archiver連動
 	$make_archive = $mod_archiver ? '<th>庫存</th>' : ''; // 生成庫存功能
-	$page = isset($_POST['page']) ? $_POST['page'] : 0;
 	$delno = $thsno = array();
 	$delflag = isset($_POST['delete']); // 是否有「刪除」勾選
 	$thsflag = isset($_POST['stop']); // 是否有「停止」勾選
@@ -704,13 +718,13 @@ function admindel($pass){
 	if($thsflag){
 		$thsno = array_merge($thsno, $_POST['stop']);
 		$threads = $pio->fetchPosts($thsno); // 取得文章
-		$turl = $tstatus = $tsval = array();
+		$tstatus = $tstatusType = $tsval = array();
 		foreach($threads as $th){
-			array_push($turl, $th['url']);
-			array_push($tstatus, 'TS');
-			array_push($tsval, ($pio->getPostStatus($th['url'], 'TS')==1 ? 0 : 1));
+			array_push($tstatus, $th['status']);
+			array_push($tstatusType, 'TS');
+			array_push($tsval, ($pio->getPostStatus($th['status'], 'TS')==1 ? 0 : 1));
 		}
-		$pio->setPostStatus($thsno, $turl, $tstatus, $tsval);
+		$pio->setPostStatus($thsno, $tstatus, $tstatusType, $tsval);
 		$is_modified = true;
 	}
 	if(($delflag || $thsflag) && $is_modified) $pio->dbCommit(); // 無論如何都有檔案操作，回寫檔案
@@ -756,26 +770,26 @@ _N_EOT_;
 		$make_archive_link = '';
 		if($resto==0 || $resto==$no){ // $resto = 0 或等於 $no (即討論串首篇)
 			if($mod_archiver) $make_archive_link = '<th align="center"><a href="mod_archiver.php?res='.$no.'" rel="_blank">存</a></th>';
-			$THstop = '<input type="checkbox" name="stop[]" value="'.$no.'" />'.(($pio->getPostStatus($url, 'TS')==1)?'停':'');
+			$THstop = '<input type="checkbox" name="stop[]" value="'.$no.'" />'.(($pio->getPostStatus($status, 'TS')==1)?'停':'');
 		}else{
 			if($mod_archiver) $make_archive_link = '<th align="center">--</th>';
 			$THstop = '--';
 		}
 
 		// 從記錄抽出附加圖檔使用量並生成連結
-		if($ext && file_func('exist', $path.IMG_DIR.$time.$ext)){
-			$clip = '<a href="'.IMG_DIR.$time.$ext.'" rel="_blank">'.$time.$ext.'</a>';
-			$size = file_func('size', $path.IMG_DIR.$time.$ext);
-			if(file_func('exist', $path.THUMB_DIR.$time.'s.jpg')) $size += file_func('size', $path.THUMB_DIR.$time.'s.jpg');
+		if($ext && file_func('exist', $path.IMG_DIR.$tim.$ext)){
+			$clip = '<a href="'.IMG_DIR.$tim.$ext.'" rel="_blank">'.$tim.$ext.'</a>';
+			$size = file_func('size', $path.IMG_DIR.$tim.$ext);
+			if(file_func('exist', $path.THUMB_DIR.$tim.'s.jpg')) $size += file_func('size', $path.THUMB_DIR.$tim.'s.jpg');
 		}else{
-			$clip = $chk = '--';
+			$clip = $md5chksum = '--';
 			$size = 0;
 		}
 
 		// 印出介面
 		echo <<< _ADMINEOF_
 <tr class="$bg" align="left">
-$make_archive_link<th align="center">$THstop</th><th><input type="checkbox" name="delete[]" value="$no" />$no</th><td><small>$now</small></td><td>$sub</td><td><b>$name</b></td><td><small>$com</small></td><td>$host</td><td align="center">$clip ($size)<br />$chk</td>
+$make_archive_link<th align="center">$THstop</th><th><input type="checkbox" name="delete[]" value="$no" />$no</th><td><small>$now</small></td><td>$sub</td><td><b>$name</b></td><td><small>$com</small></td><td>$host</td><td align="center">$clip ($size)<br />$md5chksum</td>
 </tr>
 
 _ADMINEOF_;
@@ -824,8 +838,8 @@ function total_size($isupdate=false){
 		for($i = 0; $i < $linecount; $i++){
 			extract($posts[$i]);
 			// 從記錄檔抽出計算附加圖檔使用量
-			if($ext && file_func('exist', $path.IMG_DIR.$time.$ext)) $all += file_func('size', $path.IMG_DIR.$time.$ext); // 附加圖檔合計計算
-			if(file_func('exist', $path.THUMB_DIR.$time.'s.jpg')) $all += file_func('size', $path.THUMB_DIR.$time.'s.jpg'); // 預覽圖合計計算
+			if($ext && file_func('exist', $path.IMG_DIR.$tim.$ext)) $all += file_func('size', $path.IMG_DIR.$tim.$ext); // 附加圖檔合計計算
+			if(file_func('exist', $path.THUMB_DIR.$tim.'s.jpg')) $all += file_func('size', $path.THUMB_DIR.$tim.'s.jpg'); // 預覽圖合計計算
 		}
 		$sp = fopen($cache_file, 'w');
 		stream_set_write_buffer($sp, 0);
@@ -867,8 +881,9 @@ function search(){
 ';
 	echo $dat;
 	if($searchKeyword==''){
-		echo '<form action="'.PHP_SELF.'?mode=search" method="post">
+		echo '<form action="'.PHP_SELF.'" method="post">
 <div id="search">
+<input type="hidden" name="mode" value="search" />
 ';
 		echo <<< END_OF_HTML
 <ul>
@@ -1016,19 +1031,19 @@ function init(){
 /*-----------程式各項功能主要判斷-------------*/
 if(GZIP_COMPRESS_LEVEL && ($Encoding = CheckSupportGZip())){ ob_start(); ob_implicit_flush(0); } // 支援且開啟Gzip壓縮就設緩衝區
 $path = realpath("./").'/'; // 此資料夾的絕對位置
-$iniv = array('mode','name','email','sub','com','pwd','upfile','upfile_path','upfile_name','upfile_status','resto','pass','res','post','no');
-foreach($iniv as $iniva){
-	if(!isset($$iniva)) $$iniva = '';
-}
+
 //init(); // ←■■！程式環境初始化，跑過一次後請刪除此行！■■
 
+$mode = isset($_GET['mode']) ? $_GET['mode'] : ''; // 目前執行模式
+if($mode=='' && isset($_POST['mode'])) $mode = $_POST['mode']; // 如果GET找不到，就用POST
 switch($mode){
 	case 'regist':
-		regist($name,$email,$sub,$com,$pwd,$upfile,$upfile_path,$upfile_name,$upfile_status,$resto);
+		regist();
 		break;
 	case 'admin':
-		valid($pass);
-		if($admin=='del') admindel($pass);
+		$admin = isset($_POST['admin']) ? $_POST['admin'] : ''; // 管理者執行模式
+		valid();
+		if($admin=='del') admindel();
 		if($admin=='opt'){
 			if(!$pio->dbOptimize()) echo '後端並不支援此動作';
 			else echo '資料表最佳化'.($pio->dbOptimize(true)?'成功':'失敗').'！';
@@ -1042,18 +1057,19 @@ switch($mode){
 		showstatus();
 		break;
 	case 'usrdel':
-		usrdel($no,$pwd);
+		usrdel();
 	case 'remake':
 		updatelog();
 		header('HTTP/1.1 302 Moved Temporarily');
 		header('Location: '.fullURL().PHP_SELF2.'?'.time());
 		break;
 	default:
-		if($res){
+		$res = isset($_GET['res']) ? $_GET['res'] : 0; // 欲回應編號
+		if($res){ // 回應模式輸出
 			updatelog($res, (isset($_GET['page_num'])?intval($_GET['page_num']):'RE_PAGE_MAX')); // 當分頁值>0實行分頁 (若無值則預設最末頁)
-		}elseif(@intval($_GET['page_num']) > 0){ // 取整數數值大於0
-			updatelog(0, intval($_GET['page_num'])); // 以php顯示某頁內容印出
-		}else{
+		}elseif(@intval($_GET['page_num']) > 0){ // PHP動態輸出一頁
+			updatelog(0, intval($_GET['page_num']));
+		}else{ // 導至靜態庫存頁
 			if(!is_file(PHP_SELF2)) updatelog();
 			header('HTTP/1.1 302 Moved Temporarily');
 			header('Location: '.fullURL().PHP_SELF2.'?'.time());
