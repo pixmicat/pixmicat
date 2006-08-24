@@ -100,8 +100,9 @@ class PIOlog {
 		$log=$tree='';
 		for($post=0;$post<$pcount;$post++){
 			if(isset($this->logs[$this->porder[$post]])){
-				if(array_key_exists('resto', $this->logs[$this->porder[$post]])) array_shift($this->logs[$this->porder[$post]]); // resto不屬於原log架構故除去
-				$log .= implode(',',$this->logs[$this->porder[$post]]).",\n";
+				$tmplog = $this->logs[$this->porder[$post]];
+				if(array_key_exists('resto', $tmplog)) array_shift($tmplog); // resto不屬於原log架構故除去
+				$log .= implode(',',$tmplog).",\n";
 			}
 		}
 		for($tline=0;$tline<$tcount;$tline++)

@@ -4,7 +4,7 @@ function getMicrotime(){
     list($usec, $sec) = explode(' ', microtime());
     return ((double)$usec + (double)$sec);
 }
-define("PIXMICAT_VER", 'Pixmicat!-PIO 3rd.Release-dev b060823'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 3rd.Release-dev b060824'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -544,7 +544,7 @@ function regist(){
 				error('此討論串因為過舊已被刪除！', $dest);
 			}else{ // 檢查是否討論串被設為禁止回應 (順便取出原討論串的貼文時間)
 				$post = $pio->fetchPosts($resto); // [特殊] 取單篇文章內容，但是回傳的$post同樣靠[$i]切換文章！
-				list($chkstatus, $chktime) = array($post[0]['status'], $post[0]['time']);
+				list($chkstatus, $chktime) = array($post[0]['status'], $post[0]['tim']);
 				$chktime = substr($chktime, 0, -3); // 拿掉微秒 (後面三個字元)
 				if($pio->getPostStatus($chkstatus, 'TS')) error('這篇討論串已被管理員標記為禁止回應！', $dest);
 			}
