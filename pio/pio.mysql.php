@@ -16,7 +16,7 @@ class PIOmysql{
 	/* PIO模組版本 */
 	/* 輸入 void, 輸出 版本號 as string */
 	function pioVersion(){
-		return 'v20060823β';
+		return 'v20060824β';
 	}
 
 	/* private 使用SQL字串和MySQL伺服器要求 */
@@ -323,7 +323,7 @@ class PIOmysql{
 		}else $tmpSQL = 'SELECT * FROM '.$this->tablename.' WHERE no = '.$postlist; // 取單串
 		$line = $this->_mysql_call($tmpSQL);
 
-		return $this->_ArrangeArrayStructure($line); // 重排陣列結構
+		return $this->_ArrangeArrayStructure($line); // 輸出陣列結構
 	}
 
 	/* 有此討論串? */
@@ -346,7 +346,7 @@ class PIOmysql{
 		$SearchQuery .= ' ORDER BY no DESC'; // 按照號碼大小排序
 		if(!$line=$this->_mysql_call($SearchQuery)) echo '[ERROR] 搜尋文章失敗<br />';
 
-		return $this->_ArrangeArrayStructure($line); // 重排陣列結構
+		return $this->_ArrangeArrayStructure($line); // 輸出陣列結構
 	}
 
 	/* 新增文章/討論串 */
@@ -358,7 +358,7 @@ class PIOmysql{
 		if($resto){ // 新增回應
 			$root = 0;
 			if($age){ // 推文
-				$query = 'UPDATE '.$this->tablename.' SET root = now() WHERE no = '.$resno; // 將被回應的文章往上移動
+				$query = 'UPDATE '.$this->tablename.' SET root = now() WHERE no = '.$resto; // 將被回應的文章往上移動
 				if(!$result=$this->_mysql_call($query)) echo '[ERROR] 推文失敗<br />';
 			}
 		}else $root = 'now()'; // 新增討論串, 討論串最後被更新時間

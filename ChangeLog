@@ -1,5 +1,8 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2006/08/24
+01.[PIO] 各資料來源的資料結構更新完成
+
 2006/08/23
 01.[PIO] 修改資料結構，增加catalog和imgw, imgh, imgsize等欄位
 02.[pixmicat] 去除extract POST, GET以增強安全性和效率，需要時再解析取得

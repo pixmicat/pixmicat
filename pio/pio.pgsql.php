@@ -16,7 +16,7 @@ class PIOpgsql{
 	/* PIO模組版本 */
 	/* 輸入 void, 輸出 版本號 as string */
 	function pioVersion(){
-		return 'v20060812β';
+		return 'v20060824β';
 	}
 
 	/* private 使用SQL字串和PostgreSQL伺服器要求 */
@@ -26,15 +26,10 @@ class PIOpgsql{
 		return $ret;
 	}
 
-	/* private 輸出符合標準的索引鍵陣列 */
+	/* private 由資源輸出陣列 */
 	function _ArrangeArrayStructure($line){
 		$posts = array();
-		$arrIDKey = array('no'=>'', 'resto'=>'', 'now'=>'', 'name'=>'', 'email'=>'', 'sub'=>'', 'com'=>'', 'status'=>'url', 'host'=>'', 'pwd'=>'pw', 'ext'=>'', 'w'=>'', 'h'=>'', 'tim'=>'time', 'md5'=>'chk'); // PostgreSQL 欄位鍵 => 標準欄位鍵
-		while($row=pg_fetch_array($line, null, PGSQL_ASSOC)){
-			$tline = array();
-			foreach($arrIDKey as $mID => $mVal) $tline[($mVal ? $mVal : $mID)] = $row[$mID]; // 逐個取值並代入
-			$posts[] = $tline;
-		}
+		while($row=pg_fetch_array($line, null, PGSQL_ASSOC)) $posts[] = $row;
 		pg_free_result($line);
 		return $posts;
 	}
@@ -61,29 +56,32 @@ class PIOpgsql{
 		if(pg_num_rows(pg_query($this->con, "SELECT relname FROM pg_class WHERE relname = '".$this->tablename."'"))!=1){ // 資料表不存在
 			$result = "CREATE SEQUENCE ".$this->tablename."_no_seq;
 	CREATE TABLE ".$this->tablename." (
-	  \"no\" int NOT NULL DEFAULT nextval('".$this->tablename."_no_seq'),
-	  \"resto\" int NOT NULL,
-	  \"root\" timestamp NULL DEFAULT '1980-01-01 00:00:00',
-	  \"time\" int NOT NULL,
-	  \"md5\" varchar(32) NOT NULL,
-	  \"tim\" bigint NOT NULL,
-	  \"ext\" varchar(4) NOT NULL,
-	  \"w\" smallint NOT NULL,
-	  \"h\" smallint NOT NULL,
-	  \"pwd\" varchar(8) NOT NULL,
-	  \"now\" varchar(255) NOT NULL,
-	  \"name\" varchar(255) NOT NULL,
-	  \"email\" varchar(255) NOT NULL,
-	  \"sub\" varchar(255) NOT NULL,
-	  \"com\" text NOT NULL,
-	  \"host\" varchar(255) NOT NULL,
-	  \"status\" varchar(4) NOT NULL,
-	  PRIMARY KEY (\"no\")
-	);";
+	\"no\" int NOT NULL DEFAULT nextval('".$this->tablename."_no_seq'),
+	\"resto\" int NOT NULL,
+	\"root\" timestamp NULL DEFAULT '1980-01-01 00:00:00',
+	\"time\" int NOT NULL,
+	\"md5chksum\" varchar(32) NOT NULL,
+	\"catalog\" varchar(255) NOT NULL,
+	\"tim\" bigint NOT NULL,
+	\"ext\" varchar(4) NOT NULL,
+	\"imgw\" smallint NOT NULL,
+	\"imgh\" smallint NOT NULL,
+	\"imgsize\" varchar(10) NOT NULL,
+	\"tw\" smallint NOT NULL,
+	\"th\" smallint NOT NULL,
+	\"pwd\" varchar(8) NOT NULL,
+	\"now\" varchar(255) NOT NULL,
+	\"name\" varchar(255) NOT NULL,
+	\"email\" varchar(255) NOT NULL,
+	\"sub\" varchar(255) NOT NULL,
+	\"com\" text NOT NULL,
+	\"host\" varchar(255) NOT NULL,
+	\"status\" varchar(4) NOT NULL,
+	PRIMARY KEY (\"no\"));"; // For Pixmicat!-PIO [Structure V2]
 			$idxs = array('resto', 'root', 'time');
 			foreach($idxs as $idx) $result .= 'CREATE INDEX '.$this->tablename.'_'.$idx.'_index ON '.$this->tablename.' ('.$idx.');';
 			pg_query($this->con, $result); // 正式新增資料表
-			$this->addPost(1, 0, '05/01/01(六)00:00', '無名氏', 0, '無標題', '無內文', '', '', '', '', 0, 0, 0, '');
+			$this->addPost(1, 0, '', '', 0, '', 0, 0, '', 0, 0, '', '05/01/01(六)00:00', '無名氏', '', '無標題', '無內文', ''); // 追加一筆新資料
 			$this->dbCommit();
 		}
 	}
@@ -239,7 +237,7 @@ class PIOpgsql{
 		global $path;
 		if(!$this->prepared) $this->dbPrepare();
 
-		if(!$result=$this->_pgsql_call('SELECT tim,ext FROM '.$this->tablename." WHERE ext <> '' AND md5 = '$md5hash' ORDER BY no DESC")) echo '[ERROR] 取出文章判斷重複貼圖失敗<br />';
+		if(!$result=$this->_pgsql_call('SELECT tim,ext FROM '.$this->tablename." WHERE ext <> '' AND md5chksum = '$md5hash' ORDER BY no DESC")) echo '[ERROR] 取出文章判斷重複貼圖失敗<br />';
 		else{
 			while(list($ltim, $lext)=pg_fetch_array($result)){
 				if(file_func('exist', $path.IMG_DIR.$ltim.$lext)){ return true; break; } // 有相同檔案
@@ -321,7 +319,7 @@ class PIOpgsql{
 		}else $tmpSQL = 'SELECT * FROM '.$this->tablename.' WHERE no = '.$postlist; // 取單串
 		$line = $this->_pgsql_call($tmpSQL);
 
-		return $this->_ArrangeArrayStructure($line); // 重排陣列結構
+		return $this->_ArrangeArrayStructure($line); // 輸出陣列結構
 	}
 
 	/* 有此討論串? */
@@ -344,30 +342,31 @@ class PIOpgsql{
 		$SearchQuery .= ' ORDER BY no DESC'; // 按照號碼大小排序
 		if(!$line=$this->_pgsql_call($SearchQuery)) echo '[ERROR] 搜尋文章失敗<br />';
 
-		return $this->_ArrangeArrayStructure($line); // 重排陣列結構
+		return $this->_ArrangeArrayStructure($line); // 輸出陣列結構
 	}
 
 	/* 新增文章/討論串 */
 	/* 輸入 各種欄位值 as any, 輸出 void */
-	function addPost($no, $resno, $now, $name, $email, $sub, $com, $url, $host, $pass, $ext, $W, $H, $tim, $chk, $age=false){
+	function addPost($no, $resto, $md5chksum, $catalog, $tim, $ext, $imgw, $imgh, $imgsize, $tw, $th, $pwd, $now, $name, $email, $sub, $com, $host, $age=false){
 		if(!$this->prepared) $this->dbPrepare();
 
 		$time = (int)substr($tim, 0, -3); // 13位數的數字串是檔名，10位數的才是時間數值
-		if($resno){ // 新增回應
-			$rootqu = 'cast(0::abstime as timestamp)';
+		if($resto){ // 新增回應
+			$root = 'cast(0::abstime as timestamp)';
 			if($age){ // 推文
-				$query = 'UPDATE '.$this->tablename.' SET root = now() WHERE no = '.$resno; // 將被回應的文章往上移動
+				$query = 'UPDATE '.$this->tablename.' SET root = now() WHERE no = '.$resto; // 將被回應的文章往上移動
 				if(!$result=$this->_pgsql_call($query)) echo '[ERROR] 推文失敗<br />';
 			}
-		}else $rootqu = 'now()'; // 新增討論串, 討論串最後被更新時間
+		}else $root = 'now()'; // 新增討論串, 討論串最後被更新時間
 
-		$query = 'INSERT INTO '.$this->tablename.' (resto,root,time,md5,tim,ext,w,h,pwd,now,name,email,sub,com,host,status) VALUES ('.
-	(int)$resno.','. // 回應編號
-	$rootqu.','. // 最後更新時間
+		$query = 'INSERT INTO '.$this->tablename.' (resto,root,time,md5chksum,catalog,tim,ext,imgw,imgh,imgsize,tw,th,pwd,now,name,email,sub,com,host,status) VALUES ('.
+	(int)$resto.','. // 回應編號
+	$root.','. // 最後更新時間
 	$time.','. // 發文時間數值
-	"'$chk',". // 附加檔案md5
+	"'$md5chksum',". // 附加檔案md5
+	"'".pg_escape_string($catalog)."',". // 分類標籤
 	"'$tim', '$ext',". // 附加檔名
-	(int)$W.', '.(int)$H.','. // 預覽圖長寬
+	$imgw.','.$imgh.",'".$imgsize."',".$tw.','.$th.','. // 圖檔長寬及檔案大小；預覽圖長寬
 	"'".pg_escape_string($pass)."',".
 	"'$now',". // 時間(含ID)字串
 	"'".pg_escape_string($name)."',".

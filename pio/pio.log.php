@@ -21,7 +21,7 @@ class PIOlog {
 
 	/* PIO模組版本 */
 	function pioVersion() {
-		return 'v20060812β';
+		return 'v20060824β';
 	}
 
 	/* 將回文放進陣列 */
@@ -55,7 +55,7 @@ class PIOlog {
 			if(!is_file($value)){ // 檔案不存在
 				$fp = fopen($value, 'w');
 				stream_set_write_buffer($fp, 0);
-				if($value==$this->logfile) fwrite($fp, '1,05/01/01(六)00:00,無名氏,,無標題,無內文,,,,,,,,');
+				if($value==$this->logfile) fwrite($fp, '1,,,0,,0,0,,0,0,,05/01/01(六)00:00,無名氏,,無標題,無內文,,,');  // For Pixmicat!-PIO [Structure V2]
 				if($value==$this->treefile) fwrite($fp, '1');
 				fclose($fp);
 				unset($fp);
@@ -82,8 +82,8 @@ class PIOlog {
 		foreach($lines as $line) {
 			if($line=='') continue;
 			$tline=array();
-			list($tline['no'],$tline['now'],$tline['name'],$tline['email'],$tline['sub'],$tline['com'],$tline['url'],$tline['host'],$tline['pw'],$tline['ext'],$tline['w'],$tline['h'],$tline['time'],$tline['chk'])=explode(',', $line);
-			$tline['resto']=$this->restono[$tline['no']]; // 欲回應編號
+			list($tline['no'],$tline['md5chksum'],$tline['catalog'],$tline['tim'],$tline['ext'],$tline['imgw'],$tline['imgh'],$tline['imgsize'],$tline['tw'],$tline['th'],$tline['pwd'],$tline['now'],$tline['name'],$tline['email'],$tline['sub'],$tline['com'],$tline['host'],$tline['status'])=explode(',', $line);
+			$tline['resto'] = $this->restono[$tline['no']]; // 欲回應編號
 			$this->porder[]=$tline['no'];
 			$this->logs[$tline['no']]=array_reverse($tline); // list()是由右至左代入的
 		}
@@ -172,8 +172,8 @@ class PIOlog {
 		$rpord = $this->porder; sort($rpord); // 由舊排到新 (小->大)
 		$arr_warn = $arr_kill = array();
 		foreach($rpord as $post) {
-			if(file_func('exist',$path.IMG_DIR.$this->logs[$post]['time'].$this->logs[$post]['ext'])) { $total_size -= file_func('size',$path.IMG_DIR.$this->logs[$post]['time'].$this->logs[$post]['ext']) / 1024; $arr_kill[] = $post;$arr_warn[$post] = 1; } // 標記刪除
-			if(file_func('exist',$path.THUMB_DIR.$this->logs[$post]['time'].'s.jpg')) { $total_size -= file_func('size',$path.THUMB_DIR.$this->logs[$post]['time'].'s.jpg') / 1024; }
+			if(file_func('exist',$path.IMG_DIR.$this->logs[$post]['tim'].$this->logs[$post]['ext'])) { $total_size -= file_func('size',$path.IMG_DIR.$this->logs[$post]['tim'].$this->logs[$post]['ext']) / 1024; $arr_kill[] = $post;$arr_warn[$post] = 1; } // 標記刪除
+			if(file_func('exist',$path.THUMB_DIR.$this->logs[$post]['tim'].'s.jpg')) { $total_size -= file_func('size',$path.THUMB_DIR.$this->logs[$post]['tim'].'s.jpg') / 1024; }
 			if($total_size<$storage_max) break;
 		}
 		return $warnOnly?$arr_warn:$this->removeAttachments($arr_kill);
@@ -187,8 +187,8 @@ class PIOlog {
 		$files=array();
 		foreach($posts as $post) {
 			if($this->logs[$post]['ext']) {
-				if(file_func('exist',$path.IMG_DIR.$this->logs[$post]['time'].$this->logs[$post]['ext'])) $files[]=IMG_DIR.$this->logs[$post]['time'].$this->logs[$post]['ext'];
-				if(file_func('exist',$path.THUMB_DIR.$this->logs[$post]['time'].'s.jpg')) $files[]=THUMB_DIR.$this->logs[$post]['time'].'s.jpg';
+				if(file_func('exist',$path.IMG_DIR.$this->logs[$post]['tim'].$this->logs[$post]['ext'])) $files[]=IMG_DIR.$this->logs[$post]['tim'].$this->logs[$post]['ext'];
+				if(file_func('exist',$path.THUMB_DIR.$this->logs[$post]['tim'].'s.jpg')) $files[]=THUMB_DIR.$this->logs[$post]['tim'].'s.jpg';
 				$this->logs[$post]['ext']='';
 			}
 		}
@@ -203,13 +203,12 @@ class PIOlog {
 		$lcount = ($pcount > $lcount) ? $lcount : $pcount;
 		for($i=0;$i<$lcount;$i++) {
 			$post=$this->logs[$this->porder[$i]];
-			list($lcom,$lhost,$lpwd,$ltime) = array($post['com'],$post['host'],$post['pw'],$post['time']);
-			$ltime2 = substr($ltime, 0, -3);
+			list($lcom,$lhost,$lpwd,$ltime) = array($post['com'],$post['host'],$post['pwd'],substr($post['tim'],0,-3));
 			if($host==$lhost || $pass==$lpwd || $passcookie==$lpwd) $pchk = 1;
 			else $pchk = 0;
 			if(RENZOKU && $pchk){ // 密碼比對符合且開啟連續投稿時間限制
-				if($timestamp - $ltime2 < RENZOKU) return true; // 投稿時間相距太短
-				if($timestamp - $ltime2 < RENZOKU2 && $upload_filename) return true; // 附加圖檔的投稿時間相距太短
+				if($timestamp - $ltime < RENZOKU) return true; // 投稿時間相距太短
+				if($timestamp - $ltime < RENZOKU2 && $upload_filename) return true; // 附加圖檔的投稿時間相距太短
 				if($com == $lcom && !$upload_filename) return true; // 內文一樣
 			}
 		}
@@ -224,10 +223,9 @@ class PIOlog {
 		$lcount = ($pcount > $lcount) ? $lcount : $pcount;
 		if(!$md5hash) return false; // 無附加圖檔
 		for($i=0;$i<$lcount;$i++) {
-			if(!$this->logs[$this->porder[$i]]['chk']) continue; // 無附加圖檔
-			if($this->logs[$this->porder[$i]]['chk']==$md5hash) {
-				$dfile = $path.IMG_DIR.$this->logs[$this->porder[$i]]['time'].$this->logs[$this->porder[$i]]['ext'];
-				if(file_func('exist', $dfile)) return true; // 存在MD5雜湊相同的檔案
+			if(!$this->logs[$this->porder[$i]]['md5chksum']) continue; // 無附加圖檔
+			if($this->logs[$this->porder[$i]]['md5chksum']==$md5hash) {
+				if(file_func('exist', $path.IMG_DIR.$this->logs[$this->porder[$i]]['tim'].$this->logs[$this->porder[$i]]['ext'])) return true; // 存在MD5雜湊相同的檔案
 			}
 		}
 		return false;
@@ -310,22 +308,22 @@ class PIOlog {
 	}
 
 	/* 新增文章/討論串 */
-	function addPost($no,$resno,$now,$name,$email,$sub,$com,$url,$host,$pass,$ext,$W,$H,$tim,$chk,$age=false) {
+	function addPost($no, $resto, $md5chksum, $catalog, $tim, $ext, $imgw, $imgh, $imgsize, $tw, $th, $pwd, $now, $name, $email, $sub, $com, $host, $age=false) {
 		if(!$this->prepared) $this->dbPrepare();
 
 		$tline=array();
-		list($tline['no'],$tline['now'],$tline['name'],$tline['email'],$tline['sub'],$tline['com'],$tline['url'],$tline['host'],$tline['pw'],$tline['ext'],$tline['w'],$tline['h'],$tline['time'],$tline['chk'])=array($no,$now,$name,$email,$sub,$com,$url,$host,$pass,$ext,$W,$H,$tim,$chk);
+		list($tline['no'],$tline['md5chksum'],$tline['catalog'],$tline['tim'],$tline['ext'],$tline['imgw'],$tline['imgh'],$tline['imgsize'],$tline['tw'],$tline['th'],$tline['pwd'],$tline['now'],$tline['name'],$tline['email'],$tline['sub'],$tline['com'],$tline['host'],$tline['status'])=array($no, $md5chksum, $catalog, $tim, $ext, $imgw, $imgh, $imgsize, $tw, $th, $pwd, $now, $name, $email, $sub, $com, $host, '');
 		$tline = array_map(array($this,'_replaceComma'), $tline); // 只有Log版需要將資料內的 , 轉換
 		$this->logs[$no]=array_reverse($tline);
 		array_unshift($this->porder,$no);
 
-		if($resno) {
+		if($resto) {
 			$this->trees[$resno][]=$no;
-			$this->restono[$no]=$resno;
+			$this->restono[$no]=$resto;
 			if($age) {
 				$torder_flip=array_flip($this->torder);
-				array_splice($this->torder,$torder_flip[$resno],1);
-				array_unshift($this->torder,$resno);
+				array_splice($this->torder,$torder_flip[$resto],1);
+				array_unshift($this->torder,$resto);
 			}
 		} else {
 			$this->trees[$no][0]=$no;
@@ -342,7 +340,7 @@ class PIOlog {
 
 		switch($statusType){
 			case 'TS': // 討論串是否鎖定
-				$returnValue = (strpos($status,'_THREADSTOP_')!==false) ? 1 : 0; // 討論串是否鎖定
+				$returnValue = (strpos($status,'T')!==false) ? 1 : 0; // 討論串是否鎖定
 				break;
 			default:
 		}
@@ -361,15 +359,15 @@ class PIOlog {
 			for($j=0;$j<$st_count;$j++) {
 				switch($statusType[$i][$j]){
 					case 'TS': // 討論串鎖定
-						if(strpos($status[$i],'_THREADSTOP_')!==false && $newValue[$i][$j]==0)
-							$status[$i] = str_replace('_THREADSTOP_','',$status[$i]); // 討論串解除鎖定
-						elseif(strpos($status[$i],'_THREADSTOP_')===false && $newValue[$i][$j]==1)
-							$status[$i] .= '_THREADSTOP_'; // 討論串鎖定
+						if(strpos($status[$i],'T')!==false && $newValue[$i][$j]==0)
+							$status[$i] = str_replace('T','',$status[$i]); // 討論串解除鎖定
+						elseif(strpos($status[$i],'T')===false && $newValue[$i][$j]==1)
+							$status[$i] .= 'T'; // 討論串鎖定
 						break;
 					default:
 				}
 			}
-			$this->logs[$no[$i]]['url']=$status[$i];
+			$this->logs[$no[$i]]['status']=$status[$i];
 		}
 	}
 

@@ -16,7 +16,7 @@ class PIOsqlite{
 	/* PIO模組版本 */
 	/* 輸入 void, 輸出 版本號 as string */
 	function pioVersion() {
-		return 'v20060812β';
+		return 'v20060824β';
 	}
 
 	/* private 使用SQL字串和SQLite要求 */
@@ -26,15 +26,10 @@ class PIOsqlite{
 		return $ret;
 	}
 
-	/* private 輸出符合標準的索引鍵陣列 */
+	/* private 由資源輸出陣列 */
 	function _ArrangeArrayStructure($line){
 		$posts = array();
-		$arrIDKey = array('no'=>'', 'resto'=>'', 'now'=>'', 'name'=>'', 'email'=>'', 'sub'=>'', 'com'=>'', 'status'=>'url', 'host'=>'', 'pwd'=>'pw', 'ext'=>'', 'w'=>'', 'h'=>'', 'tim'=>'time', 'md5'=>'chk'); // SQLite 欄位鍵 => 標準欄位鍵
-		while($row=sqlite_fetch_array($line, SQLITE_ASSOC)){
-			$tline = array();
-			foreach($arrIDKey as $mID => $mVal) $tline[($mVal ? $mVal : $mID)] = $row[$mID]; // 逐個取值並代入
-			$posts[] = $tline;
-		}
+		while($row=sqlite_fetch_array($line, SQLITE_ASSOC)) $posts[] = $row;
 		return $posts;
 	}
 
@@ -65,11 +60,15 @@ class PIOsqlite{
 	"resto" INTEGER  NOT NULL,
 	"root" TIMESTAMP DEFAULT \'0\' NOT NULL,
 	"time" INTEGER  NOT NULL,
-	"md5" VARCHAR(32)  NOT NULL,
+	"md5chksum" VARCHAR(32)  NOT NULL,
+	"catalog" VARCHAR(255)  NOT NULL,
 	"tim" INTEGER  NOT NULL,
-	"ext" VARCHAR(5)  NOT NULL,
-	"w" INTEGER  NOT NULL,
-	"h" INTEGER  NOT NULL,
+	"ext" VARCHAR(4)  NOT NULL,
+	"imgw" INTEGER  NOT NULL,
+	"imgh" INTEGER  NOT NULL,
+	"imgsize" VARCHAR(10)  NOT NULL,
+	"tw" INTEGER  NOT NULL,
+	"th" INTEGER  NOT NULL,
 	"pwd" VARCHAR(8)  NOT NULL,
 	"now" VARCHAR(255)  NOT NULL,
 	"name" VARCHAR(255)  NOT NULL,
@@ -78,13 +77,13 @@ class PIOsqlite{
 	"com" TEXT  NOT NULL,
 	"host" VARCHAR(255)  NOT NULL,
 	"status" VARCHAR(4)  NOT NULL
-	);';
+	);'; // For Pixmicat!-PIO [Structure V2]
 			$idx = array('resto', 'root', 'time');
 			foreach($idx as $x){
 				$result .= 'CREATE INDEX IDX_'.$this->tablename.'_'.$x.' ON '.$this->tablename.'('.$x.');';
 			}
 			$result .= 'CREATE INDEX IDX_'.$this->tablename.'_resto_no ON '.$this->tablename.'(resto,no);';
-			$result .= 'INSERT INTO '.$this->tablename.' (resto,root,time,md5,tim,ext,w,h,pwd,now,name,email,sub,com,host,status) VALUES (0, datetime("now"), 1111111111, "", 1111111111111, "", 0, 0, "", "05/01/01(六)00:00", "無名氏", "", "無標題", "無內文", "", "");';
+			$result .= 'INSERT INTO '.$this->tablename.' (resto,root,time,md5chksum,catalog,tim,ext,imgw,imgh,imgsize,tw,th,pwd,now,name,email,sub,com,host,status) VALUES (0, datetime("now"), 1111111111, "", "", 1111111111111, "", 0, 0, "", 0, 0, "", "05/01/01(六)00:00", "無名氏", "", "無標題", "無內文", "", "");';
 			sqlite_exec($this->con, $result); // 正式新增資料表
 			$this->dbCommit();
 		}
@@ -233,7 +232,7 @@ class PIOsqlite{
 		global $path;
 		if(!$this->prepared) $this->dbPrepare();
 
-		if(!$result=$this->_sqlite_call('SELECT tim,ext FROM '.$this->tablename." WHERE ext <> '' AND md5 = '$md5hash' ORDER BY no DESC")) echo '[ERROR] 取出文章判斷重複貼圖失敗<br />';
+		if(!$result=$this->_sqlite_call('SELECT tim,ext FROM '.$this->tablename." WHERE ext <> '' AND md5chksum = '$md5hash' ORDER BY no DESC")) echo '[ERROR] 取出文章判斷重複貼圖失敗<br />';
 		else{
 			while(list($ltim, $lext)=sqlite_fetch_array($result)){
 				if(file_func('exist', $path.IMG_DIR.$ltim.$lext)){ return true; break; } // 有相同檔案
@@ -311,7 +310,7 @@ class PIOsqlite{
 		}else $tmpSQL = 'SELECT * FROM '.$this->tablename.' WHERE no = '.$postlist; // 取單串
 		$line = $this->_sqlite_call($tmpSQL);
 
-		return $this->_ArrangeArrayStructure($line); // 重排陣列結構
+		return $this->_ArrangeArrayStructure($line); // 輸出陣列結構
 	}
 
 	/* 有此討論串? */
@@ -334,30 +333,31 @@ class PIOsqlite{
 		$SearchQuery .= ' ORDER BY no DESC'; // 按照號碼大小排序
 		if(!$line=$this->_sqlite_call($SearchQuery)) echo '[ERROR] 搜尋文章失敗<br />';
 
-		return $this->_ArrangeArrayStructure($line); // 重排陣列結構
+		return $this->_ArrangeArrayStructure($line); // 輸出陣列結構
 	}
 
 	/* 新增文章/討論串 */
 	/* 輸入 各種欄位值 as any, 輸出 void */
-	function addPost($no, $resno, $now, $name, $email, $sub, $com, $url, $host, $pass, $ext, $W, $H, $tim, $chk, $age=false){
+	function addPost($no, $resto, $md5chksum, $catalog, $tim, $ext, $imgw, $imgh, $imgsize, $tw, $th, $pwd, $now, $name, $email, $sub, $com, $host, $age=false){
 		if(!$this->prepared) $this->dbPrepare();
 
 		$time = (int)substr($tim, 0, -3); // 13位數的數字串是檔名，10位數的才是時間數值
-		if($resno){ // 新增回應
-			$rootqu = '1980-01-01 00:00:00';
+		if($resto){ // 新增回應
+			$root = '1980-01-01 00:00:00';
 			if($age){ // 推文
-				$query = 'UPDATE '.$this->tablename.' SET root = "'.strftime("%Y-%m-%d %H:%M:%S",time()).'" WHERE no = '.$resno; // 將被回應的文章往上移動
+				$query = 'UPDATE '.$this->tablename.' SET root = "'.strftime("%Y-%m-%d %H:%M:%S",time()).'" WHERE no = '.$resto; // 將被回應的文章往上移動
 				if(!$result=$this->_sqlite_call($query)) echo '[ERROR] 推文失敗<br />';
 			}
-		}else $rootqu = strftime("%Y-%m-%d %H:%M:%S",time()); // 新增討論串, 討論串最後被更新時間
+		}else $root = strftime("%Y-%m-%d %H:%M:%S",time()); // 新增討論串, 討論串最後被更新時間
 
-		$query = 'INSERT INTO '.$this->tablename.' (resto,root,time,md5,tim,ext,w,h,pwd,now,name,email,sub,com,host,status) VALUES ('.
-	(int)$resno.','. // 回應編號
-	"'$rootqu',". // 最後更新時間
+		$query = 'INSERT INTO '.$this->tablename.' (resto,root,time,md5chksum,catalog,tim,ext,imgw,imgh,imgsize,tw,th,pwd,now,name,email,sub,com,host,status) VALUES ('.
+	(int)$resto.','. // 回應編號
+	"'$root',". // 最後更新時間
 	$time.','. // 發文時間數值
-	"'$chk',". // 附加檔案md5
+	"'$md5chksum',". // 附加檔案md5
+	"'".sqlite_escape_string($catalog)."',". // 分類標籤
 	"$tim, '$ext',". // 附加檔名
-	(int)$W.', '.(int)$H.','. // 預覽圖長寬
+	$imgw.','.$imgh.",'".$imgsize."',".$tw.','.$th.','. // 圖檔長寬及檔案大小；預覽圖長寬
 	"'".sqlite_escape_string($pass)."',".
 	"'$now',". // 時間(含ID)字串
 	"'".sqlite_escape_string($name)."',".
