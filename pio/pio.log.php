@@ -17,7 +17,7 @@ class PIOlog{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return 'v20060825α (With Bug)';
+		return 'v20060825α (With little Bug)';
 	}
 
 	/* private 將回文放進陣列 */
@@ -152,8 +152,8 @@ class PIOlog{
 	function delOldPostes(){
 		if(!$this->prepared) $this->dbPrepare();
 
-		$delPosts = @array_splice($this->porder, LOG_MAX); // 截出舊文編號陣列
-		if(count($delPosts)) return $this->removePosts($this->_includeReplies($delPosts));
+		$delPosts = @array_slice($this->porder, LOG_MAX - 1); // 截出舊文編號陣列
+		if(count($delPosts)) return $this->removePosts($delPosts);
 		else return false;
 	}
 
@@ -162,14 +162,15 @@ class PIOlog{
 		if(!$this->prepared) $this->dbPrepare();
 
 		$posts = $this->_includeReplies($posts); // 包含所有回文
+		$filelist = $this->removeAttachments($posts); // 欲刪除附件
 		$torder_flip = array_flip($this->torder);
 		$pcount = count($posts);
 		$logsarray = $this->_ArrangeArrayStructure($posts); // 分析資料為陣列
 		for($p = 0; $p < $pcount; $p++){
 			if(!isset($logsarray[$p])) continue;
 			if($logsarray[$p]['resto']==0){ // 討論串頭
-				unset($this->trees[$posts[$p]]); // 刪除樹狀記錄
-				if(array_key_exists($posts[$p], $torder_flip)) unset($this->torder[$torder_flip[$posts[$p]]]); // 從討論串首篇陣列中移除
+				unset($this->trees[$logsarray[$p]['no']]); // 刪除樹狀記錄
+				if(array_key_exists($logsarray[$p]['no'], $torder_flip)) unset($this->torder[$torder_flip[$logsarray[$p]['no']]]); // 從討論串首篇陣列中移除
 			}else{
 				// 從樹狀檔刪除
 				if(array_key_exists($logsarray[$p]['resto'], $this->trees)){
@@ -177,12 +178,13 @@ class PIOlog{
 					unset($this->trees[$logsarray[$p]['resto']][$tr_flip[$posts[$p]]]);
 				}
 			}
-			unset($this->logs[$this->LUT[$posts[$p]]]);
-			if(array_key_exists($posts[$p], $this->LUT)) unset($this->porder[$this->LUT[$posts[$p]]]); // 從討論串編號陣列中移除
+			unset($this->logs[$this->LUT[$logsarray[$p]['no']]]);
+			if(array_key_exists($logsarray[$p]['no'], $this->LUT)) unset($this->porder[$this->LUT[$logsarray[$p]['no']]]); // 從討論串編號陣列中移除
 		}
+		$this->LUT = array_flip($this->porder);
 		$this->porder = array_merge(array(), $this->porder);
 		$this->torder = array_merge(array(), $this->torder);
-		return $this->removeAttachments($posts);
+		return $filelist;
 	}
 
 	/* 刪除舊附件 (輸出附件清單) */
@@ -337,6 +339,7 @@ class PIOlog{
 		$tline = array_map(array($this, '_replaceComma'), $tline); // 將資料內的 , 轉換 (Only Log needed)
 		array_unshift($this->logs, implode(',', $tline).",\r\n"); // 更新logs
 		array_unshift($this->porder, $no); // 更新porder
+		$this->LUT = array_flip($this->porder); // 更新LUT
 
 		// 更新torder及trees
 		if($resto){

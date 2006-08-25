@@ -4,6 +4,7 @@
 01.[PIO] 廢除PIO Class Wrapper，以PIO Kernel Switcher代替
 02.[PIOlog] 修改處理結構，增加LUT Cache (目前尚有Bug, 徵求除錯)
 03.[pixmicat] 不具合小修正
+04.[PIOlog] 修正資料筆數必須要到LOG_MAX+1才會開始刪除舊文的問題
 
 2006/08/24
 01.[PIO] 各資料來源的資料結構更新完成
