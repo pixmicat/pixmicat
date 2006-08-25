@@ -1,5 +1,10 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2006/08/25
+01.[PIO] 廢除PIO Class Wrapper，以PIO Kernel Switcher代替
+02.[PIOlog] 修改處理結構，增加LUT Cache (目前尚有Bug, 徵求除錯)
+03.[pixmicat] 不具合小修正
+
 2006/08/24
 01.[PIO] 各資料來源的資料結構更新完成
 02.[PIOlog] 修正在管理模式時若改變文章狀態會在dbCommit()刪除resto鍵值造成後續的輸出發生錯誤

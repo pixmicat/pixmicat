@@ -4,7 +4,7 @@ function getMicrotime(){
     list($usec, $sec) = explode(' ', microtime());
     return ((double)$usec + (double)$sec);
 }
-define("PIXMICAT_VER", 'Pixmicat!-PIO 3rd.Release-dev b060824'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 3rd.Release-dev b060825'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -325,7 +325,7 @@ function regist(){
 	$sub = isset($_POST['sub']) ? $_POST['sub'] : '';
 	$com = isset($_POST['com']) ? $_POST['com'] : '';
 	$pwd = isset($_POST['pwd']) ? $_POST['pwd'] : '';
-	$resto = isset($_POST['resto']) ? $_POST['resto'] : '';
+	$resto = isset($_POST['resto']) ? $_POST['resto'] : 0;
 	$upfile = isset($_FILES['upfile']['tmp_name']) ? $_FILES['upfile']['tmp_name'] : '';
 	$upfile_path = isset($_POST['upfile_path']) ? $_POST['upfile_path'] : '';
 	$upfile_name = isset($_FILES['upfile']['name']) ? $_FILES['upfile']['name'] : '';
@@ -650,7 +650,7 @@ function usrdel(){
 	$delposts = array(); // 真正符合刪除條件文章
 	$posts = $pio->fetchPosts($delno);
 	foreach($posts as $post){
-		if($pwd_md5==$post['pw'] || $host==$post['host'] || $pwd==ADMIN_PASS){
+		if($pwd_md5==$post['pwd'] || $host==$post['host'] || $pwd==ADMIN_PASS){
 			$search_flag = true; // 有搜尋到
 			array_push($delposts, $post['no']);
 		}
@@ -768,7 +768,7 @@ _N_EOT_;
 
 		// 討論串首篇停止勾選框 及 庫存功能
 		$make_archive_link = '';
-		if($resto==0 || $resto==$no){ // $resto = 0 或等於 $no (即討論串首篇)
+		if($resto==0){ // $resto = 0 (即討論串首篇)
 			if($mod_archiver) $make_archive_link = '<th align="center"><a href="mod_archiver.php?res='.$no.'" rel="_blank">存</a></th>';
 			$THstop = '<input type="checkbox" name="stop[]" value="'.$no.'" />'.(($pio->getPostStatus($status, 'TS')==1)?'停':'');
 		}else{
