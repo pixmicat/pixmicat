@@ -2,6 +2,9 @@
 ----------------------
 2006/08/26
 01.[PIOlog] 修正索引鍵錯亂造成Log丟失問題及刪舊文不刪其圖問題
+02.[PIOlog] 取消array_search改用array_flip + array_key_exists
+03.[PIOlog] 修正porder[0]刪掉後造成編號歸零計算
+04.[PIOlog] 修正torder混亂的問題
 
 2006/08/25
 01.[PIO] 廢除PIO Class Wrapper，以PIO Kernel Switcher代替

@@ -22,8 +22,9 @@ class PIOlog{
 
 	/* private 將回文放進陣列 */
 	function _includeReplies($posts){
+		$torder_flip = array_flip($this->torder);
 		foreach($posts as $post){
-			if(array_search($post, $this->torder)!==false){ // 討論串首篇
+			if(array_key_exists($post, $torder_flip)){ // 討論串首篇
 				$posts = array_merge($posts, $this->trees[$post]);
 			}
 		}
@@ -101,27 +102,33 @@ class PIOlog{
 	/* 提交/儲存 */
 	function dbCommit(){
 		if(!$this->prepared) return false;
-		$tcount = count($this->trees);
 
 		$log = $tree = $lut = '';
 		$this->logs = array_merge(array(), $this->logs); // 更新logs鍵值
-		$this->porder = array_merge(array(), $this->porder); // 更新porder鍵值
-		$this->LUT = array_flip($this->porder); // 更新LUT快取
 		$this->torder = array_merge(array(), $this->torder); // 更新torder鍵值
+		$this->porder = $this->LUT = array(); // 重新生成索引
+		//$this->porder = array_merge(array(), $this->porder);
+		//$this->LUT = array_flip($this->porder);
 
 		foreach($this->logs as $line){
 			if(!isset($line)) continue;
 			if(is_array($line)){ // 已被分析過
 				$log .= implode(',', $line).",\r\n";
-				$lut .= $line['no']."\r\n";
+				$lut .= ($this->porder[] = $line['no'])."\r\n";
 			}else{ // 尚未分析過
 				$log .= $line;
-				$tmp = explode(',', $line); $lut .= $tmp[0]."\r\n";
+				$tmp = explode(',', $line); $lut .= ($this->porder[] = $tmp[0])."\r\n";
 			}
 		}
-		foreach($this->trees as $treeline){
-			$tree .= implode(',', $treeline)."\r\n";
+		$this->LUT = array_flip($this->porder);
+		$tcount = count($this->trees);
+		for($tline = 0; $tline < $tcount; $tline++){
+			$tree .= $this->is_Thread($this->torder[$tline]) ? implode(',', $this->trees[$this->torder[$tline]])."\r\n" : '';
 		}
+		//error_log(' - porder : '.print_r($this->porder, true)."\n", 3, 'tracelog.txt');
+		//error_log(' - torder : '.print_r($this->torder, true)."\n", 3, 'tracelog.txt');
+		//error_log(' - trees : '.print_r($this->trees, true)."\n", 3, 'tracelog.txt');
+		//error_log(' - tree.log : '."\n".$tree."\n", 3, 'tracelog.txt');
 
 		$fp = fopen($this->logfile, 'w'); // Log
 		stream_set_write_buffer($fp, 0);
@@ -346,8 +353,9 @@ class PIOlog{
 			$this->trees[$resto][] = $no;
 			if($age){
 				$torder_flip = array_flip($this->torder);
-				array_splice($this->torder, $torder_flip[$resto], 1);
-				array_unshift($this->torder, $resto);
+				unset($this->torder[$torder_flip[$resto]]); // 先刪除舊有位置
+				//array_splice($this->torder, $torder_flip[$resto], 1);
+				array_unshift($this->torder, $resto); // 再移到頂端
 			}
 		}else{
 			$this->trees[$no][0] = $no;
@@ -401,7 +409,7 @@ class PIOlog{
 		switch($state){
 			case 'beforeCommit':
 			case 'afterCommit':
-				return $this->porder[0];
+				return reset($this->porder);
 		}
 	}
 }
