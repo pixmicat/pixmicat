@@ -17,7 +17,7 @@ class PIOlog{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return 'v20060825α (With little Bug)';
+		return 'v20060826β';
 	}
 
 	/* private 將回文放進陣列 */
@@ -101,24 +101,26 @@ class PIOlog{
 	/* 提交/儲存 */
 	function dbCommit(){
 		if(!$this->prepared) return false;
-		$pcount = $this->postCount();
-		$tcount = $this->threadCount();
+		$tcount = count($this->trees);
 
 		$log = $tree = $lut = '';
+		$this->logs = array_merge(array(), $this->logs); // 更新logs鍵值
+		$this->porder = array_merge(array(), $this->porder); // 更新porder鍵值
 		$this->LUT = array_flip($this->porder); // 更新LUT快取
-		for($post = 0; $post < $pcount; $post++){
-			if(!isset($this->logs[$post])) continue;
+		$this->torder = array_merge(array(), $this->torder); // 更新torder鍵值
 
-			if(is_array($this->logs[$post])){ // 已被分析過
-				$log .= implode(',', $this->logs[$post]).",\r\n";
-				$lut .= $this->logs[$post]['no']."\r\n";
+		foreach($this->logs as $line){
+			if(!isset($line)) continue;
+			if(is_array($line)){ // 已被分析過
+				$log .= implode(',', $line).",\r\n";
+				$lut .= $line['no']."\r\n";
 			}else{ // 尚未分析過
-				$log .= $this->logs[$post];
-				$tmp = explode(',', $this->logs[$post]); $lut .= $tmp[0]."\r\n";
+				$log .= $line;
+				$tmp = explode(',', $line); $lut .= $tmp[0]."\r\n";
 			}
 		}
-		for($tline = 0; $tline < $tcount; $tline++){
-			$tree .= $this->is_Thread($this->torder[$tline]) ? implode(',', $this->trees[$this->torder[$tline]])."\r\n" : '';
+		foreach($this->trees as $treeline){
+			$tree .= implode(',', $treeline)."\r\n";
 		}
 
 		$fp = fopen($this->logfile, 'w'); // Log
@@ -182,8 +184,6 @@ class PIOlog{
 			if(array_key_exists($logsarray[$p]['no'], $this->LUT)) unset($this->porder[$this->LUT[$logsarray[$p]['no']]]); // 從討論串編號陣列中移除
 		}
 		$this->LUT = array_flip($this->porder);
-		$this->porder = array_merge(array(), $this->porder);
-		$this->torder = array_merge(array(), $this->torder);
 		return $filelist;
 	}
 

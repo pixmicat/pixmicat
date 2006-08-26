@@ -1,5 +1,8 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2006/08/26
+01.[PIOlog] 修正索引鍵錯亂造成Log丟失問題及刪舊文不刪其圖問題
+
 2006/08/25
 01.[PIO] 廢除PIO Class Wrapper，以PIO Kernel Switcher代替
 02.[PIOlog] 修改處理結構，增加LUT Cache (目前尚有Bug, 徵求除錯)
