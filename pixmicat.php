@@ -290,7 +290,12 @@ function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $
 		}
 		// 對類別標籤作自動連結
 		if(USE_CATALOG){
-			
+			$ary_catalog = explode(',', str_replace('&#44;', ',', $catalog)); $ary_catalog = array_map('trim', $ary_catalog);
+			$ary_catalog_count = count($ary_catalog);
+			for($p = 0; $p < $ary_catalog_count; $p++){
+				if($c = $ary_catalog[$p]) $ary_catalog[$p] = '<a href="?search='.$c.'">'.$c.'</a>';
+			}
+			$catalog = implode(', ', $ary_catalog);
 		}else $catalog = '';
 
 		// 最終輸出處
