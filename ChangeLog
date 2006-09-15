@@ -1,5 +1,8 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2006/09/15
+01.[pixmicat] 新增類別標籤功能，正在實裝中
+
 2006/08/26
 01.[PIOlog] 修正索引鍵錯亂造成Log丟失問題及刪舊文不刪其圖問題
 02.[PIOlog] 取消array_search改用array_flip + array_key_exists

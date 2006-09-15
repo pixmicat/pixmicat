@@ -4,7 +4,7 @@ function getMicrotime(){
     list($usec, $sec) = explode(' ', microtime());
     return ((double)$usec + (double)$sec);
 }
-define("PIXMICAT_VER", 'Pixmicat!-PIO 3rd.Release-dev b060825'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 3rd.Release-dev b060915'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -288,24 +288,30 @@ function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $
 			if($pio->getPostStatus($status, 'TS')) $WARN_ENDREPLY = '<span class="warn_txt">這篇討論串已被管理員標記為禁止回應。</span><br />'."\n"; // 被標記為禁止回應
 			if($hiddenReply) $WARN_HIDEPOST = '<span class="warn_txt2">有回應 '.$hiddenReply.' 篇被省略。要閱讀所有回應請按下回應連結。</span><br />'."\n"; // 有隱藏的回應
 		}
+		// 對類別標籤作自動連結
+		if(USE_CATALOG){
+			
+		}else $catalog = '';
 
 		// 最終輸出處
 		if(USE_TEMPLATE){ // 樣板輸出
 			// 回應
-			if($i) $thdat .= $PTE->ReplaceStrings_Reply(array('{$NO}'=>$no, '{$SUB}'=>$sub, '{$NAME}'=>$name, '{$NOW}'=>$now, '{$COM}'=>$com, '{$IMG_BAR}'=>$IMG_BAR, '{$IMG_SRC}'=>$imgsrc, '{$WARN_BEKILL}'=>$WARN_BEKILL));
+			if($i) $thdat .= $PTE->ReplaceStrings_Reply(array('{$NO}'=>$no, '{$SUB}'=>$sub, '{$NAME}'=>$name, '{$NOW}'=>$now, '{$COM}'=>$com, '{$CATALOG}'=>$catalog, '{$IMG_BAR}'=>$IMG_BAR, '{$IMG_SRC}'=>$imgsrc, '{$WARN_BEKILL}'=>$WARN_BEKILL));
 			// 首篇
-			else $thdat .= $PTE->ReplaceStrings_Main(array('{$NO}'=>$no, '{$SUB}'=>$sub, '{$NAME}'=>$name, '{$NOW}'=>$now, '{$COM}'=>$com, '{$REPLYBTN}'=>$REPLYBTN, '{$IMG_BAR}'=>$IMG_BAR, '{$IMG_SRC}'=>$imgsrc, '{$WARN_OLD}'=>$WARN_OLD, '{$WARN_BEKILL}'=>$WARN_BEKILL, '{$WARN_ENDREPLY}'=>$WARN_ENDREPLY, '{$WARN_HIDEPOST}'=>$WARN_HIDEPOST));
+			else $thdat .= $PTE->ReplaceStrings_Main(array('{$NO}'=>$no, '{$SUB}'=>$sub, '{$NAME}'=>$name, '{$NOW}'=>$now, '{$COM}'=>$com, '{$CATALOG}'=>$catalog, '{$REPLYBTN}'=>$REPLYBTN, '{$IMG_BAR}'=>$IMG_BAR, '{$IMG_SRC}'=>$imgsrc, '{$WARN_OLD}'=>$WARN_OLD, '{$WARN_BEKILL}'=>$WARN_BEKILL, '{$WARN_ENDREPLY}'=>$WARN_ENDREPLY, '{$WARN_HIDEPOST}'=>$WARN_HIDEPOST));
 		}else{ // 非樣板輸出
 			if($i){ // 回應
 				$thdat .= '<div class="reply" id="r'.$no.'">
 <input type="checkbox" name="'.$no.'" value="delete" /><span class="title">'.$sub.'</span> 名稱: <span class="name">'.$name.'</span> ['.$now.'] '.$QUOTEBTN.'No.'.$no.'</a>&nbsp;'.$IMG_BAR.$imgsrc.'
-<div class="quote">'.$com.'</div>
-'.$WARN_BEKILL."</div>\n";
+<div class="quote">'.$com.'</div>'."\n";
+				if($catalog) $thdat .= '<div class="catalog">類別: '.$catalog.'</div>'."\n";
+				$thdat .= $WARN_BEKILL."</div>\n";
 			}else{ // 首篇
 				$thdat .= '<div class="threadpost">
 '.$IMG_BAR.$imgsrc.'<input type="checkbox" name="'.$no.'" value="delete" /><span class="title">'.$sub.'</span> 名稱: <span class="name">'.$name.'</span> ['.$now.'] '.$QUOTEBTN.'No.'.$no.'</a>&nbsp;'.$REPLYBTN.'
-<div class="quote">'.$com.'</div>
-'.$WARN_OLD.$WARN_BEKILL.$WARN_ENDREPLY.$WARN_HIDEPOST."</div>\n";
+<div class="quote">'.$com.'</div>'."\n";
+				if($catalog) $thdat .= '<div class="catalog">類別: '.$catalog.'</div>'."\n";
+				$thdat .= $WARN_OLD.$WARN_BEKILL.$WARN_ENDREPLY.$WARN_HIDEPOST."</div>\n";
 			}
 		}
 	}
@@ -325,6 +331,7 @@ function regist(){
 	$sub = isset($_POST['sub']) ? $_POST['sub'] : '';
 	$com = isset($_POST['com']) ? $_POST['com'] : '';
 	$pwd = isset($_POST['pwd']) ? $_POST['pwd'] : '';
+	$catalog = isset($_POST['catalog']) ? $_POST['catalog'] : '';
 	$resto = isset($_POST['resto']) ? $_POST['resto'] : 0;
 	$upfile = isset($_FILES['upfile']['tmp_name']) ? $_FILES['upfile']['tmp_name'] : '';
 	$upfile_path = isset($_POST['upfile_path']) ? $_POST['upfile_path'] : '';
@@ -560,6 +567,7 @@ function regist(){
 	isset($W) ? 0 : $W = 0;
 	isset($H) ? 0 : $H = 0;
 	isset($md5chksum) ? 0 : $md5chksum = '';
+	USE_CATALOG ? 0 : $catalog = '';
 	$age = false;
 	if($resto){
 		if(!stristr($email, 'sage') && ($pio->postCount($resto) < MAX_RES || MAX_RES==0)){
@@ -568,7 +576,7 @@ function regist(){
 	}
 
 	// 正式寫入儲存
-	$pio->addPost($no,$resto,$md5chksum,'',$tim,$ext,$imgW,$imgH,$imgsize,$W,$H,$pass,$now,$name,$email,$sub,$com,$host,$age);
+	$pio->addPost($no,$resto,$md5chksum,$catalog,$tim,$ext,$imgW,$imgH,$imgsize,$W,$H,$pass,$now,$name,$email,$sub,$com,$host,$age);
 	$pio->dbCommit();
 
 	// Cookies儲存：密碼與E-mail部分，期限是一週

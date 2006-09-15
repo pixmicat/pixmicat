@@ -73,6 +73,7 @@ define("DISP_ID", 2); // 顯示ID (強制顯示：2 選擇性顯示：1 永遠�
 define("CLEAR_SAGE", 0); // 使用不推文模式時清除E-mail中的「sage」關鍵字 (是：1 否：0)
 define("USE_QUOTESYSTEM", 1); // 是否打開引用瀏覽系統 [自動轉換>>No.xxx文字成連結並導引] (是：1 否：0)
 define("SHOW_IMGWH", 1); // 是否顯示附加圖檔之原檔長寬尺寸 (是：1 否：0)
+define("USE_CATALOG", 1); // 是否開啟使用類別標籤分類功能 (是：1 否：0)
 
 // 封鎖設定
 define("DNSBL_CHECK", 0); // DNS-based Blackhole List(DNSBL) 黑名單功能 (關閉：0, 數字：使用伺服器數目)
