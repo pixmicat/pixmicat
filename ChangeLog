@@ -1,5 +1,12 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2006/09/22
+01.[pixmicat] searchCatalog()初步完成，分頁功能暫時未加入 (目前採Session儲存，有可能改變)
+02.[pixmicat][lib_common] 無貼圖勾選框加回來以防止Spam攻擊
+
+2006/09/20
+01.[pixmicat] 搜尋部分(searchCatalog)實作中
+
 2006/09/15
 01.[pixmicat] 新增類別標籤功能，目前可以儲存標籤、印出標籤，搜尋部分尚未完成
 

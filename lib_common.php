@@ -1,5 +1,5 @@
 <?php
-// Revision : 2006/9/15 下午 09:13
+// Revision : 2006/9/22 下午 09:21
 
 /* 輸出表頭 */
 function head(&$dat){
@@ -67,7 +67,7 @@ function form(&$dat, $resno){
 <tr><td class="Form_bg"><b>內 文</b></td><td><textarea name="com" cols="48" rows="4" style="width: 400px; height: 80px;"></textarea></td></tr>
 ';
 	if(RESIMG || !$resno){
-		$dat .= '<tr><td class="Form_bg"><b>附加圖檔</b></td><td><input type="file" name="upfile" size="25" />';
+		$dat .= '<tr><td class="Form_bg"><b>附加圖檔</b></td><td><input type="file" name="upfile" size="25" /> [<input type="checkbox" name="noimg" id="noimg" value="on" /><label for="noimg">無貼圖</label>]';
 		if(USE_UPSERIES) $dat .= ' [<input type="checkbox" name="up_series" id="up_series" value="on"'.((isset($_GET["upseries"]) && $resno)?' checked="checked"':'').' /><label for="up_series">連貼機能</label>]'; // 啟動連貼機能
 		$dat .= '</td></tr>'."\n";
 	}

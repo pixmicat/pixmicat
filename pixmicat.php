@@ -4,7 +4,7 @@ function getMicrotime(){
     list($usec, $sec) = explode(' ', microtime());
     return ((double)$usec + (double)$sec);
 }
-define("PIXMICAT_VER", 'Pixmicat!-PIO 3rd.Release-dev b060915'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 3rd.Release-dev b060922'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -223,7 +223,7 @@ function updatelog($resno=0,$page_num=0){
 }
 
 /* 輸出討論串架構 */
-function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $arr_kill, $arr_old, $kill_sensor, $old_sensor){
+function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $arr_kill, $arr_old, $kill_sensor, $old_sensor, $showquotelink=true){
 	global $path, $pio;
 
 	$thdat = ''; // 討論串輸出碼
@@ -275,7 +275,8 @@ function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $
 
 		// 設定回應 / 引用連結
 		if($resno){ // 回應模式
-			$QUOTEBTN = '<a href="javascript:quote('.$no.');" class="qlink">';
+			if($showquotelink) $QUOTEBTN = '<a href="javascript:quote('.$no.');" class="qlink">';
+			else $QUOTEBTN = '<a href="#" class="qlink">';
 		}else{
 			if(!$i)	$REPLYBTN = '[<a href="'.PHP_SELF.'?res='.$no.'">回應</a>]'; // 首篇
 			$QUOTEBTN = '<a href="'.PHP_SELF.'?res='.$tree[0].'#q'.$no.'" class="qlink">';
@@ -293,7 +294,7 @@ function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $
 			$ary_catalog = explode(',', str_replace('&#44;', ',', $catalog)); $ary_catalog = array_map('trim', $ary_catalog);
 			$ary_catalog_count = count($ary_catalog);
 			for($p = 0; $p < $ary_catalog_count; $p++){
-				if($c = $ary_catalog[$p]) $ary_catalog[$p] = '<a href="?search='.$c.'">'.$c.'</a>';
+				if($c = $ary_catalog[$p]) $ary_catalog[$p] = '<a href="'.PHP_SELF.'?mode=catalog&amp;c='.$c.'">'.$c.'</a>';
 			}
 			$catalog = implode(', ', $ary_catalog);
 		}else $catalog = '';
@@ -381,8 +382,10 @@ function regist(){
 		case 6:
 			error('上傳失敗<br />上傳的暫存資料夾設定錯誤，請通報系統管理員');
 			break;
-		case 0: // 上傳正常
 		case 4: // 無上傳
+			if(!$resto && !isset($_POST['noimg'])) error('因應防止Spam對策，發文無附加圖檔請勾選[無貼圖]核選框！');
+			break;
+		case 0: // 上傳正常
 		default:
 	}
 
@@ -939,6 +942,37 @@ END_OF_TR;
 	echo "</body>\n</html>";
 }
 
+/* 利用類別標籤搜尋符合的文章 */
+function searchCatalog(){
+	global $pio;
+	$catalog = isset($_GET['c']) ? strtolower(strip_tags(trim($_GET['c']))) : '';
+	$page = isset($_GET['p']) ? @intval($_GET['p']) : 1;
+	if(!$catalog) error('請輸入類別標籤以搜尋類似文章。');
+
+	// 利用Session快取類別標籤出現篇別以減少負擔
+	session_start(); // 啟動Session
+	if(!isset($_SESSION['loglist_'.$catalog])){
+		$loglist = $pio->searchCatalog($catalog);
+		$_SESSION['loglist_'.$catalog] = serialize($loglist);
+	}else $loglist = unserialize($_SESSION['loglist_'.$catalog]);
+	$loglist_count = count($loglist);
+
+	// 分割陣列取出適當範圍作分頁之用
+	$PTE = USE_TEMPLATE ? new PTELibrary(TEMPLATE_FILE) : 0; // PTE Library
+	/*
+	$loglist_cut = array_slice($loglist, $RES_start, $RES_amount); // 取出特定範圍文章
+	*/
+	$dat = '';
+	head($dat);
+	if(!$loglist_count) error('沒有符合此類別標籤的文章');
+	for($i = 0; $i < $loglist_count; $i++){
+		$posts = $pio->fetchPosts($loglist[$i]); // 取得文章內容
+		$dat .= arrangeThread($PTE, 0, 0, $posts, 0, $loglist[$i], 0, 0, 0, 0, false); // 逐個輸出 (引用連結不顯示)
+	}
+	foot($dat);
+	echo $dat;
+}
+
 /* 顯示系統各項資訊 */
 function showstatus(){
 	global $pio;
@@ -1068,6 +1102,9 @@ switch($mode){
 		break;
 	case 'status':
 		showstatus();
+		break;
+	case 'catalog':
+		searchCatalog();
 		break;
 	case 'usrdel':
 		usrdel();

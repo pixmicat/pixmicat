@@ -17,7 +17,7 @@ class PIOlog{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return 'v20060826β';
+		return 'v20060922β';
 	}
 
 	/* private 將回文放進陣列 */
@@ -338,6 +338,22 @@ class PIOlog{
 		return $foundPosts;
 	}
 
+	/* 搜尋類別標籤 */
+	function searchCatalog($catalog){
+		if(!$this->prepared) $this->dbPrepare();
+
+		$foundPosts = array();
+		$pcount = $this->postCount();
+		for($i = 0; $i < $pcount; $i++){
+			$logsarray = $this->_ArrangeArrayStructure($this->porder[$i]); // 分析資料為陣列
+			$ary_catalog = $logsarray[0]['catalog']; if(!$ary_catalog) continue;
+			$ary_catalog = explode('&#44;', strtolower($ary_catalog)); // 把標籤拆成陣列
+			$ary_catalog = array_flip(array_map('trim', $ary_catalog)); // 去空白、翻轉鍵&值
+			if(isset($ary_catalog[$catalog])) array_push($foundPosts, $logsarray[0]['no']); // 找到標籤，加入名單
+		}
+		return $foundPosts;
+	}
+
 	/* 新增文章/討論串 */
 	function addPost($no, $resto, $md5chksum, $catalog, $tim, $ext, $imgw, $imgh, $imgsize, $tw, $th, $pwd, $now, $name, $email, $sub, $com, $host, $age=false) {
 		if(!$this->prepared) $this->dbPrepare();
@@ -354,7 +370,6 @@ class PIOlog{
 			if($age){
 				$torder_flip = array_flip($this->torder);
 				unset($this->torder[$torder_flip[$resto]]); // 先刪除舊有位置
-				//array_splice($this->torder, $torder_flip[$resto], 1);
 				array_unshift($this->torder, $resto); // 再移到頂端
 			}
 		}else{
