@@ -16,13 +16,15 @@ class PIOmysql{
 	/* PIO模組版本 */
 	/* 輸入 void, 輸出 版本號 as string */
 	function pioVersion(){
-		return 'v20060824β';
+		return 'v20060923β';
 	}
 
 	/* private 使用SQL字串和MySQL伺服器要求 */
 	function _mysql_call($query){
+		$debug_mode = false; // 除錯模式：顯示SQL錯誤訊息
+
 		$ret = mysql_query($query);
-		if(!$ret) error('MySQL SQL指令錯誤：<p />指令: '.$query.'<br />錯誤訊息: (#'.mysql_errno().') '.mysql_error());
+		if(!$ret && $debug_mode) error('MySQL SQL指令錯誤：<p />指令: '.$query.'<br />錯誤訊息: (#'.mysql_errno().') '.mysql_error());
 		return $ret;
 	}
 
@@ -347,6 +349,15 @@ class PIOmysql{
 		if(!$line=$this->_mysql_call($SearchQuery)) echo '[ERROR] 搜尋文章失敗<br />';
 
 		return $this->_ArrangeArrayStructure($line); // 輸出陣列結構
+	}
+
+	/* 搜尋類別標籤 */
+	/* 輸入 標籤 as string, 輸出 符合文章編號 as array */
+	function searchCatalog($catalog){
+		if(!$this->prepared) $this->dbPrepare();
+
+		$foundPosts = array();
+		return $foundPosts;
 	}
 
 	/* 新增文章/討論串 */

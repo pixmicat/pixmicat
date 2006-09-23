@@ -1,8 +1,8 @@
 <?php
-// Revision : 2006/9/22 下午 09:21
+// Revision : 2006/9/23 下午 12:24
 
 /* 輸出表頭 */
-function head(&$dat){
+function head(&$dat, $style='<link rel="stylesheet" type="text/css" href="inc_pixmicat.css" />'){
 	header('Content-Type: '.((strpos($_SERVER['HTTP_ACCEPT'],'application/xhtml+xml')!==FALSE) ? 'application/xhtml+xml' : 'text/html').'; charset=utf-8'); // 如果瀏覽器支援XHTML標準MIME就輸出
 	$dat .= '<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
@@ -14,6 +14,7 @@ function head(&$dat){
 <meta http-equiv="Content-Language" content="zh-tw" />
 <title>'.TITLE.'</title>
 <link rel="stylesheet" type="text/css" href="mainstyle.css" />
+'.$style.'
 <!--[if IE]><script type="text/javascript" src="iedivfix.js"></script><![endif]-->
 <script type="text/javascript" src="mainscript.js"></script>
 <script type="text/javascript">

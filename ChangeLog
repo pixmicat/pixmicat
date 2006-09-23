@@ -1,8 +1,9 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
-2006/09/22
+2006/09/22,23
 01.[pixmicat] searchCatalog()初步完成，分頁功能暫時未加入 (目前採Session儲存，有可能改變)
 02.[pixmicat][lib_common] 無貼圖勾選框加回來以防止Spam攻擊
+03.[PTE][mainstyle] 將StyleSheet部分獨立出新樣板區塊，將mainstyle的討論串樣式搬過來
 
 2006/09/20
 01.[pixmicat] 搜尋部分(searchCatalog)實作中

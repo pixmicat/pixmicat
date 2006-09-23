@@ -1,0 +1,43 @@
+@media all{ /* 通用設定 */
+	html { background: #FFE; color: #800000; } /* 基本網頁背景樣式 */
+	a:link { color: #00E; } /* 正常連結樣式 */
+	a:hover { color: #D00; } /* hover時連結樣式 */
+	a:visited { color: #00E; } /* 已拜訪連結樣式 */
+	a.qlink { text-decoration: none; } /* 引用用連結樣式 */
+	small { font-size: 0.8em; } /* 小字樣式(eg.[以預覽圖顯示]) */
+	hr { clear: left; } /* 分隔線樣式 */
+	img { border: 0; } /* 圖片顯示樣式 */
+
+	#toplink { text-align: right; } /* 頁首連結條樣式 */
+	h1 { color: #800000; text-align: center; margin: 0 auto; } /* 網頁主標題樣式 */
+	hr.top { width: 90%; height: 1px; } /* 主標題下分隔線樣式 */
+
+	.Form_bg { background: #EA8; } /* 送出表單左方欄位之底色 */
+	.hide_btn { float: right; width: 4em; height: 1.25em; overflow: hidden; text-align: center; background: #F0E0D6; } /* 表單收縮按鈕樣式 */
+	.show { color: #00E; }
+	.hide { display: none; }
+	#postinfo { font-size: 0.8em; } /* 上傳說明樣式 */
+	form { padding: 0; margin: 0; } /* 修正表單標籤造成的排版問題 */
+
+	#footer { text-align: center; clear: both; } /* 頁尾樣式 */
+	.bar_reply { background: #E04000; color: #FFF; font-weight: bold; text-align: center; } /* 回應模式樣式標題列 */
+	.bar_admin { background: #E08000; color: #FFF; font-weight: bold; text-align: center; } /* 管理模式樣式標題列 */
+	.ListRow1_bg { background: #D6D6F6; } /* 管理模式欄位背景顏色1(輪替出現) */
+	.ListRow2_bg { background: #F6F6F6; } /* 管理模式欄位背景顏色2(輪替出現) */
+}
+
+@media screen{ /* 標準顯示(一般顯示器)模式附加規則 */
+
+}
+
+@media handheld{ /* 手持設備(手機,PDA等)附加規則 */
+	html { max-width: 320px; margin: auto; font-size: 9px; } /* 320px為多數PDA的顯示寬度 */
+	input { max-width: 200px; }
+	textarea { max-width: 200px; height: 40px; }
+	#page_switch { clear: right; } /* 避免頁尾表格交疊 */
+}
+
+@media print{ /* 列印,預覽列印附加規則 */
+	html { background: #FFF; color: #000; } /* 網頁改成白底黑字,節省彩色列印成本 */
+	#postform_main { display: none; } /* 貼文表單在列印模式沒有用處,故不顯示以節省空間 */
+}

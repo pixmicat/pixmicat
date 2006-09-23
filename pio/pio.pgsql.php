@@ -16,7 +16,7 @@ class PIOpgsql{
 	/* PIO模組版本 */
 	/* 輸入 void, 輸出 版本號 as string */
 	function pioVersion(){
-		return 'v20060824β';
+		return 'v20060923β';
 	}
 
 	/* private 使用SQL字串和PostgreSQL伺服器要求 */
@@ -343,6 +343,15 @@ class PIOpgsql{
 		if(!$line=$this->_pgsql_call($SearchQuery)) echo '[ERROR] 搜尋文章失敗<br />';
 
 		return $this->_ArrangeArrayStructure($line); // 輸出陣列結構
+	}
+
+	/* 搜尋類別標籤 */
+	/* 輸入 標籤 as string, 輸出 符合文章編號 as array */
+	function searchCatalog($catalog){
+		if(!$this->prepared) $this->dbPrepare();
+
+		$foundPosts = array();
+		return $foundPosts;
 	}
 
 	/* 新增文章/討論串 */

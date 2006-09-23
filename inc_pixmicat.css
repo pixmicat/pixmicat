@@ -1,0 +1,21 @@
+@media all{ /* 通用設定 */
+	.threadpost {  } /* 討論串首篇樣式 */
+	.reply { display: table; margin: 0.5ex 1em 0 1em; background: #F0E0D6; } /* 討論串回應樣式 */
+	.reply_hl { background: #F0D5B7; }  /* 討論串回應背景標亮樣式 */
+	.name { color: #117743; font-weight: bold; } /* 文章張貼者名稱樣式 */
+	.admin_cap { color: #0000FF; } /* 管理員キャップ樣式設定 */
+	.img { float: left; margin: 1ex 2ex; } /* 討論串圖片顯示樣式 */
+	.title { color: #CC1105; font-size: 1.125em; font-weight: bold; } /* 討論串標題樣式 */
+	.nor { font-weight: normal; } /* Trip取消粗體用 */
+	.quote { margin: 1em 2em; } /* 討論串內文縮排樣式 */
+	.catalog { font-size: 0.8em; color: grey; } /* 類別標籤顯示樣式 */
+
+	.warn_txt { color: #F00000; font-weight: bold; } /* 討論串狀態警告文字(eg.文章即將被刪除) */
+	.warn_txt2 { color: #707070; } /* 討論串狀態提示文字(eg.回應幾篇被隱藏) */
+}
+
+@media handheld{ /* 手持設備(手機,PDA等)附加規則 */
+	.img { margin: 0.5ex 0.5ex; max-width: 125px; } /* 討論串圖片顯示樣式 */
+	.reply { clear: left; margin: 0.5ex 0 0 0; } /* 討論串回應樣式 */
+	.quote { margin: 1ex 1ex; } /* 討論串內文縮排樣式 */
+}
