@@ -21,8 +21,10 @@ class PIOsqlite{
 
 	/* private 使用SQL字串和SQLite要求 */
 	function _sqlite_call($query){
+		$debug_mode = false; // 除錯模式：顯示SQL錯誤訊息
+
 		$ret = @sqlite_query($this->con, $query);
-		if(!$ret) error('SQLite SQL指令錯誤：<p />指令: '.$query.'<br />錯誤訊息: '.sqlite_error_string(sqlite_last_error($this->con)));
+		if(!$ret && $debug_mode) error('SQLite SQL指令錯誤：<p />指令: '.$query.'<br />錯誤訊息: '.sqlite_error_string(sqlite_last_error($this->con)));
 		return $ret;
 	}
 

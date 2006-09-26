@@ -357,6 +357,11 @@ class PIOmysql{
 		if(!$this->prepared) $this->dbPrepare();
 
 		$foundPosts = array();
+		$SearchQuery = 'SELECT no FROM '.$this->tablename." WHERE lower(catalog) RLIKE '(,?)( ?)(".$catalog.")( ?)(,?)'";
+		$line = $this->_mysql_call($SearchQuery);
+		while($rows=mysql_fetch_row($line)) $foundPosts[] = $rows[0];
+
+		mysql_free_result($line);
 		return $foundPosts;
 	}
 

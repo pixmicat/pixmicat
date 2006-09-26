@@ -86,7 +86,7 @@ function updatelog($resno=0,$page_num=0){
 	// 生成靜態頁面一頁份內容
 	for($page = $page_start; $page <= $page_end; $page++){
 		$dat = '';
-		if(!$PTE){ head($dat); }else{ head($dat, $PTE->ReplaceStrings_Style()); }
+		if(!$PTE){ head($dat, "\n".'<link rel="stylesheet" type="text/css" href="inc_pixmicat.css" />'."\n"); }else{ head($dat, $PTE->ReplaceStrings_Style()); }
 		form($dat, $resno);
 		$dat .= '<div id="contents">
 
@@ -962,7 +962,7 @@ function searchCatalog(){
 	$loglist_cut = array_slice($loglist, $RES_start, $RES_amount); // 取出特定範圍文章
 	*/
 	$dat = '';
-	head($dat);
+	if(!$PTE){ head($dat, "\n".'<link rel="stylesheet" type="text/css" href="inc_pixmicat.css" />'."\n"); }else{ head($dat, $PTE->ReplaceStrings_Style()); }
 	if(!$loglist_count) error('沒有符合此類別標籤的文章');
 	for($i = 0; $i < $loglist_count; $i++){
 		$posts = $pio->fetchPosts($loglist[$i]); // 取得文章內容

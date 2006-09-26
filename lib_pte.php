@@ -37,7 +37,7 @@ class PTELibrary{
 	 * @return string 樣板樣式設計區塊原始碼
 	 */
 	function ReplaceStrings_Style(){
-		return trim($this->tpl_style);
+		return $this->tpl_style;
 	}
 
 	/*
