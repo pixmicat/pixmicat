@@ -116,4 +116,22 @@ define("COMM_MAX", 2000); // 內文接受Bytes數 (注意：中文字為2Bytes)
 define("BR_CHECK", 0); // 文字換行行數上限 (不限：0)
 define("STATIC_HTML_UNTIL", -1); // 更新文章時自動生成的靜態網頁至第幾頁止 (全部生成：-1 僅入口頁：0)
 define("GZIP_COMPRESS_LEVEL", 3); // PHP動態輸出頁面使用Gzip壓縮層級 (關閉：0 啟動：1～9，推薦值：3)
+
+/*---- Part 3：Anti-SPAM 防止垃圾訊息機器人發文 ----*/
+/* 欄位陷阱 (Field Trap)
+介紹：
+機器人會針對常見的欄位名稱送出垃圾資料，將這些常見的欄位製成陷阱，
+另設名稱怪異的欄位為正確欄位，以避免直接的攻擊。
+防止機器人學習的可能，請隔一段時間修改底下欄位值，建議英數大小寫隨機6～10個 (避免特殊符號、第一位不能為數字)。
+*/
+define("FT_NAME", 'bvUFbdrIC'); // 名稱欄位
+define("FT_EMAIL", 'ObHGyhdTR'); // E-mail欄位
+define("FT_SUBJECT", 'SJBgiFbhj'); // 標題欄位
+define("FT_COMMENT", 'pOBvrtyJK'); // 內文欄位
+
+/* CAPTCHA驗證圖像 (CAPTCHA AuthImage)
+介紹：
+最常見於防範Spam的方法，正因為它有效才會被廣泛使用。
+*/
+// Not finish yet.
 ?>

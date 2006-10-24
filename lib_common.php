@@ -1,5 +1,5 @@
 <?php
-// Revision : 2006/9/23 下午 08:42
+// Revision : 2006/10/23 22:59
 
 /* 輸出表頭 */
 function head(&$dat, $style=''){
@@ -61,13 +61,13 @@ function form(&$dat, $resno){
 	if($resno) $dat .= '<input type="hidden" name="resto" value="'.$resno.'" />'."\n";
 	$dat .= '<div style="text-align: center;">
 <table cellpadding="1" cellspacing="1" id="postform_tbl" style="margin: 0px auto; text-align: left;">
-<tr><td class="Form_bg"><b>名 稱</b></td><td><input type="text" name="name" size="28" /></td></tr>
-<tr><td class="Form_bg"><b>E-mail</b></td><td><input type="text" name="email" size="28" /></td></tr>
-<tr><td class="Form_bg"><b>標 題</b></td><td><input type="text" name="sub" size="35" /><input type="submit" name="sendbtn" value="送 出" /></td></tr>
-<tr><td class="Form_bg"><b>內 文</b></td><td><textarea name="com" cols="48" rows="4" style="width: 400px; height: 80px;"></textarea></td></tr>
+<tr><td class="Form_bg"><b>名 稱</b></td><td><input class="hide" type="text" name="name" value="spammer" /><input type="text" name="'.FT_NAME.'" id="fname" size="28" /></td></tr>
+<tr><td class="Form_bg"><b>E-mail</b></td><td><input type="text" name="'.FT_EMAIL.'" id="femail" size="28" /><input type="text" class="hide" name="email" value="foo@foo.bar" /></td></tr>
+<tr><td class="Form_bg"><b>標 題</b></td><td><input class="hide" value="DO NOT FIX THIS" type="text" name="sub" /><input type="text" name="'.FT_SUBJECT.'" id="fsub" size="28" /><input type="submit" name="sendbtn" value="送 出" /></td></tr>
+<tr><td class="Form_bg"><b>內 文</b></td><td><textarea name="'.FT_COMMENT.'" id="fcom" cols="48" rows="4" style="width: 400px; height: 80px;"></textarea><textarea name="com" class="hide" cols="48" rows="4">EID OG SMAPS</textarea></td></tr>
 ';
 	if(RESIMG || !$resno){
-		$dat .= '<tr><td class="Form_bg"><b>附加圖檔</b></td><td><input type="file" name="upfile" size="25" /> [<input type="checkbox" name="noimg" id="noimg" value="on" /><label for="noimg">無貼圖</label>]';
+		$dat .= '<tr><td class="Form_bg"><b>附加圖檔</b></td><td><input type="file" name="upfile" id="fupfile" size="25" /> <input class="hide" type="checkbox" name="reply" value="yes" />[<input type="checkbox" name="noimg" id="noimg" value="on" /><label for="noimg">無貼圖</label>]';
 		if(USE_UPSERIES) $dat .= ' [<input type="checkbox" name="up_series" id="up_series" value="on"'.((isset($_GET["upseries"]) && $resno)?' checked="checked"':'').' /><label for="up_series">連貼機能</label>]'; // 啟動連貼機能
 		$dat .= '</td></tr>'."\n";
 	}

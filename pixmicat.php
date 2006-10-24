@@ -4,7 +4,7 @@ function getMicrotime(){
     list($usec, $sec) = explode(' ', microtime());
     return ((double)$usec + (double)$sec);
 }
-define("PIXMICAT_VER", 'Pixmicat!-PIO 3rd.Release-dev b060923'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 3rd.Release-dev b061023'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -331,10 +331,10 @@ function regist(){
 
 	if($_SERVER['REQUEST_METHOD'] != 'POST') error('請使用此版提供的表單來上傳'); // 非正規POST方式
 
-	$name = isset($_POST['name']) ? $_POST['name'] : '';
-	$email = isset($_POST['email']) ? $_POST['email'] : '';
-	$sub = isset($_POST['sub']) ? $_POST['sub'] : '';
-	$com = isset($_POST['com']) ? $_POST['com'] : '';
+	$name = isset($_POST[FT_NAME]) ? $_POST[FT_NAME] : '';
+	$email = isset($_POST[FT_EMAIL]) ? $_POST[FT_EMAIL] : '';
+	$sub = isset($_POST[FT_SUBJECT]) ? $_POST[FT_SUBJECT] : '';
+	$com = isset($_POST[FT_COMMENT]) ? $_POST[FT_COMMENT] : '';
 	$pwd = isset($_POST['pwd']) ? $_POST['pwd'] : '';
 	$catalog = isset($_POST['catalog']) ? $_POST['catalog'] : '';
 	$resto = isset($_POST['resto']) ? $_POST['resto'] : 0;
@@ -343,6 +343,14 @@ function regist(){
 	$upfile_name = isset($_FILES['upfile']['name']) ? $_FILES['upfile']['name'] : '';
 	$upfile_status = isset($_FILES['upfile']['error']) ? $_FILES['upfile']['error'] : 4;
 	$pwdc = isset($_COOKIE['pwdc']) ? $_COOKIE['pwdc'] : '';
+
+	// 欄位陷阱
+	$FTname = isset($_POST['name']) ? $_POST['name'] : '';
+	$FTemail = isset($_POST['email']) ? $_POST['email'] : '';
+	$FTsub = isset($_POST['sub']) ? $_POST['sub'] : '';
+	$FTcom = isset($_POST['com']) ? $_POST['com'] : '';
+	$FTreply = isset($_POST['reply']) ? $_POST['reply'] : '';
+	if($FTname != 'spammer' || $FTemail != 'foo@foo.bar' || $FTsub != 'DO NOT FIX THIS' || $FTcom != 'EID OG SMAPS' || $FTreply != '') error('防止Spam對策機制啟動！');
 
 	// 封鎖及阻擋措施
 	$host = gethostbyaddr($_SERVER["REMOTE_ADDR"]); // 取得主機位置名稱

@@ -1,5 +1,9 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2006/10/23
+01.[mainscript] 更新方法，並重新以JSLint, JSMin檢測壓縮
+02.[lib_common][config][pixmicat] 實裝Spambot欄位陷阱
+
 2006/09/22,23
 01.[pixmicat] searchCatalog()初步完成，分頁功能暫時未加入 (目前採Session儲存，有可能改變)
 02.[pixmicat][lib_common] 無貼圖勾選框加回來以防止Spam攻擊
