@@ -1,5 +1,10 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2006/10/27
+01.[mainscript][lib_common] 修正Firefox瀏覽器自動填入Cookies儲存密碼時底端欄位漏填的問題
+02.[pixmicat] 用語更改：防止Spam對策機制啟動！ -> 防止 Spambot 機制啟動！
+03.[PIO] searchCatalog 完成
+
 2006/10/23
 01.[mainscript] 更新方法，並重新以JSLint, JSMin檢測壓縮
 02.[lib_common][config][pixmicat] 實裝Spambot欄位陷阱

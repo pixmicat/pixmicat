@@ -16,7 +16,7 @@ class PIOmysql{
 	/* PIO模組版本 */
 	/* 輸入 void, 輸出 版本號 as string */
 	function pioVersion(){
-		return 'v20060923β';
+		return 'v20061027β';
 	}
 
 	/* private 使用SQL字串和MySQL伺服器要求 */
@@ -357,7 +357,7 @@ class PIOmysql{
 		if(!$this->prepared) $this->dbPrepare();
 
 		$foundPosts = array();
-		$SearchQuery = 'SELECT no FROM '.$this->tablename." WHERE lower(catalog) RLIKE '(,?)( ?)(".$catalog.")( ?)(,?)'";
+		$SearchQuery = 'SELECT no FROM '.$this->tablename." WHERE lower(catalog) LIKE '%,".strtolower(mysql_escape_string($catalog)).",%'";
 		$line = $this->_mysql_call($SearchQuery);
 		while($rows=mysql_fetch_row($line)) $foundPosts[] = $rows[0];
 

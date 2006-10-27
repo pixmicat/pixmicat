@@ -17,7 +17,7 @@ class PIOlog{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return 'v20060922β';
+		return 'v20061027β';
 	}
 
 	/* private 將回文放進陣列 */
@@ -342,14 +342,13 @@ class PIOlog{
 	function searchCatalog($catalog){
 		if(!$this->prepared) $this->dbPrepare();
 
+		$catalog = strtolower($catalog);
 		$foundPosts = array();
 		$pcount = $this->postCount();
 		for($i = 0; $i < $pcount; $i++){
 			$logsarray = $this->_ArrangeArrayStructure($this->porder[$i]); // 分析資料為陣列
-			$ary_catalog = $logsarray[0]['catalog']; if(!$ary_catalog) continue;
-			$ary_catalog = explode('&#44;', strtolower($ary_catalog)); // 把標籤拆成陣列
-			$ary_catalog = array_flip(array_map('trim', $ary_catalog)); // 去空白、翻轉鍵&值
-			if(isset($ary_catalog[$catalog])) array_push($foundPosts, $logsarray[0]['no']); // 找到標籤，加入名單
+			if(!($ary_catalog = $logsarray[0]['catalog'])) continue;
+			if(strpos(strtolower($ary_catalog), '&#44;'.$catalog.'&#44;')!==false) array_push($foundPosts, $logsarray[0]['no']); // 找到標籤，加入名單
 		}
 		return $foundPosts;
 	}

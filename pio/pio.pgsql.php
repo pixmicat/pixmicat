@@ -16,7 +16,7 @@ class PIOpgsql{
 	/* PIO模組版本 */
 	/* 輸入 void, 輸出 版本號 as string */
 	function pioVersion(){
-		return 'v20060923β';
+		return 'v20061027β';
 	}
 
 	/* private 使用SQL字串和PostgreSQL伺服器要求 */
@@ -353,6 +353,11 @@ class PIOpgsql{
 		if(!$this->prepared) $this->dbPrepare();
 
 		$foundPosts = array();
+		$SearchQuery = 'SELECT no FROM '.$this->tablename." WHERE catalog ~* ',".pg_escape_string($catalog).",'";
+		$line = $this->_pgsql_call($SearchQuery);
+		while($rows=pg_fetch_array($line)) $foundPosts[] = $rows[0];
+
+		pg_free_result($line);
 		return $foundPosts;
 	}
 

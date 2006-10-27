@@ -16,7 +16,7 @@ class PIOsqlite{
 	/* PIO模組版本 */
 	/* 輸入 void, 輸出 版本號 as string */
 	function pioVersion() {
-		return 'v20060923β';
+		return 'v20061027β';
 	}
 
 	/* private 使用SQL字串和SQLite要求 */
@@ -344,6 +344,10 @@ class PIOsqlite{
 		if(!$this->prepared) $this->dbPrepare();
 
 		$foundPosts = array();
+		$SearchQuery = 'SELECT no FROM '.$this->tablename." WHERE lower(catalog) LIKE '%,".strtolower(sqlite_escape_string($catalog)).",%'";
+		$line = $this->_sqlite_call($SearchQuery);
+		while($rows=sqlite_fetch_array($line)) $foundPosts[] = $rows[0];
+
 		return $foundPosts;
 	}
 

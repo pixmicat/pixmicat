@@ -4,7 +4,7 @@ function getMicrotime(){
     list($usec, $sec) = explode(' ', microtime());
     return ((double)$usec + (double)$sec);
 }
-define("PIXMICAT_VER", 'Pixmicat!-PIO 3rd.Release-dev b061023'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 3rd.Release-dev b061027'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -137,7 +137,7 @@ function updatelog($resno=0,$page_num=0){
 【刪除文章】[<input type="checkbox" name="onlyimgdel" id="onlyimgdel" value="on" /><label for="onlyimgdel">僅刪除附加圖檔</label>]<br />
 刪除用密碼: <input type="password" name="pwd" size="8" maxlength="8" value="" />
 <input type="submit" value=" 刪除 " />
-<script type="text/javascript">l();</script>
+<script type="text/javascript">l2();</script>
 </td></tr>
 </table>
 </div>
@@ -292,10 +292,11 @@ function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $
 		if(USE_CATALOG){
 			$ary_catalog = explode(',', str_replace('&#44;', ',', $catalog)); $ary_catalog = array_map('trim', $ary_catalog);
 			$ary_catalog_count = count($ary_catalog);
+			$ary_catalog2 = array();
 			for($p = 0; $p < $ary_catalog_count; $p++){
-				if($c = $ary_catalog[$p]) $ary_catalog[$p] = '<a href="'.PHP_SELF.'?mode=catalog&amp;c='.$c.'">'.$c.'</a>';
+				if($c = $ary_catalog[$p]) $ary_catalog2[] = '<a href="'.PHP_SELF.'?mode=catalog&amp;c='.$c.'">'.$c.'</a>';
 			}
-			$catalog = implode(', ', $ary_catalog);
+			$catalog = implode(', ', $ary_catalog2);
 		}else $catalog = '';
 
 		// 最終輸出處
@@ -350,7 +351,7 @@ function regist(){
 	$FTsub = isset($_POST['sub']) ? $_POST['sub'] : '';
 	$FTcom = isset($_POST['com']) ? $_POST['com'] : '';
 	$FTreply = isset($_POST['reply']) ? $_POST['reply'] : '';
-	if($FTname != 'spammer' || $FTemail != 'foo@foo.bar' || $FTsub != 'DO NOT FIX THIS' || $FTcom != 'EID OG SMAPS' || $FTreply != '') error('防止Spam對策機制啟動！');
+	if($FTname != 'spammer' || $FTemail != 'foo@foo.bar' || $FTsub != 'DO NOT FIX THIS' || $FTcom != 'EID OG SMAPS' || $FTreply != '') error('防止 Spambot 機制啟動！');
 
 	// 封鎖及阻擋措施
 	$host = gethostbyaddr($_SERVER["REMOTE_ADDR"]); // 取得主機位置名稱
@@ -521,6 +522,10 @@ function regist(){
 	$com = ereg_replace("\n((　| )*\n){3,}", "\n", $com);
 	if(!BR_CHECK || substr_count($com,"\n") < BR_CHECK) $com = nl2br($com); // 換行字元用<br />代替
 	$com = str_replace("\n",'', $com); // 若還有\n換行字元則取消換行
+	if($catalog){ // 修整標籤樣式
+		$catalog = explode(',', $catalog); // 把標籤拆成陣列
+		$catalog = ','.implode(',', array_map('trim', $catalog)).','; // 去空白再合併為單一字串 (左右含,便可以直接以,XX,形式搜尋)
+	}
 	if($up_incomplete) $com .= '<br /><br /><span class="warn_txt">注意：附加圖檔上傳不完全</span>'; // 上傳附加圖檔不完全的提示
 
 	// 密碼和時間的樣式

@@ -87,7 +87,7 @@ function form(&$dat, $resno){
 </td></tr>
 </table>
 </div>
-<script type="text/javascript">l();</script>
+<script type="text/javascript">l2();</script>
 <hr />
 </div>
 </form>
