@@ -1,5 +1,9 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2006/11/13
+01.[pixmicat] 修正E-mail填入 ◆XXX 的Trip後會造成版面亂掉的問題
+02.[pixmicat][config] 新增強制砍名功能 (仿二次元壁紙＠ふたば、攤開Customized)
+
 2006/10/27
 01.[mainscript][lib_common] 修正Firefox瀏覽器自動填入Cookies儲存密碼時底端欄位漏填的問題
 02.[pixmicat] 用語更改：防止Spam對策機制啟動！ -> 防止 Spambot 機制啟動！

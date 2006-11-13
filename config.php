@@ -67,7 +67,7 @@ define("USE_UPSERIES", 1); // 是否啟用連貼機能 [開主題後自動指向
 define("RESIMG", 1); // 回應附加圖檔機能 (開啟：1 關閉：0)
 define("AUTO_LINK", 1); // 討論串文字內的URL是否自動作成超連結 (是：1 否：0)
 define("KILL_INCOMPLETE_UPLOAD", 1); // 自動刪除上傳不完整附加圖檔 (是：1 否：0)
-define("ALLOW_NONAME", 1); // 是否接受不輸入名稱即可正常貼文／回應 (是：1 否：0)
+define("ALLOW_NONAME", 1); // 是否接受匿名發送 (強制砍名：2 是：1 否：0)
 define("PROXY_CHECK", 0); // 限制Proxy寫入 (是：1 否：0)
 define("DISP_ID", 2); // 顯示ID (強制顯示：2 選擇性顯示：1 永遠不顯示：0)
 define("CLEAR_SAGE", 0); // 使用不推文模式時清除E-mail中的「sage」關鍵字 (是：1 否：0)

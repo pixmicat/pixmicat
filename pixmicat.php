@@ -4,7 +4,7 @@ function getMicrotime(){
     list($usec, $sec) = explode(' ', microtime());
     return ((double)$usec + (double)$sec);
 }
-define("PIXMICAT_VER", 'Pixmicat!-PIO 3rd.Release-dev b061027'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 3rd.Release-dev b061113'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -235,10 +235,15 @@ function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $
 
 		// 設定欄位值
 		if(CLEAR_SAGE) $email = preg_replace('/^sage( *)/i', '', trim($email)); // 清除E-mail中的「sage」關鍵字
-		if($email) $name = "<a href=\"mailto:$email\">$name</a>";
+		if(ALLOW_NONAME==2){ // 強制砍名
+			$name = preg_match('/(◆.{10})/', $name, $matches) ? '<span class="nor">'.$matches[1].'</span>' : '';
+			if($email) $now = "<a href=\"mailto:$email\">$now</a>";
+		}else{
+			$name = preg_replace('/(◆.{10})/', '<span class="nor">$1</span>', $name); // Trip取消粗體
+			if($email) $name = "<a href=\"mailto:$email\">$name</a>";
+		}
 		if(AUTO_LINK) $com = auto_link($com);
 		$com = quoteLight($com);
-		$name = preg_replace('/(◆.{10})/', '<span class="nor">$1</span>', $name); // Trip取消粗體
 		if(USE_QUOTESYSTEM && $i){ // 啟用引用瀏覽系統
 			if(preg_match_all('/((?:&gt;|＞)+)(?:No\.)?(\d+)/i', $com, $matches, PREG_SET_ORDER)){ // 找尋>>No.xxx
 				foreach($matches as $val){
@@ -1038,7 +1043,7 @@ function showstatus(){
 <tr><td>討論串可接受推文的時間範圍</td><td colspan="2"> '.MAX_AGE_TIME.' 小時 (關閉：0)</td></tr>
 <tr><td>URL文字自動作成超連結</td><td colspan="2"> '.AUTO_LINK.' (是：1 否：0)</td></tr>
 <tr><td>內文接受Bytes數</td><td colspan="2"> '.COMM_MAX.' Bytes (中文字為2Bytes)</td></tr>
-<tr><td>接受匿名發送</td><td colspan="2"> '.ALLOW_NONAME.' (是：1 否：0)</td></tr>
+<tr><td>接受匿名發送</td><td colspan="2"> '.ALLOW_NONAME.' (強制砍名：2 是：1 否：0)</td></tr>
 <tr><td>自動刪除上傳不完整附加圖檔</td><td colspan="2"> '.KILL_INCOMPLETE_UPLOAD.' (是：1 否：0)</td></tr>
 <tr><td>使用預覽圖機能 (品質：'.THUMB_Q.')</td><td colspan="2"> '.USE_THUMB.' (使用：1 不使用：0)</td></tr>';
 	if(USE_THUMB) $dat .= '<tr><td>└ 預覽圖生成功能</td><td colspan="2"> '.$thumb_IsAvailable.' </td></tr>'."\n";
@@ -1090,11 +1095,10 @@ function init(){
 /*-----------程式各項功能主要判斷-------------*/
 if(GZIP_COMPRESS_LEVEL && ($Encoding = CheckSupportGZip())){ ob_start(); ob_implicit_flush(0); } // 支援且開啟Gzip壓縮就設緩衝區
 $path = realpath("./").'/'; // 此資料夾的絕對位置
-
-//init(); // ←■■！程式環境初始化，跑過一次後請刪除此行！■■
-
 $mode = isset($_GET['mode']) ? $_GET['mode'] : ''; // 目前執行模式
 if($mode=='' && isset($_POST['mode'])) $mode = $_POST['mode']; // 如果GET找不到，就用POST
+
+//init(); // ←■■！程式環境初始化，跑過一次後請刪除此行！■■
 switch($mode){
 	case 'regist':
 		regist();
