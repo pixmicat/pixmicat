@@ -1,5 +1,10 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2006/12/03
+01.[pixmicat] 修正顯示附加圖檔檔案大小時多一個B變成KBB的問題
+02.[pixmicat] 類別標籤分頁功能
+03.[PIO] PIO 0.3 更新
+
 2006/11/13
 01.[pixmicat] 修正E-mail填入 ◆XXX 的Trip後會造成版面亂掉的問題
 02.[pixmicat][config] 新增強制砍名功能 (仿二次元壁紙＠ふたば、攤開Customized)

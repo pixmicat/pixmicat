@@ -15,11 +15,6 @@ class PIOlog{
 		if($connstr) $this->dbConnect($connstr);
 	}
 
-	/* PIO模組版本 */
-	function pioVersion(){
-		return 'v20061027β';
-	}
-
 	/* private 將回文放進陣列 */
 	function _includeReplies($posts){
 		$torder_flip = array_flip($this->torder);
@@ -51,6 +46,11 @@ class PIOlog{
 			$posts[] = $this->logs[$this->LUT[$i]];
 		}
 		return $posts;
+	}
+
+	/* PIO模組版本 */
+	function pioVersion(){
+		return '0.3 (v20061203β)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -107,8 +107,6 @@ class PIOlog{
 		$this->logs = array_merge(array(), $this->logs); // 更新logs鍵值
 		$this->torder = array_merge(array(), $this->torder); // 更新torder鍵值
 		$this->porder = $this->LUT = array(); // 重新生成索引
-		//$this->porder = array_merge(array(), $this->porder);
-		//$this->LUT = array_flip($this->porder);
 
 		foreach($this->logs as $line){
 			if(!isset($line)) continue;
@@ -123,12 +121,8 @@ class PIOlog{
 		$this->LUT = array_flip($this->porder);
 		$tcount = count($this->trees);
 		for($tline = 0; $tline < $tcount; $tline++){
-			$tree .= $this->is_Thread($this->torder[$tline]) ? implode(',', $this->trees[$this->torder[$tline]])."\r\n" : '';
+			$tree .= $this->isThread($this->torder[$tline]) ? implode(',', $this->trees[$this->torder[$tline]])."\r\n" : '';
 		}
-		//error_log(' - porder : '.print_r($this->porder, true)."\n", 3, 'tracelog.txt');
-		//error_log(' - torder : '.print_r($this->torder, true)."\n", 3, 'tracelog.txt');
-		//error_log(' - trees : '.print_r($this->trees, true)."\n", 3, 'tracelog.txt');
-		//error_log(' - tree.log : '."\n".$tree."\n", 3, 'tracelog.txt');
 
 		$fp = fopen($this->logfile, 'w'); // Log
 		stream_set_write_buffer($fp, 0);
@@ -157,6 +151,65 @@ class PIOlog{
 		return false; // 不支援
 	}
 
+	/* 文章數目 */
+	function postCount($resno=0){
+		if(!$this->prepared) $this->dbPrepare();
+
+		return $resno ? ($this->isThread($resno) ? count(@$this->trees[$resno]) - 1 : 0) : count($this->porder);
+	}
+
+	/* 討論串數目 */
+	function threadCount(){
+		if(!$this->prepared) $this->dbPrepare();
+
+		return count($this->torder);
+	}
+
+	/* 取得最後的文章編號 */
+	function getLastPostNo($state){
+		if(!$this->prepared) $this->dbPrepare();
+
+		switch($state){
+			case 'beforeCommit':
+			case 'afterCommit':
+				return reset($this->porder);
+		}
+	}
+
+	/* 輸出文章清單 */
+	function fetchPostList($resno=0, $start=0, $amount=0){
+		if(!$this->prepared) $this->dbPrepare();
+
+		$plist = array();
+		if($resno){
+			if($this->isThread($resno)){
+				if($start && $amount){
+					$plist = array_slice($this->trees[$resno], $start, $amount);
+					array_unshift($plist, $resno);
+				}
+				if(!$start && $amount) $plist = array_slice($this->trees[$resno], 0, $amount);
+				if(!$start && !$amount) $plist = $this->trees[$resno];
+			}
+		}else{
+			$plist = $amount ? array_slice($this->porder, $start, $amount) : $this->porder;
+		}
+		return $plist;
+	}
+
+	/* 輸出討論串清單 */
+	function fetchThreadList($start=0, $amount=0){
+		if(!$this->prepared) $this->dbPrepare();
+
+		return $amount ? array_slice($this->torder, $start, $amount) : $this->torder;
+	}
+
+	/* 輸出文章 */
+	function fetchPosts($postlist){
+		if(!$this->prepared) $this->dbPrepare();
+
+		return $this->_ArrangeArrayStructure($postlist); // 輸出陣列結構
+	}
+
 	/* 刪除舊文 */
 	function delOldPostes(){
 		if(!$this->prepared) $this->dbPrepare();
@@ -164,6 +217,22 @@ class PIOlog{
 		$delPosts = @array_slice($this->porder, LOG_MAX - 1); // 截出舊文編號陣列
 		if(count($delPosts)) return $this->removePosts($delPosts);
 		else return false;
+	}
+
+	/* 刪除舊附件 (輸出附件清單) */
+	function delOldAttachments($total_size, $storage_max, $warnOnly=true){
+		global $path;
+		if(!$this->prepared) $this->dbPrepare();
+
+		$rpord = $this->porder; sort($rpord); // 由舊排到新 (小->大)
+		$arr_warn = $arr_kill = array();
+		foreach($rpord as $post){
+			$logsarray = $this->_ArrangeArrayStructure($post); // 分析資料為陣列
+			if(file_func('exist', $path.IMG_DIR.$logsarray[0]['tim'].$logsarray[0]['ext'])){ $total_size -= file_func('size', $path.IMG_DIR.$logsarray[0]['tim'].$logsarray[0]['ext']) / 1024; $arr_kill[] = $post; $arr_warn[$post] = 1; } // 標記刪除
+			if(file_func('exist', $path.THUMB_DIR.$logsarray[0]['tim'].'s.jpg')) $total_size -= file_func('size', $path.THUMB_DIR.$logsarray[0]['tim'].'s.jpg') / 1024;
+			if($total_size < $storage_max) break;
+		}
+		return $warnOnly ? $arr_warn : $this->removeAttachments($arr_kill);
 	}
 
 	/* 刪除文章 */
@@ -194,22 +263,6 @@ class PIOlog{
 		return $filelist;
 	}
 
-	/* 刪除舊附件 (輸出附件清單) */
-	function delOldAttachments($total_size, $storage_max, $warnOnly=true){
-		global $path;
-		if(!$this->prepared) $this->dbPrepare();
-
-		$rpord = $this->porder; sort($rpord); // 由舊排到新 (小->大)
-		$arr_warn = $arr_kill = array();
-		foreach($rpord as $post){
-			$logsarray = $this->_ArrangeArrayStructure($post); // 分析資料為陣列
-			if(file_func('exist', $path.IMG_DIR.$logsarray[0]['tim'].$logsarray[0]['ext'])){ $total_size -= file_func('size', $path.IMG_DIR.$logsarray[0]['tim'].$logsarray[0]['ext']) / 1024; $arr_kill[] = $post; $arr_warn[$post] = 1; } // 標記刪除
-			if(file_func('exist', $path.THUMB_DIR.$logsarray[0]['tim'].'s.jpg')) $total_size -= file_func('size', $path.THUMB_DIR.$logsarray[0]['tim'].'s.jpg') / 1024;
-			if($total_size < $storage_max) break;
-		}
-		return $warnOnly ? $arr_warn : $this->removeAttachments($arr_kill);
-	}
-
 	/* 刪除附件 (輸出附件清單) */
 	function removeAttachments($posts){
 		global $path;
@@ -227,8 +280,32 @@ class PIOlog{
 		return $files;
 	}
 
+	/* 新增文章/討論串 */
+	function addPost($no, $resto, $md5chksum, $catalog, $tim, $ext, $imgw, $imgh, $imgsize, $tw, $th, $pwd, $now, $name, $email, $sub, $com, $host, $age=false) {
+		if(!$this->prepared) $this->dbPrepare();
+
+		$tline = array($no, $resto, $md5chksum, $catalog, $tim, $ext, $imgw, $imgh, $imgsize, $tw, $th, $pwd, $now, $name, $email, $sub, $com, $host, '');
+		$tline = array_map(array($this, '_replaceComma'), $tline); // 將資料內的 , 轉換 (Only Log needed)
+		array_unshift($this->logs, implode(',', $tline).",\r\n"); // 更新logs
+		array_unshift($this->porder, $no); // 更新porder
+		$this->LUT = array_flip($this->porder); // 更新LUT
+
+		// 更新torder及trees
+		if($resto){
+			$this->trees[$resto][] = $no;
+			if($age){
+				$torder_flip = array_flip($this->torder);
+				unset($this->torder[$torder_flip[$resto]]); // 先刪除舊有位置
+				array_unshift($this->torder, $resto); // 再移到頂端
+			}
+		}else{
+			$this->trees[$no][0] = $no;
+			array_unshift($this->torder, $no);
+		}
+	}
+
 	/* 檢查是否連續投稿 */
-	function checkSuccessivePost($lcount, $com, $timestamp, $pass, $passcookie, $host, $upload_filename){
+	function isSuccessivePost($lcount, $com, $timestamp, $pass, $passcookie, $host, $isupload){
 		if(!$this->prepared) $this->dbPrepare();
 
 		$pcount = $this->postCount();
@@ -240,15 +317,15 @@ class PIOlog{
 			else $pchk = 0;
 			if(RENZOKU && $pchk){ // 密碼比對符合且開啟連續投稿時間限制
 				if($timestamp - $ltime < RENZOKU) return true; // 投稿時間相距太短
-				if($timestamp - $ltime < RENZOKU2 && $upload_filename) return true; // 附加圖檔的投稿時間相距太短
-				if($com == $lcom && !$upload_filename) return true; // 內文一樣
+				if($timestamp - $ltime < RENZOKU2 && $isupload) return true; // 附加圖檔的投稿時間相距太短
+				if($com == $lcom && !$isupload) return true; // 內文一樣
 			}
 		}
 		return false;
 	}
 
 	/* 檢查是否重複貼圖 */
-	function checkDuplicateAttechment($lcount, $md5hash){
+	function isDuplicateAttechment($lcount, $md5hash){
 		global $path;
 
 		$pcount = $this->postCount();
@@ -263,56 +340,8 @@ class PIOlog{
 		return false;
 	}
 
-	/* 文章數目 */
-	function postCount($resno=0){
-		if(!$this->prepared) $this->dbPrepare();
-
-		return $resno ? ($this->is_Thread($resno) ? count(@$this->trees[$resno]) - 1 : 0) : count($this->porder);
-	}
-
-	/* 討論串數目 */
-	function threadCount(){
-		if(!$this->prepared) $this->dbPrepare();
-
-		return count($this->torder);
-	}
-
-	/* 輸出文章清單 */
-	function fetchPostList($resno=0, $start=0, $amount=0){
-		if(!$this->prepared) $this->dbPrepare();
-
-		$plist = array();
-		if($resno){
-			if($this->is_Thread($resno)){
-				if($start && $amount){
-					$plist = array_slice($this->trees[$resno], $start, $amount);
-					array_unshift($plist, $resno);
-				}
-				if(!$start && $amount) $plist = array_slice($this->trees[$resno], 0, $amount);
-				if(!$start && !$amount) $plist = $this->trees[$resno];
-			}
-		}else{
-			$plist = $amount ? array_slice($this->porder, $start, $amount) : $this->porder;
-		}
-		return $plist;
-	}
-
-	/* 輸出討論串清單 */
-	function fetchThreadList($start=0, $amount=0){
-		if(!$this->prepared) $this->dbPrepare();
-
-		return $amount ? array_slice($this->torder, $start, $amount) : $this->torder;
-	}
-
-	/* 輸出文章 */
-	function fetchPosts($postlist){
-		if(!$this->prepared) $this->dbPrepare();
-
-		return $this->_ArrangeArrayStructure($postlist); // 輸出陣列結構
-	}
-
 	/* 有此討論串? */
-	function is_Thread($no){
+	function isThread($no){
 		if(!$this->prepared) $this->dbPrepare();
 
 		return isset($this->trees[$no]);
@@ -353,30 +382,6 @@ class PIOlog{
 		return $foundPosts;
 	}
 
-	/* 新增文章/討論串 */
-	function addPost($no, $resto, $md5chksum, $catalog, $tim, $ext, $imgw, $imgh, $imgsize, $tw, $th, $pwd, $now, $name, $email, $sub, $com, $host, $age=false) {
-		if(!$this->prepared) $this->dbPrepare();
-
-		$tline = array($no, $resto, $md5chksum, $catalog, $tim, $ext, $imgw, $imgh, $imgsize, $tw, $th, $pwd, $now, $name, $email, $sub, $com, $host, '');
-		$tline = array_map(array($this, '_replaceComma'), $tline); // 將資料內的 , 轉換 (Only Log needed)
-		array_unshift($this->logs, implode(',', $tline).",\r\n"); // 更新logs
-		array_unshift($this->porder, $no); // 更新porder
-		$this->LUT = array_flip($this->porder); // 更新LUT
-
-		// 更新torder及trees
-		if($resto){
-			$this->trees[$resto][] = $no;
-			if($age){
-				$torder_flip = array_flip($this->torder);
-				unset($this->torder[$torder_flip[$resto]]); // 先刪除舊有位置
-				array_unshift($this->torder, $resto); // 再移到頂端
-			}
-		}else{
-			$this->trees[$no][0] = $no;
-			array_unshift($this->torder, $no);
-		}
-	}
-
 	/* 取得文章屬性 */
 	function getPostStatus($status, $statusType){
 		if(!$this->prepared) $this->dbPrepare();
@@ -413,17 +418,6 @@ class PIOlog{
 			}
 			$this->_ArrangeArrayStructure($no[$i]); // 將資料變成陣列
 			$this->logs[$this->LUT[$no[$i]]]['status'] = $status[$i]; // 修改狀態
-		}
-	}
-
-	/* 取得最後的文章編號 */
-	function getLastPostNo($state){
-		if(!$this->prepared) $this->dbPrepare();
-
-		switch($state){
-			case 'beforeCommit':
-			case 'afterCommit':
-				return reset($this->porder);
 		}
 	}
 }

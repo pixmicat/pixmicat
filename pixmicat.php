@@ -4,7 +4,7 @@ function getMicrotime(){
     list($usec, $sec) = explode(' ', microtime());
     return ((double)$usec + (double)$sec);
 }
-define("PIXMICAT_VER", 'Pixmicat!-PIO 3rd.Release-dev b061113'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 3rd.Release-dev b061203'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -68,7 +68,7 @@ function updatelog($resno=0,$page_num=0){
 			$threads = $pio->fetchThreadList($page_num * PAGE_DEF, PAGE_DEF); // 取出分頁後的討論串首篇列表
 			$inner_for_count = count($threads); // 討論串個數就是迴圈次數
 		}
-	}else if(!$pio->is_Thread($resno)) error('欲回應之文章並不存在！');
+	}else if(!$pio->isThread($resno)) error('欲回應之文章並不存在！');
 
 	// 預測過舊文章和將被刪除檔案
 	if($pio->postCount() >= LOG_MAX * 0.95){
@@ -266,7 +266,7 @@ function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $
 			if($tw && $th){
 				if(file_func('exist', $thumbimg)){ // 有預覽圖
 					$img_thumb = '<small>[以預覽圖顯示]</small>';
-					$imgsrc = '<a href="'.IMGLINK_URL_PREFIX.$src.'" rel="_blank"><img src="'.THUMB_URL_PREFIX.$thumbsrc.'" style="width: '.$tw.'px; height: '.$th.'px;" class="img" alt="'.$imgsize.'B" title="'.$imgsize.'B" /></a>';
+					$imgsrc = '<a href="'.IMGLINK_URL_PREFIX.$src.'" rel="_blank"><img src="'.THUMB_URL_PREFIX.$thumbsrc.'" style="width: '.$tw.'px; height: '.$th.'px;" class="img" alt="'.$imgsize.'" title="'.$imgsize.'" /></a>';
 				}elseif($ext=='.swf') $imgsrc = ''; // swf檔案不需預覽圖
 			}
 			if(SHOW_IMGWH) $imgwh_bar = ', '.$imgw.'x'.$imgh; // 顯示附加圖檔之原檔長寬尺寸
@@ -346,7 +346,7 @@ function regist(){
 	$resto = isset($_POST['resto']) ? $_POST['resto'] : 0;
 	$upfile = isset($_FILES['upfile']['tmp_name']) ? $_FILES['upfile']['tmp_name'] : '';
 	$upfile_path = isset($_POST['upfile_path']) ? $_POST['upfile_path'] : '';
-	$upfile_name = isset($_FILES['upfile']['name']) ? $_FILES['upfile']['name'] : '';
+	$upfile_name = isset($_FILES['upfile']['name']) ? $_FILES['upfile']['name'] : false;
 	$upfile_status = isset($_FILES['upfile']['error']) ? $_FILES['upfile']['error'] : 4;
 	$pwdc = isset($_COOKIE['pwdc']) ? $_COOKIE['pwdc'] : '';
 
@@ -547,10 +547,10 @@ function regist(){
 	// 連續投稿 / 相同附加圖檔檢查
 	$checkcount = 50; // 預設檢查50筆資料
 	$pwdc = substr(md5($pwdc), 2, 8); // Cookies密碼
-	if($pio->checkSuccessivePost($checkcount, $com, $time, $pass, $pwdc, $host, $upfile_name)) error('連續投稿請稍候一段時間', $dest); // 連續投稿檢查
-	if($dest){ if($pio->checkDuplicateAttechment($checkcount, $md5chksum)) error('上傳失敗<br />近期已經有相同的附加圖檔', $dest); } // 相同附加圖檔檢查
+	if($pio->isSuccessivePost($checkcount, $com, $time, $pass, $pwdc, $host, $upfile_name)) error('連續投稿請稍候一段時間', $dest); // 連續投稿檢查
+	if($dest){ if($pio->isDuplicateAttechment($checkcount, $md5chksum)) error('上傳失敗<br />近期已經有相同的附加圖檔', $dest); } // 相同附加圖檔檢查
 
-	if($resto) $ThreadExistsBefore = $pio->is_Thread($resto);
+	if($resto) $ThreadExistsBefore = $pio->isThread($resto);
 	// 記錄檔行數已達上限：刪除過舊檔
 	if($pio->postCount() >= LOG_MAX){
 		$files = $pio->delOldPostes();
@@ -569,7 +569,7 @@ function regist(){
 	// 判斷欲回應的文章是不是剛剛被刪掉了
 	if($resto){
 		if($ThreadExistsBefore){ // 欲回應的討論串是否存在 (看逆轉換成功與否)
-			if(!$pio->is_Thread($resto)){ // 被回應的討論串存在但已被刪
+			if(!$pio->isThread($resto)){ // 被回應的討論串存在但已被刪
 				// 提前更新資料來源，此筆新增亦不紀錄
 				$pio->dbCommit();
 				updatelog();
@@ -964,6 +964,7 @@ function searchCatalog(){
 	global $pio;
 	$catalog = isset($_GET['c']) ? strtolower(strip_tags(trim($_GET['c']))) : '';
 	$page = isset($_GET['p']) ? @intval($_GET['p']) : 1;
+	if($page < 1) $page = 1;
 	if(!$catalog) error('請輸入類別標籤以搜尋類似文章。');
 
 	// 利用Session快取類別標籤出現篇別以減少負擔
@@ -973,19 +974,35 @@ function searchCatalog(){
 		$_SESSION['loglist_'.$catalog] = serialize($loglist);
 	}else $loglist = unserialize($_SESSION['loglist_'.$catalog]);
 	$loglist_count = count($loglist);
+	if(!$loglist_count) error('沒有符合此類別標籤的文章');
+	$page_max = ceil($loglist_count / PAGE_DEF); if($page > $page_max) $page = $page_max; // 總頁數
 
 	// 分割陣列取出適當範圍作分頁之用
 	$PTE = USE_TEMPLATE ? new PTELibrary(TEMPLATE_FILE) : 0; // PTE Library
-	/*
-	$loglist_cut = array_slice($loglist, $RES_start, $RES_amount); // 取出特定範圍文章
-	*/
+	$loglist_cut = array_slice($loglist, PAGE_DEF * ($page - 1), PAGE_DEF); // 取出特定範圍文章
+	$loglist_cut_count = count($loglist_cut);
+
 	$dat = '';
 	if(!$PTE){ head($dat, "\n".'<link rel="stylesheet" type="text/css" href="inc_pixmicat.css" />'."\n"); }else{ head($dat, $PTE->ReplaceStrings_Style()); }
-	if(!$loglist_count) error('沒有符合此類別標籤的文章');
-	for($i = 0; $i < $loglist_count; $i++){
-		$posts = $pio->fetchPosts($loglist[$i]); // 取得文章內容
-		$dat .= arrangeThread($PTE, 0, 0, $posts, 0, $loglist[$i], 0, 0, 0, 0, false); // 逐個輸出 (引用連結不顯示)
+	$dat .= '<div>[<a href="'.PHP_SELF2.'?'.time().'">回到版面</a>]</div>'."\n";
+	for($i = 0; $i < $loglist_cut_count; $i++){
+		$posts = $pio->fetchPosts($loglist_cut[$i]); // 取得文章內容
+		$dat .= arrangeThread($PTE, 0, 0, $posts, 0, $loglist_cut[$i], 0, 0, 0, 0, false); // 逐個輸出 (引用連結不顯示)
 	}
+
+	$dat .= '<table border="1"><tr>';
+	if($page > 1) $dat .= '<td><form action="'.PHP_SELF.'?mode=catalog&amp;c='.$catalog.'&amp;p='.($page - 1).'" method="post"><div><input type="submit" value="上一頁" /></div></form></td>';
+	else $dat .= '<td style="white-space: nowrap;">第一頁</td>';
+	$dat .= '<td>';
+	for($i = 1; $i <= $page_max ; $i++){
+		if($i==$page) $dat .= "[<b>".$i."</b>] ";
+		else $dat .= '[<a href="'.PHP_SELF.'?mode=catalog&amp;c='.$catalog.'&amp;p='.$i.'">'.$i.'</a>] ';
+	}
+	$dat .= '</td>';
+	if($page < $page_max) $dat .= '<td><form action="'.PHP_SELF.'?mode=catalog&amp;c='.$catalog.'&amp;p='.($page + 1).'" method="post"><div><input type="submit" value="下一頁" /></div></form></td>';
+	else $dat .= '<td style="white-space: nowrap;">最後一頁</td>';
+	$dat .= '</tr></table>'."\n";
+
 	foot($dat);
 	echo $dat;
 }

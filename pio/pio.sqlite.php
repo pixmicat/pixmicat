@@ -13,12 +13,6 @@ class PIOsqlite{
 		if($connstr) $this->dbConnect($connstr);
 	}
 
-	/* PIO模組版本 */
-	/* 輸入 void, 輸出 版本號 as string */
-	function pioVersion() {
-		return 'v20061027β';
-	}
-
 	/* private 使用SQL字串和SQLite要求 */
 	function _sqlite_call($query){
 		$debug_mode = false; // 除錯模式：顯示SQL錯誤訊息
@@ -41,8 +35,12 @@ class PIOsqlite{
 		return $currrow[$row][$field];
 	}
 
+	/* PIO模組版本 */
+	function pioVersion(){
+		return '0.3 (v20061203β)';
+	}
+
 	/* 處理連線字串/連接 */
-	/* 輸入 連線字串 as string, 輸出 void */
 	function dbConnect($connStr){
 		// 格式： sqlite://SQLite檔案之位置/資料表/
 		// 示例： sqlite://pixmicat.db/imglog/
@@ -53,7 +51,6 @@ class PIOsqlite{
 	}
 
 	/* 初始化 */
-	/* 輸入 void, 輸出 void */
 	function dbInit(){
 		$this->dbPrepare();
 		if(sqlite_num_rows(sqlite_query($this->con, "SELECT name FROM sqlite_master WHERE name LIKE '".$this->tablename."'"))===0){ // 資料表不存在
@@ -92,7 +89,6 @@ class PIOsqlite{
 	}
 
 	/* 準備/讀入 */
-	/* 輸入 是否重作 as boolean, 是否啟動交易模式 as boolean, 輸出 void */
 	function dbPrepare($reload=false, $transaction=true){
 		if($this->prepared && !$reload) return true;
 
@@ -104,7 +100,6 @@ class PIOsqlite{
 	}
 
 	/* 提交/儲存 */
-	/* 輸入 void, 輸出 void */
 	function dbCommit(){
 		if(!$this->prepared) return false;
 
@@ -112,7 +107,6 @@ class PIOsqlite{
 	}
 
 	/* 優化資料表 */
-	/* 輸入 是否作 as boolean, 輸出 優化成果 as boolean */
 	function dbOptimize($doit=false){
 		if($doit){
 			$this->dbPrepare(true, false);
@@ -121,8 +115,85 @@ class PIOsqlite{
 		}else return true; // 支援最佳化資料表
 	}
 
+	/* 文章數目 */
+	function postCount($resno=0){
+		if(!$this->prepared) $this->dbPrepare();
+
+		if($resno){ // 回傳討論串總回應數目 (含本文故要加1)
+			$line = $this->_sqlite_call('SELECT COUNT(no) FROM '.$this->tablename.' WHERE resto = '.$resno);
+			$countline = $this->_sqlite_result($line, 0, 0) + 1;
+		}else{ // 回傳總文章數目
+			$line = $this->_sqlite_call('SELECT COUNT(no) FROM '.$this->tablename);
+			$countline = $this->_sqlite_result($line, 0, 0);
+		}
+		return $countline;
+	}
+
+	/* 討論串數目 */
+	function threadCount(){
+		if(!$this->prepared) $this->dbPrepare();
+
+		$tree = $this->_sqlite_call('SELECT COUNT(no) FROM '.$this->tablename.' WHERE resto = 0');
+		$counttree = $this->_sqlite_result($tree, 0, 0); // 計算討論串目前資料筆數
+		return $counttree;
+	}
+
+	/* 取得最後文章編號 */
+	function getLastPostNo($state){
+		if(!$this->prepared) $this->dbPrepare();
+
+		if($state=='afterCommit'){ // 送出後的最後文章編號
+			$tree = $this->_sqlite_call('SELECT MAX(no) FROM '.$this->tablename);
+			$lastno = $this->_sqlite_result($tree, 0, 0);
+			return $lastno;
+		}else return 0; // 其他狀態沒用
+	}
+
+	/* 輸出文章清單 */
+	function fetchPostList($resno=0, $start=0, $amount=0){
+		if(!$this->prepared) $this->dbPrepare();
+
+		$line = array();
+		if($resno){ // 輸出討論串的結構 (含自己, EX : 1,2,3,4,5,6)
+			$tmpSQL = 'SELECT no FROM '.$this->tablename.' WHERE no = '.$resno.' OR resto = '.$resno.' ORDER BY no';
+		}else{ // 輸出所有文章編號，新的在前
+			$tmpSQL = 'SELECT no FROM '.$this->tablename.' ORDER BY no DESC';
+			if($amount) $tmpSQL .= " LIMIT {$start}, {$amount}"; // 有指定數量才用 LIMIT
+		}
+		$tree = $this->_sqlite_call($tmpSQL);
+		while($rows=sqlite_fetch_array($tree)) $line[] = $rows[0]; // 迴圈
+
+		return $line;
+	}
+
+	/* 輸出討論串清單 */
+	function fetchThreadList($start=0, $amount=0) {
+		if(!$this->prepared) $this->dbPrepare();
+
+		$treeline = array();
+		$tmpSQL = 'SELECT no FROM '.$this->tablename.' WHERE resto = 0 ORDER BY root DESC';
+		if($amount) $tmpSQL .= " LIMIT {$start}, {$amount}"; // 有指定數量才用 LIMIT
+		$tree = $this->_sqlite_call($tmpSQL);
+		while($rows=sqlite_fetch_array($tree)) $treeline[] = $rows[0]; // 迴圈
+
+		return $treeline;
+	}
+
+	/* 輸出文章 */
+	function fetchPosts($postlist){
+		if(!$this->prepared) $this->dbPrepare();
+
+		if(is_array($postlist)){ // 取多串
+			$pno = implode(', ', $postlist); // ID字串
+			$tmpSQL = 'SELECT * FROM '.$this->tablename.' WHERE no IN ('.$pno.') ORDER BY no';
+			if(count($postlist) > 1){ if($postlist[0] > $postlist[1]) $tmpSQL .= ' DESC'; } // 由大排到小
+		}else $tmpSQL = 'SELECT * FROM '.$this->tablename.' WHERE no = '.$postlist; // 取單串
+		$line = $this->_sqlite_call($tmpSQL);
+
+		return $this->_ArrangeArrayStructure($line); // 輸出陣列結構
+	}
+
 	/* 刪除舊文 */
-	/* 輸入 void, 輸出 舊文之附加檔案列表 as array */
 	function delOldPostes(){
 		global $path;
 		if(!$this->prepared) $this->dbPrepare();
@@ -153,19 +224,7 @@ class PIOsqlite{
 		return $oldAttachments; // 回傳需刪除檔案列表
 	}
 
-	/* 刪除文章 */
-	/* 輸入 文章編號 as array, 輸出 刪除附加檔案列表 as array */
-	function removePosts($posts){
-		if(!$this->prepared) $this->dbPrepare();
-
-		$files = $this->removeAttachments($posts, true); // 先遞迴取得刪除文章及其回應附件清單
-		$pno = implode(', ', $posts); // ID字串
-		if(!$result=$this->_sqlite_call('DELETE FROM '.$this->tablename.' WHERE no IN ('.$pno.') OR resto IN('.$pno.')')) echo '[ERROR] 刪除文章及其回應失敗<br />'; // 刪掉文章
-		return $files;
-	}
-
 	/* 刪除舊附件 (輸出附件清單) */
-	/* 輸入 附加檔案總容量 as integer, 限制檔案儲存量 as integer, 只警告 as boolean, 輸出 警告旗標 / 舊附件列表 as array */
 	function delOldAttachments($total_size, $storage_max, $warnOnly=true){
 		global $path;
 		if(!$this->prepared) $this->dbPrepare();
@@ -184,8 +243,17 @@ class PIOsqlite{
 		return $warnOnly ? $arr_warn : $this->removeAttachments($arr_kill);
 	}
 
+	/* 刪除文章 */
+	function removePosts($posts){
+		if(!$this->prepared) $this->dbPrepare();
+
+		$files = $this->removeAttachments($posts, true); // 先遞迴取得刪除文章及其回應附件清單
+		$pno = implode(', ', $posts); // ID字串
+		if(!$result=$this->_sqlite_call('DELETE FROM '.$this->tablename.' WHERE no IN ('.$pno.') OR resto IN('.$pno.')')) echo '[ERROR] 刪除文章及其回應失敗<br />'; // 刪掉文章
+		return $files;
+	}
+
 	/* 刪除附件 (輸出附件清單) */
-	/* 輸入 文章編號 as array, 是否遞迴(附加其回應附件) as boolean, 輸出 刪除附件列表 as array */
 	function removeAttachments($posts, $recursion=false){
 		global $path;
 		if(!$this->prepared) $this->dbPrepare();
@@ -207,152 +275,7 @@ class PIOsqlite{
 		return $files;
 	}
 
-	/* 檢查是否連續投稿 */
-	/* 輸入 檢查筆數 as integer, 內文 as string, 時間戳記 as integer, 密碼 as string, Cookie儲存密碼 as string, 主機名 as string, 上傳檔案名 as string, 輸出 是否連續發文 as boolean */
-	function checkSuccessivePost($lcount, $com, $timestamp, $pass, $passcookie, $host, $upload_filename){
-		global $path;
-		if(!$this->prepared) $this->dbPrepare();
-
-		if(!RENZOKU) return false; // 關閉連續投稿檢查
-		$tmpSQL = 'SELECT pwd,host FROM '.$this->tablename.' WHERE time > '.($timestamp - RENZOKU); // 一般投稿時間檢查
-		if($upload_filename) $tmpSQL .= ' OR time > '.($timestamp - RENZOKU2); // 附加圖檔的投稿時間檢查 (與下者兩者擇一)
-		else $tmpSQL .= " OR php('md5', com) = '".md5($com)."'"; // 內文一樣的檢查 (與上者兩者擇一) * 此取巧採用了PHP登錄的函式php來叫用md5
-		if(!$result=$this->_sqlite_call($tmpSQL)) echo '[ERROR] 取出文章判斷連續發文失敗<br />';
-		else{
-			while(list($lpwd, $lhost)=sqlite_fetch_array($result)){
-				$pchk = 0;
-				if($host==$lhost || $pass==$lpwd || $passcookie==$lpwd) $pchk = 1;
-				if($pchk) return true; break; // 判斷為同一人發文且符合連續投稿條件
-			}
-			return false;
-		}
-	}
-
-	/* 檢查是否重複貼圖 */
-	/* 輸入 檢查筆數 as integer, MD5雜湊值 as string, 輸出 是否重複貼圖 as boolean */
-	function checkDuplicateAttechment($lcount, $md5hash){
-		global $path;
-		if(!$this->prepared) $this->dbPrepare();
-
-		if(!$result=$this->_sqlite_call('SELECT tim,ext FROM '.$this->tablename." WHERE ext <> '' AND md5chksum = '$md5hash' ORDER BY no DESC")) echo '[ERROR] 取出文章判斷重複貼圖失敗<br />';
-		else{
-			while(list($ltim, $lext)=sqlite_fetch_array($result)){
-				if(file_func('exist', $path.IMG_DIR.$ltim.$lext)){ return true; break; } // 有相同檔案
-			}
-			return false;
-		}
-	}
-
-	/* 文章數目 */
-	/* 輸入 討論串ID as integer, 輸出 討論串文章 / 總文章數目 as integer */
-	function postCount($resno=0){
-		if(!$this->prepared) $this->dbPrepare();
-
-		if($resno){ // 回傳討論串總回應數目 (含本文故要加1)
-			$line = $this->_sqlite_call('SELECT COUNT(no) FROM '.$this->tablename.' WHERE resto = '.$resno);
-			$countline = $this->_sqlite_result($line, 0, 0) + 1;
-		}else{ // 回傳總文章數目
-			$line = $this->_sqlite_call('SELECT COUNT(no) FROM '.$this->tablename);
-			$countline = $this->_sqlite_result($line, 0, 0);
-		}
-		return $countline;
-	}
-
-	/* 討論串數目 */
-	/* 輸入 void, 輸出 討論串數目 as integer */
-	function threadCount(){
-		if(!$this->prepared) $this->dbPrepare();
-
-		$tree = $this->_sqlite_call('SELECT COUNT(no) FROM '.$this->tablename.' WHERE resto = 0');
-		$counttree = $this->_sqlite_result($tree, 0, 0); // 計算討論串目前資料筆數
-		return $counttree;
-	}
-
-	/* 輸出文章清單 */
-	/* 輸入 討論串編號, 開始值, 數目 as integer, 輸出 討論串結構 as array */
-	function fetchPostList($resno=0, $start=0, $amount=0){
-		if(!$this->prepared) $this->dbPrepare();
-
-		$line = array();
-		if($resno){ // 輸出討論串的結構 (含自己, EX : 1,2,3,4,5,6)
-			$tmpSQL = 'SELECT no FROM '.$this->tablename.' WHERE no = '.$resno.' OR resto = '.$resno.' ORDER BY no';
-		}else{ // 輸出所有文章編號，新的在前
-			$tmpSQL = 'SELECT no FROM '.$this->tablename.' ORDER BY no DESC';
-			if($amount) $tmpSQL .= " LIMIT {$start}, {$amount}"; // 有指定數量才用 LIMIT
-		}
-		$tree = $this->_sqlite_call($tmpSQL);
-		while($rows=sqlite_fetch_array($tree)) $line[] = $rows[0]; // 迴圈
-
-		return $line;
-	}
-
-	/* 輸出討論串清單 */
-	/* 輸入 開始值, 數目 as integer, 輸出 討論串首篇編號 as array */
-	function fetchThreadList($start=0, $amount=0) {
-		if(!$this->prepared) $this->dbPrepare();
-
-		$treeline = array();
-		$tmpSQL = 'SELECT no FROM '.$this->tablename.' WHERE resto = 0 ORDER BY root DESC';
-		if($amount) $tmpSQL .= " LIMIT {$start}, {$amount}"; // 有指定數量才用 LIMIT
-		$tree = $this->_sqlite_call($tmpSQL);
-		while($rows=sqlite_fetch_array($tree)) $treeline[] = $rows[0]; // 迴圈
-
-		return $treeline;
-	}
-
-	/* 輸出文章 */
-	/* 輸入 文章編號 as array, 輸出 文章資料 as array */
-	function fetchPosts($postlist){
-		if(!$this->prepared) $this->dbPrepare();
-
-		if(is_array($postlist)){ // 取多串
-			$pno = implode(', ', $postlist); // ID字串
-			$tmpSQL = 'SELECT * FROM '.$this->tablename.' WHERE no IN ('.$pno.') ORDER BY no';
-			if(count($postlist) > 1){ if($postlist[0] > $postlist[1]) $tmpSQL .= ' DESC'; } // 由大排到小
-		}else $tmpSQL = 'SELECT * FROM '.$this->tablename.' WHERE no = '.$postlist; // 取單串
-		$line = $this->_sqlite_call($tmpSQL);
-
-		return $this->_ArrangeArrayStructure($line); // 輸出陣列結構
-	}
-
-	/* 有此討論串? */
-	/* 輸入 討論串編號 as integer, 輸出 是否存在 as boolean */
-	function is_Thread($no){
-		if(!$this->prepared) $this->dbPrepare();
-
-		$result = $this->_sqlite_call('SELECT no FROM '.$this->tablename.' WHERE no = '.$no.' AND resto = 0');
-		return sqlite_fetch_array($result);
-	}
-
-	/* 搜尋文章 */
-	/* 輸入 關鍵字 as array, 搜尋目標 as string, 搜尋方式 as string, 輸出 文章資料 as array */
-	function searchPost($keyword, $field, $method){
-		if(!$this->prepared) $this->dbPrepare();
-
-		$keyword_cnt = count($keyword);
-		$SearchQuery = 'SELECT * FROM '.$this->tablename." WHERE {$field} LIKE '%".($keyword[0])."%'";
-		if($keyword_cnt > 1) for($i = 1; $i < $keyword_cnt; $i++) $SearchQuery .= " {$method} {$field} LIKE '%".($keyword[$i])."%'"; // 多重字串交集 / 聯集搜尋
-		$SearchQuery .= ' ORDER BY no DESC'; // 按照號碼大小排序
-		if(!$line=$this->_sqlite_call($SearchQuery)) echo '[ERROR] 搜尋文章失敗<br />';
-
-		return $this->_ArrangeArrayStructure($line); // 輸出陣列結構
-	}
-
-	/* 搜尋類別標籤 */
-	/* 輸入 標籤 as string, 輸出 符合文章編號 as array */
-	function searchCatalog($catalog){
-		if(!$this->prepared) $this->dbPrepare();
-
-		$foundPosts = array();
-		$SearchQuery = 'SELECT no FROM '.$this->tablename." WHERE lower(catalog) LIKE '%,".strtolower(sqlite_escape_string($catalog)).",%'";
-		$line = $this->_sqlite_call($SearchQuery);
-		while($rows=sqlite_fetch_array($line)) $foundPosts[] = $rows[0];
-
-		return $foundPosts;
-	}
-
 	/* 新增文章/討論串 */
-	/* 輸入 各種欄位值 as any, 輸出 void */
 	function addPost($no, $resto, $md5chksum, $catalog, $tim, $ext, $imgw, $imgh, $imgsize, $tw, $th, $pwd, $now, $name, $email, $sub, $com, $host, $age=false){
 		if(!$this->prepared) $this->dbPrepare();
 
@@ -383,8 +306,74 @@ class PIOsqlite{
 		if(!$result=$this->_sqlite_call($query)) echo '[ERROR] 新增文章失敗<br />';
 	}
 
+	/* 檢查是否連續投稿 */
+	function isSuccessivePost($lcount, $com, $timestamp, $pass, $passcookie, $host, $isupload){
+		global $path;
+		if(!$this->prepared) $this->dbPrepare();
+
+		if(!RENZOKU) return false; // 關閉連續投稿檢查
+		$tmpSQL = 'SELECT pwd,host FROM '.$this->tablename.' WHERE time > '.($timestamp - RENZOKU); // 一般投稿時間檢查
+		if($isupload) $tmpSQL .= ' OR time > '.($timestamp - RENZOKU2); // 附加圖檔的投稿時間檢查 (與下者兩者擇一)
+		else $tmpSQL .= " OR php('md5', com) = '".md5($com)."'"; // 內文一樣的檢查 (與上者兩者擇一) * 此取巧採用了PHP登錄的函式php來叫用md5
+		if(!$result=$this->_sqlite_call($tmpSQL)) echo '[ERROR] 取出文章判斷連續發文失敗<br />';
+		else{
+			while(list($lpwd, $lhost)=sqlite_fetch_array($result)){
+				$pchk = 0;
+				if($host==$lhost || $pass==$lpwd || $passcookie==$lpwd) $pchk = 1;
+				if($pchk) return true; break; // 判斷為同一人發文且符合連續投稿條件
+			}
+			return false;
+		}
+	}
+
+	/* 檢查是否重複貼圖 */
+	function isDuplicateAttechment($lcount, $md5hash){
+		global $path;
+		if(!$this->prepared) $this->dbPrepare();
+
+		if(!$result=$this->_sqlite_call('SELECT tim,ext FROM '.$this->tablename." WHERE ext <> '' AND md5chksum = '$md5hash' ORDER BY no DESC")) echo '[ERROR] 取出文章判斷重複貼圖失敗<br />';
+		else{
+			while(list($ltim, $lext)=sqlite_fetch_array($result)){
+				if(file_func('exist', $path.IMG_DIR.$ltim.$lext)){ return true; break; } // 有相同檔案
+			}
+			return false;
+		}
+	}
+
+	/* 有此討論串? */
+	function isThread($no){
+		if(!$this->prepared) $this->dbPrepare();
+
+		$result = $this->_sqlite_call('SELECT no FROM '.$this->tablename.' WHERE no = '.$no.' AND resto = 0');
+		return sqlite_fetch_array($result);
+	}
+
+	/* 搜尋文章 */
+	function searchPost($keyword, $field, $method){
+		if(!$this->prepared) $this->dbPrepare();
+
+		$keyword_cnt = count($keyword);
+		$SearchQuery = 'SELECT * FROM '.$this->tablename." WHERE {$field} LIKE '%".($keyword[0])."%'";
+		if($keyword_cnt > 1) for($i = 1; $i < $keyword_cnt; $i++) $SearchQuery .= " {$method} {$field} LIKE '%".($keyword[$i])."%'"; // 多重字串交集 / 聯集搜尋
+		$SearchQuery .= ' ORDER BY no DESC'; // 按照號碼大小排序
+		if(!$line=$this->_sqlite_call($SearchQuery)) echo '[ERROR] 搜尋文章失敗<br />';
+
+		return $this->_ArrangeArrayStructure($line); // 輸出陣列結構
+	}
+
+	/* 搜尋類別標籤 */
+	function searchCatalog($catalog){
+		if(!$this->prepared) $this->dbPrepare();
+
+		$foundPosts = array();
+		$SearchQuery = 'SELECT no FROM '.$this->tablename." WHERE lower(catalog) LIKE '%,".strtolower(sqlite_escape_string($catalog)).",%'";
+		$line = $this->_sqlite_call($SearchQuery);
+		while($rows=sqlite_fetch_array($line)) $foundPosts[] = $rows[0];
+
+		return $foundPosts;
+	}
+
 	/* 取出單一文章狀態 */
-	/* 輸入 狀態字串 as integer, 狀態類型 as string, 輸出 狀態值 as integer */
 	function getPostStatus($status, $statusType){
 		if(!$this->prepared) $this->dbPrepare();
 		$returnValue = 0; // 回傳值
@@ -399,7 +388,6 @@ class PIOsqlite{
 	}
 
 	/* 設定文章狀態 */
-	/* 輸入 處理文章編號 as array, 舊值 as array, 狀態類型 as array, 新值 as array, 輸出 void */
 	function setPostStatus($no, $status, $statusType, $newValue){
 		if(!$this->prepared) $this->dbPrepare();
 
@@ -414,18 +402,6 @@ class PIOsqlite{
 				default:
 			}
 		}
-	}
-
-	/* 取得最後文章編號 */
-	/* 輸入 使用狀態 as string,輸出 編號 as integer */
-	function getLastPostNo($state){
-		if(!$this->prepared) $this->dbPrepare();
-
-		if($state=='afterCommit'){ // 送出後的最後文章編號
-			$tree = $this->_sqlite_call('SELECT MAX(no) FROM '.$this->tablename);
-			$lastno = $this->_sqlite_result($tree, 0, 0);
-			return $lastno;
-		}else return 0; // 其他狀態沒用
 	}
 }
 ?>
