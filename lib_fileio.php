@@ -1,6 +1,9 @@
 <?php
-if(USE_FTP==1)
-	include_once('./fileio.ftp.php');
-else
-	include_once('./fileio.normal.php');
+/*
+FileIO Kernel Switcher
+*/
+
+// 引入必要函式庫
+$fileio_file = './fileio/fileio.'.FILEIO_BACKEND.'.php';
+if(is_file($fileio_file)) include_once($fileio_file);
 ?>

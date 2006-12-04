@@ -50,7 +50,7 @@ class PIOlog{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.3 (v20061203β)';
+		return '0.3 (v20061204β)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -228,8 +228,8 @@ class PIOlog{
 		$arr_warn = $arr_kill = array();
 		foreach($rpord as $post){
 			$logsarray = $this->_ArrangeArrayStructure($post); // 分析資料為陣列
-			if(file_func('exist', $path.IMG_DIR.$logsarray[0]['tim'].$logsarray[0]['ext'])){ $total_size -= file_func('size', $path.IMG_DIR.$logsarray[0]['tim'].$logsarray[0]['ext']) / 1024; $arr_kill[] = $post; $arr_warn[$post] = 1; } // 標記刪除
-			if(file_func('exist', $path.THUMB_DIR.$logsarray[0]['tim'].'s.jpg')) $total_size -= file_func('size', $path.THUMB_DIR.$logsarray[0]['tim'].'s.jpg') / 1024;
+			if(FileIO::imageExists($logsarray[0]['tim'].$logsarray[0]['ext'])){ $total_size -= FileIO::getImageFilesize($logsarray[0]['tim'].$logsarray[0]['ext']) / 1024; $arr_kill[] = $post; $arr_warn[$post] = 1; } // 標記刪除
+			if(FileIO::imageExists($logsarray[0]['tim'].'s.jpg')) $total_size -= FileIO::getImageFilesize($logsarray[0]['tim'].'s.jpg') / 1024;
 			if($total_size < $storage_max) break;
 		}
 		return $warnOnly ? $arr_warn : $this->removeAttachments($arr_kill);
@@ -273,8 +273,8 @@ class PIOlog{
 		$lcount = count($logsarray);
 		for($i = 0; $i < $lcount; $i++){
 			if($logsarray[$i]['ext']){
-				if(file_func('exist', $path.IMG_DIR.$logsarray[$i]['tim'].$logsarray[$i]['ext'])) $files[] = IMG_DIR.$logsarray[$i]['tim'].$logsarray[$i]['ext'];
-				if(file_func('exist', $path.THUMB_DIR.$logsarray[$i]['tim'].'s.jpg')) $files[] = THUMB_DIR.$logsarray[$i]['tim'].'s.jpg';
+				if(FileIO::imageExists($logsarray[$i]['tim'].$logsarray[$i]['ext'])) $files[] = $logsarray[$i]['tim'].$logsarray[$i]['ext'];
+				if(FileIO::imageExists($logsarray[$i]['tim'].'s.jpg')) $files[] = $logsarray[$i]['tim'].'s.jpg';
 			}
 		}
 		return $files;
@@ -334,7 +334,7 @@ class PIOlog{
 			$logsarray = $this->_ArrangeArrayStructure($this->porder[$i]); // 分析資料為陣列
 			if(!$logsarray[0]['md5chksum']) continue; // 無附加圖檔
 			if($logsarray[0]['md5chksum']==$md5hash){
-				if(file_func('exist', $path.IMG_DIR.$logsarray[0]['tim'].$logsarray[0]['ext'])) return true; // 存在MD5雜湊相同的檔案
+				if(FileIO::imageExists($logsarray[0]['tim'].$logsarray[0]['ext'])) return true; // 存在MD5雜湊相同的檔案
 			}
 		}
 		return false;

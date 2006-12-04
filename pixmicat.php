@@ -4,7 +4,7 @@ function getMicrotime(){
     list($usec, $sec) = explode(' ', microtime());
     return ((double)$usec + (double)$sec);
 }
-define("PIXMICAT_VER", 'Pixmicat!-PIO 3rd.Release-dev b061203'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 3rd.Release-dev b061204'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -259,18 +259,19 @@ function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $
 		}
 
 		// 設定附加圖檔顯示
-		$src = IMG_DIR.$tim.$ext; $img = $path.$src; // 圖檔位置
-		$thumbsrc = THUMB_DIR.$tim.'s.jpg'; $thumbimg = $path.$thumbsrc; // 預覽圖位置
-		if($ext && file_func('exist', $img)){
-			$imgsrc = '<a href="'.IMGLINK_URL_PREFIX.$src.'" rel="_blank"><img src="nothumb.gif" class="img" alt="'.$imgsize.'" title="'.$imgsize.'" /></a>'; // 預設顯示圖樣式 (無預覽圖時)
+		if($ext && FileIO::imageExists($tim.$ext)){
+			$imageURL = FileIO::getImageURL($tim.$ext); // image URL
+			$thumbURL = FileIO::getImageURL($tim.'s.jpg'); // thumb URL
+
+			$imgsrc = '<a href="'.$imageURL.'" rel="_blank"><img src="nothumb.gif" class="img" alt="'.$imgsize.'" title="'.$imgsize.'" /></a>'; // 預設顯示圖樣式 (無預覽圖時)
 			if($tw && $th){
-				if(file_func('exist', $thumbimg)){ // 有預覽圖
+				if(FileIO::imageExists($tim.'s.jpg')){ // 有預覽圖
 					$img_thumb = '<small>[以預覽圖顯示]</small>';
-					$imgsrc = '<a href="'.IMGLINK_URL_PREFIX.$src.'" rel="_blank"><img src="'.THUMB_URL_PREFIX.$thumbsrc.'" style="width: '.$tw.'px; height: '.$th.'px;" class="img" alt="'.$imgsize.'" title="'.$imgsize.'" /></a>';
+					$imgsrc = '<a href="'.$imageURL.'" rel="_blank"><img src="'.$thumbURL.'" style="width: '.$tw.'px; height: '.$th.'px;" class="img" alt="'.$imgsize.'" title="'.$imgsize.'" /></a>';
 				}elseif($ext=='.swf') $imgsrc = ''; // swf檔案不需預覽圖
 			}
 			if(SHOW_IMGWH) $imgwh_bar = ', '.$imgw.'x'.$imgh; // 顯示附加圖檔之原檔長寬尺寸
-			$IMG_BAR = '檔名：<a href="'.IMG_URL_PREFIX.$src.'" rel="_blank">'.$tim.$ext.'</a>-('.$imgsize.$imgwh_bar.') '.$img_thumb;
+			$IMG_BAR = '檔名：<a href="'.$imageURL.'" rel="_blank">'.$tim.$ext.'</a>-('.$imgsize.$imgwh_bar.') '.$img_thumb;
 			if(!USE_TEMPLATE){
 				if($i) $IMG_BAR = '<br />&nbsp;'.$IMG_BAR; // 只有回應的IMG_BAR有資料時需要換行
 				$imgsrc = '<br />'.$imgsrc;
@@ -554,7 +555,7 @@ function regist(){
 	// 記錄檔行數已達上限：刪除過舊檔
 	if($pio->postCount() >= LOG_MAX){
 		$files = $pio->delOldPostes();
-		if(count($files)) file_func('del',$files);
+		if(count($files)) FileIO::deleteImage($files);
 	}
 
 	// 附加圖檔容量限制功能啟動：刪除過大檔
@@ -562,7 +563,7 @@ function regist(){
 		$tmp_total_size = total_size(); // 取得目前附加圖檔使用量
 		if($tmp_total_size >= STORAGE_MAX){
 			$files = $pio->delOldAttachments($tmp_total_size, STORAGE_MAX, false);
-			file_func('del', $files);
+			FileIO::deleteImage($files);
 		}
 	}
 
@@ -613,11 +614,9 @@ function regist(){
 		if(USE_THUMB) thumb($path.IMG_DIR, $tim, $ext, $imgW, $imgH, $W, $H); // 使用GD製作縮圖
 	}
 
-	if(file_func('upload')){ // FTP功能：上傳圖片
-		$rfile = $fsize = array();
-		if(file_exists($path.IMG_DIR.$tim.$ext)){ $rfile[] = IMG_DIR.$tim.$ext; $fsize[] = filesize($path.IMG_DIR.$tim.$ext); }
-		if(file_exists($path.THUMB_DIR.$tim.'s.jpg')){ $rfile[] = THUMB_DIR.$tim.'s.jpg'; $fsize[] = filesize($path.THUMB_DIR.$tim.'s.jpg'); }
-		file_func('upload', $rfile, $fsize, ($ext ? $imgW.'x'.$imgH : '')); // 執行FTP上傳及寫入檔案資訊快取
+	if(FileIO::uploadImage()){ // 支援上傳圖片至其他伺服器
+		if(file_exists($path.IMG_DIR.$tim.$ext)) FileIO::uploadImage($tim.$ext, filesize($path.IMG_DIR.$tim.$ext));
+		if(file_exists($path.THUMB_DIR.$tim.'s.jpg')) FileIO::uploadImage($tim.'s.jpg', filesize($path.THUMB_DIR.$tim.'s.jpg'));
 	}
 
 	// 刪除舊容量快取
@@ -690,7 +689,7 @@ function usrdel(){
 	}
 	if($search_flag){
 		$files = $onlyimgdel ? $pio->removeAttachments($delposts) : $pio->removePosts($delposts);
-		file_func('del', $files);
+		FileIO::deleteImage($files);
 		total_size(true); // 刪除容量快取
 		$pio->dbCommit();
 	}else error('無此文章或是密碼錯誤');
@@ -743,7 +742,7 @@ function admindel(){
 	if($delflag){
 		$delno = array_merge($delno, $_POST['delete']);
 		$files = ($onlyimgdel != 'on') ? $pio->removePosts($delno) : $pio->removeAttachments($delno);
-		file_func('del', $files);
+		FileIO::deleteImage($files);
 		total_size(true); // 刪除容量快取
 		$is_modified = TRUE;
 	}
@@ -810,10 +809,10 @@ _N_EOT_;
 		}
 
 		// 從記錄抽出附加圖檔使用量並生成連結
-		if($ext && file_func('exist', $path.IMG_DIR.$tim.$ext)){
-			$clip = '<a href="'.IMG_DIR.$tim.$ext.'" rel="_blank">'.$tim.$ext.'</a>';
-			$size = file_func('size', $path.IMG_DIR.$tim.$ext);
-			if(file_func('exist', $path.THUMB_DIR.$tim.'s.jpg')) $size += file_func('size', $path.THUMB_DIR.$tim.'s.jpg');
+		if($ext && FileIO::imageExists($tim.$ext)){
+			$clip = '<a href="'.FileIO::getImageURL($tim.$ext).'" rel="_blank">'.$tim.$ext.'</a>';
+			$size = FileIO::getImageFilesize($tim.$ext);
+			if(FileIO::imageExists($tim.'s.jpg')) $size += FileIO::getImageFilesize($tim.'s.jpg');
 		}else{
 			$clip = $md5chksum = '--';
 			$size = 0;
@@ -871,8 +870,8 @@ function total_size($isupdate=false){
 		for($i = 0; $i < $linecount; $i++){
 			extract($posts[$i]);
 			// 從記錄檔抽出計算附加圖檔使用量
-			if($ext && file_func('exist', $path.IMG_DIR.$tim.$ext)) $all += file_func('size', $path.IMG_DIR.$tim.$ext); // 附加圖檔合計計算
-			if(file_func('exist', $path.THUMB_DIR.$tim.'s.jpg')) $all += file_func('size', $path.THUMB_DIR.$tim.'s.jpg'); // 預覽圖合計計算
+			if($ext && FileIO::imageExists($tim.$ext)) $all += FileIO::getImageFilesize($tim.$ext); // 附加圖檔合計計算
+			if(FileIO::imageExists($tim.'s.jpg')) $all += FileIO::getImageFilesize($tim.'s.jpg'); // 預覽圖合計計算
 		}
 		$sp = fopen($cache_file, 'w');
 		stream_set_write_buffer($sp, 0);
@@ -1104,7 +1103,7 @@ function init(){
 	foreach($chkfolder as $value) if(!is_dir($value)){ mkdir($value); @chmod($value, 0777); }  // 沒有就建立
 
 	$pio->dbInit(); // PIO Init
-	file_func('init'); // FileIO Init
+	FileIO::init(); // FileIO Init
 
 	error('環境初始化成功！<br />請現在打開此程式刪除init()程式環境初始化區段<br />');
 }

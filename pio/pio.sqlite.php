@@ -37,7 +37,7 @@ class PIOsqlite{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.3 (v20061203β)';
+		return '0.3 (v20061204β)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -119,7 +119,7 @@ class PIOsqlite{
 	function postCount($resno=0){
 		if(!$this->prepared) $this->dbPrepare();
 
-		if($resno){ // 回傳討論串總回應數目 (含本文故要加1)
+		if($resno){ // 回傳討論串總文章數目
 			$line = $this->_sqlite_call('SELECT COUNT(no) FROM '.$this->tablename.' WHERE resto = '.$resno);
 			$countline = $this->_sqlite_result($line, 0, 0) + 1;
 		}else{ // 回傳總文章數目
@@ -205,18 +205,18 @@ class PIOsqlite{
 		else{
 			while(list($dno, $dext, $dtim)=sqlite_fetch_array($result)){ // 個別跑舊文迴圈
 				if($dext){
-					$dfile = $path.IMG_DIR.$dtim.$dext; // 附加檔案名稱
-					$dthumb = $path.THUMB_DIR.$dtim.'s.jpg'; // 預覽檔案名稱
-					if(file_func('exist', $dfile)) $oldAttachments[] = $dfile;
-					if(file_func('exist', $dthumb)) $oldAttachments[] = $dthumb;
+					$dfile = $dtim.$dext; // 附加檔案名稱
+					$dthumb = $dtim.'s.jpg'; // 預覽檔案名稱
+					if(FileIO::imageExists($dfile)) $oldAttachments[] = $dfile;
+					if(FileIO::imageExists($dthumb)) $oldAttachments[] = $dthumb;
 				}
 				// 逐次搜尋舊文之回應
 				if(!$resultres=$this->_sqlite_call('SELECT ext,tim FROM '.$this->tablename." WHERE ext <> '' AND resto = $dno")) echo '[ERROR] 取出舊文之回應失敗<br />';
 				while(list($rext, $rtim)=sqlite_fetch_array($resultres)){
-					$rfile = $path.IMG_DIR.$rtim.$rext; // 附加檔案名稱
-					$rthumb = $path.THUMB_DIR.$rtim.'s.jpg'; // 預覽檔案名稱
-					if(file_func('exist', $rfile)) $oldAttachments[] = $rfile;
-					if(file_func('exist', $rthumb)) $oldAttachments[] = $rthumb;
+					$rfile = $rtim.$rext; // 附加檔案名稱
+					$rthumb = $rtim.'s.jpg'; // 預覽檔案名稱
+					if(FileIO::imageExists($rfile)) $oldAttachments[] = $rfile;
+					if(FileIO::imageExists($rthumb)) $oldAttachments[] = $rthumb;
 				}
 				if(!$this->_sqlite_call('DELETE FROM '.$this->tablename.' WHERE no = '.$dno.' OR resto = '.$dno)) echo '[ERROR] 刪除舊文及其回應失敗<br />'; // 刪除文章
 			}
@@ -233,10 +233,10 @@ class PIOsqlite{
 		if(!$result=$this->_sqlite_call('SELECT no,ext,tim FROM '.$this->tablename." WHERE ext <> '' ORDER BY no")) echo '[ERROR] 取出舊文失敗<br />';
 		else{
 			while(list($dno, $dext, $dtim)=sqlite_fetch_array($result)){ // 個別跑舊文迴圈
-				$dfile = $path.IMG_DIR.$dtim.$dext; // 附加檔案名稱
-				$dthumb = $path.THUMB_DIR.$dtim.'s.jpg'; // 預覽檔案名稱
-				if(file_func('exist', $dfile)){ $total_size -= file_func('size', $dfile) / 1024; $arr_kill[] = $dno; $arr_warn[$dno] = 1; } // 標記刪除
-				if(file_func('exist', $dthumb)) $total_size -= file_func('size', $dthumb) / 1024;
+				$dfile = $dtim.$dext; // 附加檔案名稱
+				$dthumb = $dtim.'s.jpg'; // 預覽檔案名稱
+				if(FileIO::imageExists($dfile)){ $total_size -= FileIO::getImageFilesize($dfile) / 1024; $arr_kill[] = $dno; $arr_warn[$dno] = 1; } // 標記刪除
+				if(FileIO::imageExists($dthumb)) $total_size -= FileIO::getImageFilesize($dthumb) / 1024;
 				if($total_size < $storage_max) break;
 			}
 		}
@@ -266,10 +266,10 @@ class PIOsqlite{
 		if(!$result=$this->_sqlite_call($tmpSQL)) echo '[ERROR] 取出附件清單失敗<br />';
 		else{
 			while(list($dext, $dtim)=sqlite_fetch_array($result)){ // 個別跑迴圈
-				$dfile = $path.IMG_DIR.$dtim.$dext; // 附加檔案名稱
-				$dthumb = $path.THUMB_DIR.$dtim.'s.jpg'; // 預覽檔案名稱
-				if(file_func('exist', $dfile)) $files[] = $dfile;
-				if(file_func('exist', $dthumb)) $files[] = $dthumb;
+				$dfile = $dtim.$dext; // 附加檔案名稱
+				$dthumb = $dtim.'s.jpg'; // 預覽檔案名稱
+				if(FileIO::imageExists($dfile)) $files[] = $dfile;
+				if(FileIO::imageExists($dthumb)) $files[] = $dthumb;
 			}
 		}
 		return $files;
@@ -334,7 +334,7 @@ class PIOsqlite{
 		if(!$result=$this->_sqlite_call('SELECT tim,ext FROM '.$this->tablename." WHERE ext <> '' AND md5chksum = '$md5hash' ORDER BY no DESC")) echo '[ERROR] 取出文章判斷重複貼圖失敗<br />';
 		else{
 			while(list($ltim, $lext)=sqlite_fetch_array($result)){
-				if(file_func('exist', $path.IMG_DIR.$ltim.$lext)){ return true; break; } // 有相同檔案
+				if(FileIO::imageExists($ltim.$lext)){ return true; break; } // 有相同檔案
 			}
 			return false;
 		}

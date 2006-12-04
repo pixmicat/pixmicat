@@ -1,5 +1,9 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2006/12/04
+01.[FileIO] FileIO 0.2 版，並完成 Normal 後端
+02.[PIO][pixmicat] PIO, pixmicat.php 與 FileIO 相關函式修改
+
 2006/12/03
 01.[pixmicat] 修正顯示附加圖檔檔案大小時多一個B變成KBB的問題
 02.[pixmicat] 類別標籤分頁功能

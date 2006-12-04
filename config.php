@@ -24,14 +24,14 @@ define("TIME_ZONE", '+8'); // 時區設定 (GMT時區，參照 http://wwp.greenw
 define("HTTP_UPLOAD_DIFF", 50); // HTTP上傳所有位元組與實際位元組之允許誤差值
 ini_set("memory_limit", '32M'); // PHP運行的最大記憶體使用量 (php內定8M / 建議32M)
 
-// FTP模式設定
-define("USE_FTP", 0); // 圖像儲存使用FTP (使用：1 不使用：0)
+// FileIO設定
+define("FILEIO_BACKEND", 'normal'); // FileIO後端指定
+define("FILEIO_INDEXLOG", 'fileioindex.dat'); // FileIO索引記錄檔 (儲存在本機端)
 define("FTP_HOST", 'ftp.t35.com'); // FTP主機地址
 define("FTP_PORT", 21); // FTP主機連接埠
-define("FTP_USER", 'demo.t35.com'); // FTP使用者用稱
+define("FTP_USER", 'demo.t35.com'); // FTP使用者名稱
 define("FTP_PASS", 'demo'); // FTP使用者密碼
 define("FTP_BASE_PATH", '/'); // FTP儲存遠端目錄
-define("FTP_FILE_LOG", 'ftp.log'); // FTP記錄檔檔名 (儲存在本機端)
 
 define("IMGLINK_URL_PREFIX", ''); // 圖像連結(檔名部份)的前置路徑/URL, 不使用的話請設為''
 define("IMG_URL_PREFIX", ''); // 圖像連結(預覽圖部份)的前置路徑/URL, 不使用的話請設為''
