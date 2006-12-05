@@ -16,7 +16,7 @@ class FileIO{
 	
 	}
 
-	function uploadImage($imgname, $imgsize){
+	function uploadImage($imgname='', $imgpath='', $imgsize=0){
 	
 	}
 

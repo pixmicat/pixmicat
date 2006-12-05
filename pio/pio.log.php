@@ -221,15 +221,15 @@ class PIOlog{
 
 	/* 刪除舊附件 (輸出附件清單) */
 	function delOldAttachments($total_size, $storage_max, $warnOnly=true){
-		global $path;
+		global $FileIO;
 		if(!$this->prepared) $this->dbPrepare();
 
 		$rpord = $this->porder; sort($rpord); // 由舊排到新 (小->大)
 		$arr_warn = $arr_kill = array();
 		foreach($rpord as $post){
 			$logsarray = $this->_ArrangeArrayStructure($post); // 分析資料為陣列
-			if(FileIO::imageExists($logsarray[0]['tim'].$logsarray[0]['ext'])){ $total_size -= FileIO::getImageFilesize($logsarray[0]['tim'].$logsarray[0]['ext']) / 1024; $arr_kill[] = $post; $arr_warn[$post] = 1; } // 標記刪除
-			if(FileIO::imageExists($logsarray[0]['tim'].'s.jpg')) $total_size -= FileIO::getImageFilesize($logsarray[0]['tim'].'s.jpg') / 1024;
+			if($FileIO->imageExists($logsarray[0]['tim'].$logsarray[0]['ext'])){ $total_size -= $FileIO->getImageFilesize($logsarray[0]['tim'].$logsarray[0]['ext']) / 1024; $arr_kill[] = $post; $arr_warn[$post] = 1; } // 標記刪除
+			if($FileIO->imageExists($logsarray[0]['tim'].'s.jpg')) $total_size -= $FileIO->getImageFilesize($logsarray[0]['tim'].'s.jpg') / 1024;
 			if($total_size < $storage_max) break;
 		}
 		return $warnOnly ? $arr_warn : $this->removeAttachments($arr_kill);
@@ -265,7 +265,7 @@ class PIOlog{
 
 	/* 刪除附件 (輸出附件清單) */
 	function removeAttachments($posts){
-		global $path;
+		global $FileIO;
 		if(!$this->prepared) $this->dbPrepare();
 
 		$files = array();
@@ -273,8 +273,8 @@ class PIOlog{
 		$lcount = count($logsarray);
 		for($i = 0; $i < $lcount; $i++){
 			if($logsarray[$i]['ext']){
-				if(FileIO::imageExists($logsarray[$i]['tim'].$logsarray[$i]['ext'])) $files[] = $logsarray[$i]['tim'].$logsarray[$i]['ext'];
-				if(FileIO::imageExists($logsarray[$i]['tim'].'s.jpg')) $files[] = $logsarray[$i]['tim'].'s.jpg';
+				if($FileIO->imageExists($logsarray[$i]['tim'].$logsarray[$i]['ext'])) $files[] = $logsarray[$i]['tim'].$logsarray[$i]['ext'];
+				if($FileIO->imageExists($logsarray[$i]['tim'].'s.jpg')) $files[] = $logsarray[$i]['tim'].'s.jpg';
 			}
 		}
 		return $files;
@@ -326,7 +326,7 @@ class PIOlog{
 
 	/* 檢查是否重複貼圖 */
 	function isDuplicateAttechment($lcount, $md5hash){
-		global $path;
+		global $FileIO;
 
 		$pcount = $this->postCount();
 		$lcount = ($pcount > $lcount) ? $lcount : $pcount;
@@ -334,7 +334,7 @@ class PIOlog{
 			$logsarray = $this->_ArrangeArrayStructure($this->porder[$i]); // 分析資料為陣列
 			if(!$logsarray[0]['md5chksum']) continue; // 無附加圖檔
 			if($logsarray[0]['md5chksum']==$md5hash){
-				if(FileIO::imageExists($logsarray[0]['tim'].$logsarray[0]['ext'])) return true; // 存在MD5雜湊相同的檔案
+				if($FileIO->imageExists($logsarray[0]['tim'].$logsarray[0]['ext'])) return true; // 存在MD5雜湊相同的檔案
 			}
 		}
 		return false;

@@ -13,5 +13,5 @@ if(is_file($pio_file)) include_once($pio_file);
 
 // PIO Kernel Switcher
 $pioSwitch = 'PIO'.PIXMICAT_BACKEND;
-$pio = new $pioSwitch(CONNECTION_STRING);
+$PIO = new $pioSwitch(CONNECTION_STRING);
 ?>

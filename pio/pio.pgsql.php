@@ -200,7 +200,7 @@ class PIOpgsql{
 
 	/* 刪除舊文 */
 	function delOldPostes(){
-		global $path;
+		global $FileIO;
 		if(!$this->prepared) $this->dbPrepare();
 
 		$oldAttachments = array(); // 舊文的附加檔案清單
@@ -212,16 +212,16 @@ class PIOpgsql{
 				if($dext){
 					$dfile = $dtim.$dext; // 附加檔案名稱
 					$dthumb = $dtim.'s.jpg'; // 預覽檔案名稱
-					if(FileIO::imageExists($dfile)) $oldAttachments[] = $dfile;
-					if(FileIO::imageExists($dthumb)) $oldAttachments[] = $dthumb;
+					if($FileIO->imageExists($dfile)) $oldAttachments[] = $dfile;
+					if($FileIO->imageExists($dthumb)) $oldAttachments[] = $dthumb;
 				}
 				// 逐次搜尋舊文之回應
 				if(!$resultres=$this->_pgsql_call('SELECT ext,tim FROM '.$this->tablename." WHERE ext <> '' AND resto = $dno")) echo '[ERROR] 取出舊文之回應失敗<br />';
 				while(list($rext, $rtim)=pg_fetch_array($resultres)){
 					$rfile = $rtim.$rext; // 附加檔案名稱
 					$rthumb = $rtim.'s.jpg'; // 預覽檔案名稱
-					if(FileIO::imageExists($rfile)) $oldAttachments[] = $rfile;
-					if(FileIO::imageExists($rthumb)) $oldAttachments[] = $rthumb;
+					if($FileIO->imageExists($rfile)) $oldAttachments[] = $rfile;
+					if($FileIO->imageExists($rthumb)) $oldAttachments[] = $rthumb;
 				}
 				pg_free_result($resultres);
 				if(!$this->_pgsql_call('DELETE FROM '.$this->tablename.' WHERE no = '.$dno.' OR resto = '.$dno)) echo '[ERROR] 刪除舊文及其回應失敗<br />'; // 刪除文章
@@ -233,7 +233,7 @@ class PIOpgsql{
 
 	/* 刪除舊附件 (輸出附件清單) */
 	function delOldAttachments($total_size, $storage_max, $warnOnly=true){
-		global $path;
+		global $FileIO;
 		if(!$this->prepared) $this->dbPrepare();
 
 		$arr_warn = $arr_kill = array(); // 警告 / 即將被刪除標記陣列
@@ -242,8 +242,8 @@ class PIOpgsql{
 			while(list($dno, $dext, $dtim)=pg_fetch_array($result)){ // 個別跑舊文迴圈
 				$dfile = $dtim.$dext; // 附加檔案名稱
 				$dthumb = $dtim.'s.jpg'; // 預覽檔案名稱
-				if(FileIO::imageExists($dfile)){ $total_size -= FileIO::getImageFilesize($dfile) / 1024; $arr_kill[] = $dno; $arr_warn[$dno] = 1; } // 標記刪除
-				if(FileIO::imageExists($dthumb)) $total_size -= FileIO::getImageFilesize($dthumb) / 1024;
+				if($FileIO->imageExists($dfile)){ $total_size -= $FileIO->getImageFilesize($dfile) / 1024; $arr_kill[] = $dno; $arr_warn[$dno] = 1; } // 標記刪除
+				if($FileIO->imageExists($dthumb)) $total_size -= $FileIO->getImageFilesize($dthumb) / 1024;
 				if($total_size < $storage_max) break;
 			}
 		}
@@ -263,7 +263,7 @@ class PIOpgsql{
 
 	/* 刪除附件 (輸出附件清單) */
 	function removeAttachments($posts, $recursion=false){
-		global $path;
+		global $FileIO;
 		if(!$this->prepared) $this->dbPrepare();
 
 		$files = array();
@@ -276,8 +276,8 @@ class PIOpgsql{
 			while(list($dext, $dtim)=pg_fetch_array($result)){ // 個別跑迴圈
 				$dfile = $dtim.$dext; // 附加檔案名稱
 				$dthumb = $dtim.'s.jpg'; // 預覽檔案名稱
-				if(FileIO::imageExists($dfile)) $files[] = $dfile;
-				if(FileIO::imageExists($dthumb)) $files[] = $dthumb;
+				if($FileIO->imageExists($dfile)) $files[] = $dfile;
+				if($FileIO->imageExists($dthumb)) $files[] = $dthumb;
 			}
 		}
 		pg_free_result($result);
@@ -317,7 +317,7 @@ class PIOpgsql{
 
 	/* 檢查是否連續投稿 */
 	function isSuccessivePost($lcount, $com, $timestamp, $pass, $passcookie, $host, $isupload){
-		global $path;
+		global $FileIO;
 		if(!$this->prepared) $this->dbPrepare();
 
 		if(!RENZOKU) return false; // 關閉連續投稿檢查
@@ -337,13 +337,13 @@ class PIOpgsql{
 
 	/* 檢查是否重複貼圖 */
 	function isDuplicateAttechment($lcount, $md5hash){
-		global $path;
+		global $FileIO;
 		if(!$this->prepared) $this->dbPrepare();
 
 		if(!$result=$this->_pgsql_call('SELECT tim,ext FROM '.$this->tablename." WHERE ext <> '' AND md5chksum = '$md5hash' ORDER BY no DESC")) echo '[ERROR] 取出文章判斷重複貼圖失敗<br />';
 		else{
 			while(list($ltim, $lext)=pg_fetch_array($result)){
-				if(FileIO::imageExists($ltim.$lext)){ return true; break; } // 有相同檔案
+				if($FileIO->imageExists($ltim.$lext)){ return true; break; } // 有相同檔案
 			}
 			return false;
 		}
