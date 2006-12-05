@@ -32,7 +32,7 @@ class PIOpgsql{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.3 (v20061204β)';
+		return '0.3 (v20061205β)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -60,7 +60,7 @@ class PIOpgsql{
 	\"root\" timestamp NULL DEFAULT '1980-01-01 00:00:00',
 	\"time\" int NOT NULL,
 	\"md5chksum\" varchar(32) NOT NULL,
-	\"catalog\" varchar(255) NOT NULL,
+	\"category\" varchar(255) NOT NULL,
 	\"tim\" bigint NOT NULL,
 	\"ext\" varchar(4) NOT NULL,
 	\"imgw\" smallint NOT NULL,
@@ -285,7 +285,7 @@ class PIOpgsql{
 	}
 
 	/* 新增文章/討論串 */
-	function addPost($no, $resto, $md5chksum, $catalog, $tim, $ext, $imgw, $imgh, $imgsize, $tw, $th, $pwd, $now, $name, $email, $sub, $com, $host, $age=false){
+	function addPost($no, $resto, $md5chksum, $category, $tim, $ext, $imgw, $imgh, $imgsize, $tw, $th, $pwd, $now, $name, $email, $sub, $com, $host, $age=false){
 		if(!$this->prepared) $this->dbPrepare();
 
 		$time = (int)substr($tim, 0, -3); // 13位數的數字串是檔名，10位數的才是時間數值
@@ -297,12 +297,12 @@ class PIOpgsql{
 			}
 		}else $root = 'now()'; // 新增討論串, 討論串最後被更新時間
 
-		$query = 'INSERT INTO '.$this->tablename.' (resto,root,time,md5chksum,catalog,tim,ext,imgw,imgh,imgsize,tw,th,pwd,now,name,email,sub,com,host,status) VALUES ('.
+		$query = 'INSERT INTO '.$this->tablename.' (resto,root,time,md5chksum,category,tim,ext,imgw,imgh,imgsize,tw,th,pwd,now,name,email,sub,com,host,status) VALUES ('.
 	(int)$resto.','. // 回應編號
 	$root.','. // 最後更新時間
 	$time.','. // 發文時間數值
 	"'$md5chksum',". // 附加檔案md5
-	"'".pg_escape_string($catalog)."',". // 分類標籤
+	"'".pg_escape_string($category)."',". // 分類標籤
 	"'$tim', '$ext',". // 附加檔名
 	$imgw.','.$imgh.",'".$imgsize."',".$tw.','.$th.','. // 圖檔長寬及檔案大小；預覽圖長寬
 	"'".pg_escape_string($pass)."',".
@@ -371,11 +371,11 @@ class PIOpgsql{
 	}
 
 	/* 搜尋類別標籤 */
-	function searchCatalog($catalog){
+	function searchCategory($category){
 		if(!$this->prepared) $this->dbPrepare();
 
 		$foundPosts = array();
-		$SearchQuery = 'SELECT no FROM '.$this->tablename." WHERE catalog ~* ',".pg_escape_string($catalog).",'";
+		$SearchQuery = 'SELECT no FROM '.$this->tablename." WHERE category ~* ',".pg_escape_string($category).",'";
 		$line = $this->_pgsql_call($SearchQuery);
 		while($rows=pg_fetch_array($line)) $foundPosts[] = $rows[0];
 

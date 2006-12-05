@@ -32,7 +32,7 @@ class PIOmysql{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.3 (v20061204β)';
+		return '0.3 (v20061205β)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -59,7 +59,7 @@ class PIOmysql{
 	root timestamp(14) null DEFAULT 0,
 	time int(1) not null,
 	md5chksum varchar(32) not null,
-	catalog varchar(255) not null,
+	category varchar(255) not null,
 	tim bigint(1) not null,
 	ext varchar(4) not null,
 	imgw smallint(1) not null,
@@ -289,7 +289,7 @@ class PIOmysql{
 	}
 
 	/* 新增文章/討論串 */
-	function addPost($no, $resto, $md5chksum, $catalog, $tim, $ext, $imgw, $imgh, $imgsize, $tw, $th, $pwd, $now, $name, $email, $sub, $com, $host, $age=false){
+	function addPost($no, $resto, $md5chksum, $category, $tim, $ext, $imgw, $imgh, $imgsize, $tw, $th, $pwd, $now, $name, $email, $sub, $com, $host, $age=false){
 		if(!$this->prepared) $this->dbPrepare();
 
 		$time = (int)substr($tim, 0, -3); // 13位數的數字串是檔名，10位數的才是時間數值
@@ -301,12 +301,12 @@ class PIOmysql{
 			}
 		}else $root = 'now()'; // 新增討論串, 討論串最後被更新時間
 
-		$query = 'INSERT INTO '.$this->tablename.' (resto,root,time,md5chksum,catalog,tim,ext,imgw,imgh,imgsize,tw,th,pwd,now,name,email,sub,com,host,status) VALUES ('.
+		$query = 'INSERT INTO '.$this->tablename.' (resto,root,time,md5chksum,category,tim,ext,imgw,imgh,imgsize,tw,th,pwd,now,name,email,sub,com,host,status) VALUES ('.
 	(int)$resto.','. // 回應編號
 	$root.','. // 最後更新時間
 	$time.','. // 發文時間數值
 	"'$md5chksum',". // 附加檔案md5
-	"'".mysql_escape_string($catalog)."',". // 分類標籤
+	"'".mysql_escape_string($category)."',". // 分類標籤
 	"'$tim', '$ext',". // 附加檔名
 	$imgw.','.$imgh.",'".$imgsize."',".$tw.','.$th.','. // 圖檔長寬及檔案大小；預覽圖長寬
 	"'".mysql_escape_string($pwd)."',".
@@ -375,11 +375,11 @@ class PIOmysql{
 	}
 
 	/* 搜尋類別標籤 */
-	function searchCatalog($catalog){
+	function searchCategory($category){
 		if(!$this->prepared) $this->dbPrepare();
 
 		$foundPosts = array();
-		$SearchQuery = 'SELECT no FROM '.$this->tablename." WHERE lower(catalog) LIKE '%,".strtolower(mysql_escape_string($catalog)).",%'";
+		$SearchQuery = 'SELECT no FROM '.$this->tablename." WHERE lower(category) LIKE '%,".strtolower(mysql_escape_string($category)).",%'";
 		$line = $this->_mysql_call($SearchQuery);
 		while($rows=mysql_fetch_row($line)) $foundPosts[] = $rows[0];
 

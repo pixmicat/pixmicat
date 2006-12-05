@@ -4,6 +4,7 @@
 01.[FileIO] FileIO 改用建立物件式，為此所有操作到 FileIO 敘述全部更改
 02.[FileIO] FileIO FTP 後端重寫完成
 03.[config] FileIO 參數規格修改，改以傳入陣列方式供後端自行分析使用
+04.字詞修正 CATALOG -> CATEGORY
 
 2006/12/04
 01.[FileIO] FileIO 0.2 版，並完成 Normal 後端

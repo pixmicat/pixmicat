@@ -71,7 +71,7 @@ function form(&$dat, $resno){
 		if(USE_UPSERIES) $dat .= ' [<input type="checkbox" name="up_series" id="up_series" value="on"'.((isset($_GET["upseries"]) && $resno)?' checked="checked"':'').' /><label for="up_series">連貼機能</label>]'; // 啟動連貼機能
 		$dat .= '</td></tr>'."\n";
 	}
-	if(USE_CATALOG) $dat .= '<tr><td class="Form_bg"><b>類別標籤</b></td><td><input type="text" name="catalog" size="28" /><small>(請以 , 逗號分隔多個標籤)</small></td></tr>'."\n";
+	if(USE_CATEGORY) $dat .= '<tr><td class="Form_bg"><b>類別標籤</b></td><td><input type="text" name="category" size="28" /><small>(請以 , 逗號分隔多個標籤)</small></td></tr>'."\n";
 	$dat .= '<tr><td class="Form_bg"><b>刪除用密碼</b></td><td><input type="password" name="pwd" size="8" maxlength="8" value="" /><small>(刪除文章用。英數字8字元以內)</small></td></tr>
 <tr><td colspan="2">
 <div id="postinfo">

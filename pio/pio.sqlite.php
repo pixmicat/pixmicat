@@ -37,7 +37,7 @@ class PIOsqlite{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.3 (v20061204β)';
+		return '0.3 (v20061205β)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -60,7 +60,7 @@ class PIOsqlite{
 	"root" TIMESTAMP DEFAULT \'0\' NOT NULL,
 	"time" INTEGER  NOT NULL,
 	"md5chksum" VARCHAR(32)  NOT NULL,
-	"catalog" VARCHAR(255)  NOT NULL,
+	"category" VARCHAR(255)  NOT NULL,
 	"tim" INTEGER  NOT NULL,
 	"ext" VARCHAR(4)  NOT NULL,
 	"imgw" INTEGER  NOT NULL,
@@ -82,7 +82,7 @@ class PIOsqlite{
 				$result .= 'CREATE INDEX IDX_'.$this->tablename.'_'.$x.' ON '.$this->tablename.'('.$x.');';
 			}
 			$result .= 'CREATE INDEX IDX_'.$this->tablename.'_resto_no ON '.$this->tablename.'(resto,no);';
-			$result .= 'INSERT INTO '.$this->tablename.' (resto,root,time,md5chksum,catalog,tim,ext,imgw,imgh,imgsize,tw,th,pwd,now,name,email,sub,com,host,status) VALUES (0, datetime("now"), 1111111111, "", "", 1111111111111, "", 0, 0, "", 0, 0, "", "05/01/01(六)00:00", "無名氏", "", "無標題", "無內文", "", "");';
+			$result .= 'INSERT INTO '.$this->tablename.' (resto,root,time,md5chksum,category,tim,ext,imgw,imgh,imgsize,tw,th,pwd,now,name,email,sub,com,host,status) VALUES (0, datetime("now"), 1111111111, "", "", 1111111111111, "", 0, 0, "", 0, 0, "", "05/01/01(六)00:00", "無名氏", "", "無標題", "無內文", "", "");';
 			sqlite_exec($this->con, $result); // 正式新增資料表
 			$this->dbCommit();
 		}
@@ -276,7 +276,7 @@ class PIOsqlite{
 	}
 
 	/* 新增文章/討論串 */
-	function addPost($no, $resto, $md5chksum, $catalog, $tim, $ext, $imgw, $imgh, $imgsize, $tw, $th, $pwd, $now, $name, $email, $sub, $com, $host, $age=false){
+	function addPost($no, $resto, $md5chksum, $category, $tim, $ext, $imgw, $imgh, $imgsize, $tw, $th, $pwd, $now, $name, $email, $sub, $com, $host, $age=false){
 		if(!$this->prepared) $this->dbPrepare();
 
 		$time = (int)substr($tim, 0, -3); // 13位數的數字串是檔名，10位數的才是時間數值
@@ -288,12 +288,12 @@ class PIOsqlite{
 			}
 		}else $root = strftime("%Y-%m-%d %H:%M:%S",time()); // 新增討論串, 討論串最後被更新時間
 
-		$query = 'INSERT INTO '.$this->tablename.' (resto,root,time,md5chksum,catalog,tim,ext,imgw,imgh,imgsize,tw,th,pwd,now,name,email,sub,com,host,status) VALUES ('.
+		$query = 'INSERT INTO '.$this->tablename.' (resto,root,time,md5chksum,category,tim,ext,imgw,imgh,imgsize,tw,th,pwd,now,name,email,sub,com,host,status) VALUES ('.
 	(int)$resto.','. // 回應編號
 	"'$root',". // 最後更新時間
 	$time.','. // 發文時間數值
 	"'$md5chksum',". // 附加檔案md5
-	"'".sqlite_escape_string($catalog)."',". // 分類標籤
+	"'".sqlite_escape_string($category)."',". // 分類標籤
 	"$tim, '$ext',". // 附加檔名
 	$imgw.','.$imgh.",'".$imgsize."',".$tw.','.$th.','. // 圖檔長寬及檔案大小；預覽圖長寬
 	"'".sqlite_escape_string($pass)."',".
@@ -362,11 +362,11 @@ class PIOsqlite{
 	}
 
 	/* 搜尋類別標籤 */
-	function searchCatalog($catalog){
+	function searchCategory($category){
 		if(!$this->prepared) $this->dbPrepare();
 
 		$foundPosts = array();
-		$SearchQuery = 'SELECT no FROM '.$this->tablename." WHERE lower(catalog) LIKE '%,".strtolower(sqlite_escape_string($catalog)).",%'";
+		$SearchQuery = 'SELECT no FROM '.$this->tablename." WHERE lower(category) LIKE '%,".strtolower(sqlite_escape_string($category)).",%'";
 		$line = $this->_sqlite_call($SearchQuery);
 		while($rows=sqlite_fetch_array($line)) $foundPosts[] = $rows[0];
 

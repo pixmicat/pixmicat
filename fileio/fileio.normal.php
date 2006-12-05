@@ -35,7 +35,7 @@ class FileIO{
 	}
 
 	function getImageFilesize($imgname){
-		return filesize(FileIO::_getImagePhysicalPath($imgname));
+		return @filesize(FileIO::_getImagePhysicalPath($imgname));
 	}
 
 	function getImageURL($imgname){

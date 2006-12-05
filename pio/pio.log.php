@@ -40,7 +40,7 @@ class PIOlog{
 				$line = $this->logs[$this->LUT[$i]];
 				if($line=='') continue;
 				$tline = array();
-				list($tline['no'], $tline['resto'], $tline['md5chksum'], $tline['catalog'], $tline['tim'], $tline['ext'], $tline['imgw'], $tline['imgh'], $tline['imgsize'], $tline['tw'], $tline['th'], $tline['pwd'], $tline['now'], $tline['name'], $tline['email'], $tline['sub'], $tline['com'], $tline['host'], $tline['status']) = explode(',', $line);
+				list($tline['no'], $tline['resto'], $tline['md5chksum'], $tline['category'], $tline['tim'], $tline['ext'], $tline['imgw'], $tline['imgh'], $tline['imgsize'], $tline['tw'], $tline['th'], $tline['pwd'], $tline['now'], $tline['name'], $tline['email'], $tline['sub'], $tline['com'], $tline['host'], $tline['status']) = explode(',', $line);
 				$this->logs[$this->LUT[$i]] = array_reverse($tline); // list()是由右至左代入的
 			}
 			$posts[] = $this->logs[$this->LUT[$i]];
@@ -50,7 +50,7 @@ class PIOlog{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.3 (v20061204β)';
+		return '0.3 (v20061205β)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -281,10 +281,10 @@ class PIOlog{
 	}
 
 	/* 新增文章/討論串 */
-	function addPost($no, $resto, $md5chksum, $catalog, $tim, $ext, $imgw, $imgh, $imgsize, $tw, $th, $pwd, $now, $name, $email, $sub, $com, $host, $age=false) {
+	function addPost($no, $resto, $md5chksum, $category, $tim, $ext, $imgw, $imgh, $imgsize, $tw, $th, $pwd, $now, $name, $email, $sub, $com, $host, $age=false) {
 		if(!$this->prepared) $this->dbPrepare();
 
-		$tline = array($no, $resto, $md5chksum, $catalog, $tim, $ext, $imgw, $imgh, $imgsize, $tw, $th, $pwd, $now, $name, $email, $sub, $com, $host, '');
+		$tline = array($no, $resto, $md5chksum, $category, $tim, $ext, $imgw, $imgh, $imgsize, $tw, $th, $pwd, $now, $name, $email, $sub, $com, $host, '');
 		$tline = array_map(array($this, '_replaceComma'), $tline); // 將資料內的 , 轉換 (Only Log needed)
 		array_unshift($this->logs, implode(',', $tline).",\r\n"); // 更新logs
 		array_unshift($this->porder, $no); // 更新porder
@@ -368,16 +368,16 @@ class PIOlog{
 	}
 
 	/* 搜尋類別標籤 */
-	function searchCatalog($catalog){
+	function searchCategory($category){
 		if(!$this->prepared) $this->dbPrepare();
 
-		$catalog = strtolower($catalog);
+		$category = strtolower($category);
 		$foundPosts = array();
 		$pcount = $this->postCount();
 		for($i = 0; $i < $pcount; $i++){
 			$logsarray = $this->_ArrangeArrayStructure($this->porder[$i]); // 分析資料為陣列
-			if(!($ary_catalog = $logsarray[0]['catalog'])) continue;
-			if(strpos(strtolower($ary_catalog), '&#44;'.$catalog.'&#44;')!==false) array_push($foundPosts, $logsarray[0]['no']); // 找到標籤，加入名單
+			if(!($ary_category = $logsarray[0]['category'])) continue;
+			if(strpos(strtolower($ary_category), '&#44;'.$category.'&#44;')!==false) array_push($foundPosts, $logsarray[0]['no']); // 找到標籤，加入名單
 		}
 		return $foundPosts;
 	}

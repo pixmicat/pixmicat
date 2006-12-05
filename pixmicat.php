@@ -295,34 +295,34 @@ function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $
 			if($hiddenReply) $WARN_HIDEPOST = '<span class="warn_txt2">有回應 '.$hiddenReply.' 篇被省略。要閱讀所有回應請按下回應連結。</span><br />'."\n"; // 有隱藏的回應
 		}
 		// 對類別標籤作自動連結
-		if(USE_CATALOG){
-			$ary_catalog = explode(',', str_replace('&#44;', ',', $catalog)); $ary_catalog = array_map('trim', $ary_catalog);
-			$ary_catalog_count = count($ary_catalog);
-			$ary_catalog2 = array();
-			for($p = 0; $p < $ary_catalog_count; $p++){
-				if($c = $ary_catalog[$p]) $ary_catalog2[] = '<a href="'.PHP_SELF.'?mode=catalog&amp;c='.$c.'">'.$c.'</a>';
+		if(USE_CATEGORY){
+			$ary_category = explode(',', str_replace('&#44;', ',', $category)); $ary_category = array_map('trim', $ary_category);
+			$ary_category_count = count($ary_category);
+			$ary_category2 = array();
+			for($p = 0; $p < $ary_category_count; $p++){
+				if($c = $ary_category[$p]) $ary_category2[] = '<a href="'.PHP_SELF.'?mode=category&amp;c='.$c.'">'.$c.'</a>';
 			}
-			$catalog = implode(', ', $ary_catalog2);
-		}else $catalog = '';
+			$category = implode(', ', $ary_category2);
+		}else $category = '';
 
 		// 最終輸出處
 		if(USE_TEMPLATE){ // 樣板輸出
 			// 回應
-			if($i) $thdat .= $PTE->ReplaceStrings_Reply(array('{$NO}'=>$no, '{$SUB}'=>$sub, '{$NAME}'=>$name, '{$NOW}'=>$now, '{$COM}'=>$com, '{$CATALOG}'=>$catalog, '{$IMG_BAR}'=>$IMG_BAR, '{$IMG_SRC}'=>$imgsrc, '{$WARN_BEKILL}'=>$WARN_BEKILL));
+			if($i) $thdat .= $PTE->ReplaceStrings_Reply(array('{$NO}'=>$no, '{$SUB}'=>$sub, '{$NAME}'=>$name, '{$NOW}'=>$now, '{$COM}'=>$com, '{$CATEGORY}'=>$category, '{$IMG_BAR}'=>$IMG_BAR, '{$IMG_SRC}'=>$imgsrc, '{$WARN_BEKILL}'=>$WARN_BEKILL));
 			// 首篇
-			else $thdat .= $PTE->ReplaceStrings_Main(array('{$NO}'=>$no, '{$SUB}'=>$sub, '{$NAME}'=>$name, '{$NOW}'=>$now, '{$COM}'=>$com, '{$CATALOG}'=>$catalog, '{$REPLYBTN}'=>$REPLYBTN, '{$IMG_BAR}'=>$IMG_BAR, '{$IMG_SRC}'=>$imgsrc, '{$WARN_OLD}'=>$WARN_OLD, '{$WARN_BEKILL}'=>$WARN_BEKILL, '{$WARN_ENDREPLY}'=>$WARN_ENDREPLY, '{$WARN_HIDEPOST}'=>$WARN_HIDEPOST));
+			else $thdat .= $PTE->ReplaceStrings_Main(array('{$NO}'=>$no, '{$SUB}'=>$sub, '{$NAME}'=>$name, '{$NOW}'=>$now, '{$COM}'=>$com, '{$CATEGORY}'=>$category, '{$REPLYBTN}'=>$REPLYBTN, '{$IMG_BAR}'=>$IMG_BAR, '{$IMG_SRC}'=>$imgsrc, '{$WARN_OLD}'=>$WARN_OLD, '{$WARN_BEKILL}'=>$WARN_BEKILL, '{$WARN_ENDREPLY}'=>$WARN_ENDREPLY, '{$WARN_HIDEPOST}'=>$WARN_HIDEPOST));
 		}else{ // 非樣板輸出
 			if($i){ // 回應
 				$thdat .= '<div class="reply" id="r'.$no.'">
 <input type="checkbox" name="'.$no.'" value="delete" /><span class="title">'.$sub.'</span> 名稱: <span class="name">'.$name.'</span> ['.$now.'] '.$QUOTEBTN.'No.'.$no.'</a>&nbsp;'.$IMG_BAR.$imgsrc.'
 <div class="quote">'.$com.'</div>'."\n";
-				if($catalog) $thdat .= '<div class="catalog">類別: '.$catalog.'</div>'."\n";
+				if($category) $thdat .= '<div class="category">類別: '.$category.'</div>'."\n";
 				$thdat .= $WARN_BEKILL."</div>\n";
 			}else{ // 首篇
 				$thdat .= '<div class="threadpost">
 '.$IMG_BAR.$imgsrc.'<input type="checkbox" name="'.$no.'" value="delete" /><span class="title">'.$sub.'</span> 名稱: <span class="name">'.$name.'</span> ['.$now.'] '.$QUOTEBTN.'No.'.$no.'</a>&nbsp;'.$REPLYBTN.'
 <div class="quote">'.$com.'</div>'."\n";
-				if($catalog) $thdat .= '<div class="catalog">類別: '.$catalog.'</div>'."\n";
+				if($category) $thdat .= '<div class="category">類別: '.$category.'</div>'."\n";
 				$thdat .= $WARN_OLD.$WARN_BEKILL.$WARN_ENDREPLY.$WARN_HIDEPOST."</div>\n";
 			}
 		}
@@ -343,7 +343,7 @@ function regist(){
 	$sub = isset($_POST[FT_SUBJECT]) ? $_POST[FT_SUBJECT] : '';
 	$com = isset($_POST[FT_COMMENT]) ? $_POST[FT_COMMENT] : '';
 	$pwd = isset($_POST['pwd']) ? $_POST['pwd'] : '';
-	$catalog = isset($_POST['catalog']) ? $_POST['catalog'] : '';
+	$category = isset($_POST['category']) ? $_POST['category'] : '';
 	$resto = isset($_POST['resto']) ? $_POST['resto'] : 0;
 	$upfile = isset($_FILES['upfile']['tmp_name']) ? $_FILES['upfile']['tmp_name'] : '';
 	$upfile_path = isset($_POST['upfile_path']) ? $_POST['upfile_path'] : '';
@@ -528,9 +528,9 @@ function regist(){
 	$com = ereg_replace("\n((　| )*\n){3,}", "\n", $com);
 	if(!BR_CHECK || substr_count($com,"\n") < BR_CHECK) $com = nl2br($com); // 換行字元用<br />代替
 	$com = str_replace("\n",'', $com); // 若還有\n換行字元則取消換行
-	if($catalog){ // 修整標籤樣式
-		$catalog = explode(',', $catalog); // 把標籤拆成陣列
-		$catalog = ','.implode(',', array_map('trim', $catalog)).','; // 去空白再合併為單一字串 (左右含,便可以直接以,XX,形式搜尋)
+	if($category){ // 修整標籤樣式
+		$category = explode(',', $category); // 把標籤拆成陣列
+		$category = ','.implode(',', array_map('trim', $category)).','; // 去空白再合併為單一字串 (左右含,便可以直接以,XX,形式搜尋)
 	}
 	if($up_incomplete) $com .= '<br /><br /><span class="warn_txt">注意：附加圖檔上傳不完全</span>'; // 上傳附加圖檔不完全的提示
 
@@ -593,7 +593,7 @@ function regist(){
 	isset($W) ? 0 : $W = 0;
 	isset($H) ? 0 : $H = 0;
 	isset($md5chksum) ? 0 : $md5chksum = '';
-	USE_CATALOG ? 0 : $catalog = '';
+	USE_CATEGORY ? 0 : $category = '';
 	$age = false;
 	if($resto){
 		if(!stristr($email, 'sage') && ($PIO->postCount($resto) < MAX_RES || MAX_RES==0)){
@@ -602,7 +602,7 @@ function regist(){
 	}
 
 	// 正式寫入儲存
-	$PIO->addPost($no,$resto,$md5chksum,$catalog,$tim,$ext,$imgW,$imgH,$imgsize,$W,$H,$pass,$now,$name,$email,$sub,$com,$host,$age);
+	$PIO->addPost($no,$resto,$md5chksum,$category,$tim,$ext,$imgW,$imgH,$imgsize,$W,$H,$pass,$now,$name,$email,$sub,$com,$host,$age);
 	$PIO->dbCommit();
 
 	// Cookies儲存：密碼與E-mail部分，期限是一週
@@ -959,19 +959,19 @@ END_OF_TR;
 }
 
 /* 利用類別標籤搜尋符合的文章 */
-function searchCatalog(){
+function searchCategory(){
 	global $PIO, $FileIO;
-	$catalog = isset($_GET['c']) ? strtolower(strip_tags(trim($_GET['c']))) : '';
+	$category = isset($_GET['c']) ? strtolower(strip_tags(trim($_GET['c']))) : '';
 	$page = isset($_GET['p']) ? @intval($_GET['p']) : 1;
 	if($page < 1) $page = 1;
-	if(!$catalog) error('請輸入類別標籤以搜尋類似文章。');
+	if(!$category) error('請輸入類別標籤以搜尋類似文章。');
 
 	// 利用Session快取類別標籤出現篇別以減少負擔
 	session_start(); // 啟動Session
-	if(!isset($_SESSION['loglist_'.$catalog])){
-		$loglist = $PIO->searchCatalog($catalog);
-		$_SESSION['loglist_'.$catalog] = serialize($loglist);
-	}else $loglist = unserialize($_SESSION['loglist_'.$catalog]);
+	if(!isset($_SESSION['loglist_'.$category])){
+		$loglist = $PIO->searchCategory($category);
+		$_SESSION['loglist_'.$category] = serialize($loglist);
+	}else $loglist = unserialize($_SESSION['loglist_'.$category]);
 	$loglist_count = count($loglist);
 	if(!$loglist_count) error('沒有符合此類別標籤的文章');
 	$page_max = ceil($loglist_count / PAGE_DEF); if($page > $page_max) $page = $page_max; // 總頁數
@@ -990,15 +990,15 @@ function searchCatalog(){
 	}
 
 	$dat .= '<table border="1"><tr>';
-	if($page > 1) $dat .= '<td><form action="'.PHP_SELF.'?mode=catalog&amp;c='.$catalog.'&amp;p='.($page - 1).'" method="post"><div><input type="submit" value="上一頁" /></div></form></td>';
+	if($page > 1) $dat .= '<td><form action="'.PHP_SELF.'?mode=category&amp;c='.$category.'&amp;p='.($page - 1).'" method="post"><div><input type="submit" value="上一頁" /></div></form></td>';
 	else $dat .= '<td style="white-space: nowrap;">第一頁</td>';
 	$dat .= '<td>';
 	for($i = 1; $i <= $page_max ; $i++){
 		if($i==$page) $dat .= "[<b>".$i."</b>] ";
-		else $dat .= '[<a href="'.PHP_SELF.'?mode=catalog&amp;c='.$catalog.'&amp;p='.$i.'">'.$i.'</a>] ';
+		else $dat .= '[<a href="'.PHP_SELF.'?mode=category&amp;c='.$category.'&amp;p='.$i.'">'.$i.'</a>] ';
 	}
 	$dat .= '</td>';
-	if($page < $page_max) $dat .= '<td><form action="'.PHP_SELF.'?mode=catalog&amp;c='.$catalog.'&amp;p='.($page + 1).'" method="post"><div><input type="submit" value="下一頁" /></div></form></td>';
+	if($page < $page_max) $dat .= '<td><form action="'.PHP_SELF.'?mode=category&amp;c='.$category.'&amp;p='.($page + 1).'" method="post"><div><input type="submit" value="下一頁" /></div></form></td>';
 	else $dat .= '<td style="white-space: nowrap;">最後一頁</td>';
 	$dat .= '</tr></table>'."\n";
 
@@ -1135,8 +1135,8 @@ switch($mode){
 	case 'status':
 		showstatus();
 		break;
-	case 'catalog':
-		searchCatalog();
+	case 'category':
+		searchCategory();
 		break;
 	case 'usrdel':
 		usrdel();
