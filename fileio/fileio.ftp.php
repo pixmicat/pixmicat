@@ -3,6 +3,7 @@
 FileIO - FTP
 @Version : 0.2 20061205
 */
+
 class FileIO{
 	var $conn, $parameter, $index, $modified;
 
@@ -82,7 +83,7 @@ class FileIO{
 		}
 		else{
 			$result = ftp_delete($this->conn, $imgname);
-			if($result){ $this->modified = true; unset($this->index[$imgname]); }
+			if($result){ unset($this->index[$imgname]); $this->modified = true; }
 			return $result;
 		}
 	}
