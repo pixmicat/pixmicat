@@ -77,7 +77,7 @@ class FileIO{
 		if(is_array($imgname)){
 			foreach($imgname as $i){
 				if(!ftp_delete($this->conn, $i)) return false;
-				else{ unset($this->index[$i]); $this->modified = true; } // 自索引中刪除
+				unset($this->index[$i]); $this->modified = true; // 自索引中刪除
 			}
 			return true;
 		}
