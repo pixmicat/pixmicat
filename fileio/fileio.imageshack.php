@@ -1,7 +1,7 @@
 <?php
 /*
 FileIO - ImageShack
-@Version : 0.2 20061206
+@Version : 0.2 20061207
 
 使用此功能請遵守 ImageShack 網站的 Terms of Service，並注意以下條約:
 Terms specific to the XML API:
@@ -69,6 +69,13 @@ class FileIO{
 		fclose($fp);
 
 		return (strpos($result, 'THIS_IS_A_FLAG')!==false ? true : false); // 偷吃步，偵測page是否為設定的特殊值
+	}
+
+	/* private 生成 ImageShack my.php 指向頁面位置 */
+	function _myphpImageShack($imgurl, $ishotlink){
+		if($ishotlink) return $imgurl; // 直連:直接傳回不需處理
+		$imgurl = parse_url($imgurl);
+		return 'http://'.$imgurl['host'].'/my.php?image='.basename($imgurl['path']);
 	}
 
 	/* private 解析索引檔 */
@@ -154,7 +161,8 @@ class FileIO{
 	}
 
 	function getImageURL($imgname){
-		return $this->imageExists($imgname) ? $this->index[$imgname]['imgURL'] : false;
+		$ishotlink = false; // 是否使用熱連結直連圖檔位置 (極有可能被 Ban 網域！請慎用)
+		return $this->imageExists($imgname) ? (substr($imgname, -5)=='s.jpg' ? $this->index[$imgname]['imgURL'] : $this->_myphpImageShack($this->index[$imgname]['imgURL'], $ishotlink)) : false;
 	}
 }
 ?>
