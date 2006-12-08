@@ -7,6 +7,7 @@ FileIO Kernel Switcher
 // 引入必要函式庫
 $fileio_file = './fileio/fileio.'.FILEIO_BACKEND.'.php';
 if(is_file($fileio_file)) include_once($fileio_file);
+include_once('./fileio/ifs.php'); // IndexFS
 
 // 擴充物件
 class FileIOWrapper extends FileIO{

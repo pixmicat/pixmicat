@@ -5,7 +5,7 @@ FileIO - FTP
 */
 
 class FileIO{
-	var $conn, $parameter, $index, $modified;
+	var $conn, $parameter;
 
 	/* private 登入 FTP */
 	function _ftp_login(){
@@ -19,38 +19,17 @@ class FileIO{
 		return $result;
 	}
 
-	/* private 解析索引檔 */
-	function _getIndex(){
-		if(!file_exists(FILEIO_INDEXLOG)){ $this->init(); return false; }
-		if($this->index!==false || filesize(FILEIO_INDEXLOG)==0) return true;
-		$indexlog = file(FILEIO_INDEXLOG); $indexlog_count = count($indexlog); // 讀入索引檔並計算目前筆數
-		$this->index = array(); // 把 index 從 false 換成 array() 表示已讀過
-		for($i = 0; $i < $indexlog_count; $i++){
-			if(!($trimline = rtrim($indexlog[$i]))) continue; // 本行無意義
-			$field = explode("\t\t", $trimline);
-			$this->index[$field[0]] = $field[1];
-		}
-		unset($indexlog); return true;
-	}
-
 	/* private 關閉 FTP 及儲存索引檔 */
-	function _ftp_close_and_setIndex(){
+	function _ftp_close(){
+		global $IFS;
 		if($this->conn) ftp_close($this->conn); // 有開啟 FTP 連線則關閉
-		if($this->modified){ // 如果有修改索引就回存
-			$indexlog = '';
-			if(count($this->index)) foreach($this->index as $ikey => $ival){ $indexlog .= $ikey."\t\t".$ival."\n"; } // 有資料才跑迴圈
-			$fp = fopen(FILEIO_INDEXLOG, 'w');
-			fwrite($fp, $indexlog);
-			fclose($fp);
-		}
+		$IFS->saveIndex(); // 索引表更新
 	}
 
 	function FileIO(){
-		register_shutdown_function(array($this, '_ftp_close_and_setIndex')); // 設定解構元 (PHP 結束前執行)
+		register_shutdown_function(array($this, '_ftp_close')); // 設定解構元 (PHP 結束前執行)
 		set_time_limit(120); // 執行時間 120 秒 (FTP 傳輸過程可能很長)
 		$this->parameter = unserialize(FILEIO_PARAMETER); // 將參數重新解析
-		$this->modified = false; // 尚未修改索引
-		$this->index = false;
 		/*
 			[0] : FTP 伺服器位置
 			[1] : FTP 伺服器埠號
@@ -63,49 +42,52 @@ class FileIO{
 	}
 
 	function init(){
-		if(!file_exists(FILEIO_INDEXLOG)){ touch(FILEIO_INDEXLOG); chmod(FILEIO_INDEXLOG, 0666); } // 建立索引檔
 		return true;
 	}
 
 	function imageExists($imgname){
-		if(!$this->_getIndex()) return false;
-		return isset($this->index[$imgname]);
+		global $IFS;
+		return $IFS->beRecord($imgname);
 	}
 
 	function deleteImage($imgname){
-		if(!$this->_getIndex() || !$this->_ftp_login()) return false;
+		global $IFS;
+		if(!$this->_ftp_login()) return false;
 		if(is_array($imgname)){
 			foreach($imgname as $i){
 				if(!ftp_delete($this->conn, $i)) return false;
-				unset($this->index[$i]); $this->modified = true; // 自索引中刪除
+				$IFS->delRecord($i); // 自索引中刪除
 			}
 			return true;
 		}
 		else{
 			$result = ftp_delete($this->conn, $imgname);
-			if($result){ unset($this->index[$imgname]); $this->modified = true; }
+			if($result) $IFS->delRecord($imgname);
 			return $result;
 		}
 	}
 
 	function uploadImage($imgname='', $imgpath='', $imgsize=0){
+		global $IFS;
 		if($imgname=='') return true; // 支援上傳方法
-		if(!$this->_getIndex() || !$this->_ftp_login()) return false;
+		if(!$this->_ftp_login()) return false;
 		$result = ftp_put($this->conn, $imgname, $imgpath, FTP_BINARY);
 		if($result){
-			$this->modified = true;
-			$this->index[$imgname] = $imgsize; // 加入索引之中
+			$IFS->addRecord($imgname, $imgsize, ''); // 加入索引之中
 			unlink($imgpath); // 確實上傳後刪除本機暫存
 		}
 		return $result;
 	}
 
 	function getImageFilesize($imgname){
-		return $this->imageExists($imgname) ? $this->index[$imgname] : false;
+		global $IFS;
+		if($rc = $IFS->getRecord($imgname)) return $rc['imgSize'];
+		return false;
 	}
 
 	function getImageURL($imgname){
-		return $this->imageExists($imgname) ? $this->parameter[6].$imgname : false;
+		global $IFS;
+		return $IFS->beRecord($imgname) ? $this->parameter[6].$imgname : false;
 	}
 }
 ?>
