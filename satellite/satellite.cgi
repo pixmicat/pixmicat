@@ -5,7 +5,7 @@
 
 require './cgi-lib.pl';
 
-$maxsize = 2097152; # 檔案大小上限
+$cgi_lib'maxdata = 2097152; # 檔案大小上限
 $TRANSPORT_KEY = '12345678'; # 傳輸認證金鑰
 $USER_AGENT = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1) Gecko/20061010 Firefox/2.0'; # Just for fun ;-)
 $STORAGE_DIRECTORY = 'src/'; # 圖檔儲存目錄
