@@ -1,7 +1,7 @@
 <?php
 /*
 FileIO Index File System
-@Version : 20061208
+@Version : 20061209
 */
 
 class IndexFS{
@@ -54,7 +54,7 @@ class IndexFS{
 			case 'log':
 				return isset($this->index[$id]);
 			case 'sqlite2':
-				return (sqlite_query($this->index, 'SELECT imgName FROM IndexFS WHERE imgName = "'.sqlite_escape_string($id).'"') ? true : false);
+				return sqlite_fetch_array(sqlite_query($this->index, 'SELECT imgName FROM IndexFS WHERE imgName = "'.sqlite_escape_string($id).'"'));
 		}
 	}
 
@@ -64,8 +64,7 @@ class IndexFS{
 			case 'log':
 				return isset($this->index[$id]) ? $this->index[$id] : false;
 			case 'sqlite2':
-				$row = sqlite_query($this->index, 'SELECT * FROM IndexFS WHERE imgName = "'.sqlite_escape_string($id).'"');
-				return ($row ? sqlite_fetch_array($row) : false);
+				$row = sqlite_fetch_array(sqlite_query($this->index, 'SELECT * FROM IndexFS WHERE imgName = "'.sqlite_escape_string($id).'"'));
 		}
 	}
 
