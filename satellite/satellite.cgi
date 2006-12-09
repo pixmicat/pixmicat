@@ -83,30 +83,43 @@ sub DoTransload{
 	$sockaddr = 'S n a4 x8';
 
 	if ($port =~ /\D/) { $port = getservbyname($port, 'tcp'); }
-	die "No port" unless $port;
+	return undef unless $port;
 	$thataddr = gethostbyname($remote);
 	$that = pack($sockaddr, AF_INET, $port, $thataddr);
-	$proto = getprotobyname('tcp') || 6;
+	$proto = (getprotobyname('tcp'))[2] || 6;
 	socket(SOCK, PF_INET, SOCK_STREAM, $proto) || return undef;
 	connect(SOCK, $that) || return undef;
 	binmode(SOCK);
-	select(SOCK); $| = 1; select(STDOUT); # flush buffer every write
+	$ofh = select(SOCK); $| = 1; select($ofh); # flush buffer on every write
 
-	print SOCK "GET $doc HTTP/1.1".$EOL;
-	print SOCK "Host: $thisaddr".$EOL;
-	print SOCK "User-Agent: $USER_AGENT".$BLANK;
-	$header='';
-	do { # headers
-	  $line = <SOCK>;
-	  $header .= $line;
-	} until ($line =~ /^\r\n/);
-	$content='';
-	while ($line = <SOCK>) {
-		$content .= $line;
+	print SOCK "GET $doc HTTP/1.1".$EOL.
+	           "Host: $remote".$EOL.
+	           "User-Agent: $USER_AGENT".$BLANK;
+
+	vec($rin='', fileno(SOCK), 1) = 1;
+	select($rin, undef, undef, 20) || return undef;
+
+	while( <SOCK> ) {
+		s/\r\n/\n/g;
+		s/\r/\n/g;
+		if ( /HTTP([\/\.\d]+)\s+(\d+)\s+(.*)\n/i ) { $status         = $2; }
+		if ( /Content-Type: (\s*)([^;]+)(.*)\n/i ) { $content_type   = $2; }
+		if ( /Content-Length: (\s*)(\d+)\n/i )     { $content_length = $2; }
+		last if $_ =~ /^$/;
+		$header .= $_;
 	}
-	close (SOCK) || return undef;
 
-	if($header !~ /200 OK/) { return undef; } # 檔案不存在或伺服器出現問題
+	$content='';
+	if ($content_length) {
+		read(SOCK, $content, $content_length);
+	}
+	else {
+		while ( <SOCK> ) { $content .= $_; }
+	}
+	close(SOCK);
+	select($ofh);
+
+	if($status ne "200") { return undef; } # 檔案不存在或伺服器出現問題
 
 	open(FS,">$STORAGE_DIRECTORY$imgname") || return undef;
 	binmode(FS);
