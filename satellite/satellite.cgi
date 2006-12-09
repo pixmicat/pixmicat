@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/perl -w
 
 # FileIO Satellite Perl
 # @Version : 0.1 20061208
@@ -143,8 +143,11 @@ sub DoDelete{
 
 ### 阻止閒雜人士進入
 sub DoNotFound{
-	print "HTTP/1.1 404 Not Found.".$BLANK;
-	print "<?xml version=\"1.0\" encoding=\"iso-8859-1\"?>\n" .
+	print "HTTP/1.1 404 Not Found.".$EOL.
+	      "nph: true".$EOL.
+	      "Status: 404 Not Found".$EOL.
+	      "Content-type: text/html".$BLANK.
+	      "<?xml version=\"1.0\" encoding=\"iso-8859-1\"?>\n" .
 "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\"\n".
 "         \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n".
 "<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\" lang=\"en\">\n".
@@ -160,6 +163,8 @@ sub DoNotFound{
 ### 操作成功，回傳成功訊息
 sub DoOK{
 	print "HTTP/1.1 202 Accepted".$EOL.
+	      "nph: true".$EOL.
+	      "Status: 202 Accepted".$EOL.
 	      "Content-type: text/plain".$BLANK.
 	      "Succeed.";
 
@@ -168,6 +173,8 @@ sub DoOK{
 ### 操作失敗，回傳錯誤訊息
 sub DoError{
 	print "HTTP/1.1 403 Forbidden".$EOL.
+	      "nph: true".$EOL.
+	      "Status: 403 Forbidden".$EOL.
 	      "Content-type: text/plain".$BLANK.
 	      "Failed.";
 }
