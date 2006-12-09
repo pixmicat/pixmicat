@@ -1,7 +1,7 @@
 <?php
 /*
 FileIO - FTP
-@Version : 0.2 20061205
+@Version : 0.2 20061209
 */
 
 class FileIO{
@@ -26,10 +26,10 @@ class FileIO{
 		$IFS->saveIndex(); // 索引表更新
 	}
 
-	function FileIO(){
+	function FileIO($parameter){
 		register_shutdown_function(array($this, '_ftp_close')); // 設定解構元 (PHP 結束前執行)
 		set_time_limit(120); // 執行時間 120 秒 (FTP 傳輸過程可能很長)
-		$this->parameter = unserialize(FILEIO_PARAMETER); // 將參數重新解析
+		$this->parameter = unserialize($parameter); // 將參數重新解析
 		/*
 			[0] : FTP 伺服器位置
 			[1] : FTP 伺服器埠號
@@ -61,8 +61,7 @@ class FileIO{
 			return true;
 		}
 		else{
-			$result = ftp_delete($this->conn, $imgname);
-			if($result) $IFS->delRecord($imgname);
+			if($result = ftp_delete($this->conn, $imgname)) $IFS->delRecord($imgname);
 			return $result;
 		}
 	}

@@ -1,11 +1,11 @@
 <?php
 /*
 FileIO - Satellite 衛星計畫
-@Version : 0.2 20061207
+@Version : 0.2 20061209
 */
 
 class FileIO{
-	var $userAgent, $parameter, $index, $modified;
+	var $userAgent, $parameter;
 
 	/* private 測試連線並且初始化遠端衛星主機 */
 	function _initSatellite(){
@@ -98,39 +98,18 @@ class FileIO{
 		return (strpos($result, '202 Accepted')!==false ? true : false);
 	}
 
-	/* private 解析索引檔 */
-	function _getIndex(){
-		if(!file_exists(FILEIO_INDEXLOG)){ $this->init(); return false; }
-		if($this->index!==false || filesize(FILEIO_INDEXLOG)==0) return true;
-		$indexlog = file(FILEIO_INDEXLOG); $indexlog_count = count($indexlog); // 讀入索引檔並計算目前筆數
-		$this->index = array(); // 把 index 從 false 換成 array() 表示已讀過
-		for($i = 0; $i < $indexlog_count; $i++){
-			if(!($trimline = rtrim($indexlog[$i]))) continue; // 本行無意義
-			$field = explode("\t\t", $trimline);
-			$this->index[$field[0]] = $field[1];
-		}
-		unset($indexlog); return true;
-	}
-
-	/* private 關閉 FTP 及儲存索引檔 */
+	/* private 儲存索引檔 */
 	function _setIndex(){
-		if($this->modified){ // 如果有修改索引就回存
-			$indexlog = '';
-			if(count($this->index)) foreach($this->index as $ikey => $ival){ $indexlog .= $ikey."\t\t".$ival."\n"; } // 有資料才跑迴圈
-			$fp = fopen(FILEIO_INDEXLOG, 'w');
-			fwrite($fp, $indexlog);
-			fclose($fp);
-		}
+		global $IFS;
+		$IFS->saveIndex(); // 索引表更新
 	}
 
-	function FileIO(){
+	function FileIO($parameter){
 		register_shutdown_function(array($this, '_setIndex')); // 設定解構元 (PHP 結束前執行)
 		set_time_limit(120); // 執行時間 120 秒 (傳輸過程可能很長)
 		$this->userAgent = 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)'; // Just for fun ;-)
-		$this->parameter = unserialize(FILEIO_PARAMETER); // 將參數重新解析
+		$this->parameter = unserialize($parameter); // 將參數重新解析
 		$this->parameter[0] = parse_url($this->parameter[0]); // URL 位置拆解
-		$this->modified = false; // 尚未修改索引
-		$this->index = false;
 		/*
 			[0] : 衛星程式遠端 URL 位置
 			[1] : 是否使用 Transload 方式要求衛星程式抓取圖檔 (true:是　false:否，使用傳統 HTTP 上傳)
@@ -140,49 +119,49 @@ class FileIO{
 	}
 
 	function init(){
-		if(!file_exists(FILEIO_INDEXLOG)){ touch(FILEIO_INDEXLOG); chmod(FILEIO_INDEXLOG, 0666); } // 建立索引檔
 		return $this->_initSatellite();
 	}
 
 	function imageExists($imgname){
-		if(!$this->_getIndex()) return false;
-		return isset($this->index[$imgname]);
+		global $IFS;
+		return $IFS->beRecord($imgname);
 	}
 
 	function deleteImage($imgname){
-		if(!$this->_getIndex()) return false;
+		global $IFS;
 		if(is_array($imgname)){
 			foreach($imgname as $i){
 				if(!$this->_deleteSatellite($i)) return false;
-				unset($this->index[$i]); $this->modified = true; // 自索引中刪除
+				$IFS->delRecord($i); // 自索引中刪除
 			}
 			return true;
 		}
 		else{
-			$result = $this->_deleteSatellite($imgname);
-			if($result){ unset($this->index[$imgname]); $this->modified = true; }
+			if($result = $this->_deleteSatellite($imgname)) $IFS->delRecord($imgname);
 			return $result;
 		}
 	}
 
 	function uploadImage($imgname='', $imgpath='', $imgsize=0){
+		global $IFS;
 		if($imgname=='') return true; // 支援上傳方法
-		if(!$this->_getIndex()) return false;
 		$result = $this->parameter[1] ? $this->_transloadSatellite($imgname) : $this->_uploadSatellite($imgname, $imgpath); // 選擇傳輸方法
 		if($result){
-			$this->modified = true;
-			$this->index[$imgname] = $imgsize; // 加入索引之中
+			$IFS->addRecord($imgname, $imgsize, ''); // 加入索引之中
 			unlink($imgpath); // 確實上傳後刪除本機暫存
 		}
 		return $result;
 	}
 
 	function getImageFilesize($imgname){
-		return $this->imageExists($imgname) ? $this->index[$imgname] : false;
+		global $IFS;
+		if($rc = $IFS->getRecord($imgname)) return $rc['imgSize'];
+		return false;
 	}
 
 	function getImageURL($imgname){
-		return $this->imageExists($imgname) ? $this->parameter[3].$imgname : false;
+		global $IFS;
+		return $IFS->beRecord($imgname) ? $this->parameter[3].$imgname : false;
 	}
 }
 ?>

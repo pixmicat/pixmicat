@@ -12,7 +12,7 @@ class FileIO{
 		return (substr($imgname, -5)=='s.jpg' ? $this->thumbPath : $this->imgPath).$imgname;
 	}
 
-	function FileIO(){
+	function FileIO($parameter=''){
 		$this->path = realpath('.').DIRECTORY_SEPARATOR;
 		$this->imgPath = $this->path.IMG_DIR; $this->thumbPath = $this->path.THUMB_DIR;
 	}

@@ -5,21 +5,22 @@ FileIO Index File System
 */
 
 class IndexFS{
-	var $backend, $index, $modified;
+	var $logfile, $backend, $index, $modified;
 
 	/* 建構元 */
-	function IndexFS(){
+	function IndexFS($logfile){
+		$this->logfile = $logfile; // 索引記錄檔位置
 		// 選定儲存索引方式並作讀寫準備
 		if(extension_loaded('SQLite')){
 			$this->backend = 'sqlite2';
-			$this->index = sqlite_open(FILEIO_INDEXLOG, 0666);
+			$this->index = sqlite_open($this->logfile, 0666);
 			if(sqlite_num_rows(sqlite_query($this->index, "SELECT name FROM sqlite_master WHERE name LIKE 'IndexFS'"))===0) $this->init();
 		}else{
 			$this->backend = 'log';
 			$this->modified = false;
-			if(!file_exists(FILEIO_INDEXLOG)){ $this->init(); return; }
-			if(filesize(FILEIO_INDEXLOG)==0) return;
-			$indexlog = file(FILEIO_INDEXLOG); $indexlog_count = count($indexlog); // 讀入索引檔並計算目前筆數
+			if(!file_exists($this->logfile)){ $this->init(); return; }
+			if(filesize($this->logfile)==0) return;
+			$indexlog = file($this->logfile); $indexlog_count = count($indexlog); // 讀入索引檔並計算目前筆數
 			$this->index = array();
 			for($i = 0; $i < $indexlog_count; $i++){
 				if(!($trimline = rtrim($indexlog[$i]))) continue; // 本行無意義
@@ -35,7 +36,7 @@ class IndexFS{
 	function init(){
 		switch($this->backend){
 			case 'log':
-				touch(FILEIO_INDEXLOG); chmod(FILEIO_INDEXLOG, 0666); // 建立索引檔
+				touch($this->logfile); chmod($this->logfile, 0666); // 建立索引檔
 				break;
 			case 'sqlite2':
 				$execText = 'CREATE TABLE IndexFS (
@@ -54,7 +55,7 @@ class IndexFS{
 			case 'log':
 				return isset($this->index[$id]);
 			case 'sqlite2':
-				return sqlite_fetch_array(sqlite_query($this->index, 'SELECT imgName FROM IndexFS WHERE imgName = "'.sqlite_escape_string($id).'"'));
+				return (sqlite_fetch_array(sqlite_query($this->index, 'SELECT imgName FROM IndexFS WHERE imgName = "'.sqlite_escape_string($id).'"'), SQLITE_ASSOC) ? true : false);
 		}
 	}
 
@@ -64,7 +65,7 @@ class IndexFS{
 			case 'log':
 				return isset($this->index[$id]) ? $this->index[$id] : false;
 			case 'sqlite2':
-				$row = sqlite_fetch_array(sqlite_query($this->index, 'SELECT * FROM IndexFS WHERE imgName = "'.sqlite_escape_string($id).'"'));
+				return sqlite_fetch_array(sqlite_query($this->index, 'SELECT * FROM IndexFS WHERE imgName = "'.sqlite_escape_string($id).'"'), SQLITE_ASSOC);
 		}
 	}
 
@@ -97,7 +98,7 @@ class IndexFS{
 		if($this->backend=='log' && $this->modified){ // 如果有修改索引就回存
 			$indexlog = '';
 			if(count($this->index)) foreach($this->index as $ikey => $ival){ $indexlog .= $ikey."\t\t".$ival['imgSize']."\t\t".$ival['imgURL']."\n"; } // 有資料才跑迴圈
-			$fp = fopen(FILEIO_INDEXLOG, 'w');
+			$fp = fopen($this->logfile, 'w');
 			fwrite($fp, $indexlog);
 			fclose($fp);
 		}elseif($this->backend=='sqlite2'){
@@ -105,6 +106,4 @@ class IndexFS{
 		}
 	}
 }
-
-$IFS = new IndexFS(); // IndexFS 物件
 ?>
