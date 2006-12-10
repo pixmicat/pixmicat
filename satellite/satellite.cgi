@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 
 # FileIO Satellite Perl
-# @Version : 0.1 20061208
+# $Id$
 
 require './cgi-lib.pl';
 
