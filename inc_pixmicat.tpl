@@ -1,6 +1,3 @@
-<!--&STYLE-->
-<link rel="stylesheet" type="text/css" href="inc_pixmicat.css" />
-<!--/&STYLE-->
 <!--&MAIN-->
 <div class="threadpost">
 {$IMG_BAR}<!--&IF($IMG_BAR,'<br />','')-->{$IMG_SRC}<input type="checkbox" name="{$NO}" value="delete" /><span class="title">{$SUB}</span>

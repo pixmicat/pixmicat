@@ -1,8 +1,8 @@
 <?php
-// Revision : 2006/10/23 22:59
+// Revision : 2006/12/10 11:55
 
 /* 輸出表頭 */
-function head(&$dat, $style=''){
+function head(&$dat){
 	header('Content-Type: '.((strpos($_SERVER['HTTP_ACCEPT'],'application/xhtml+xml')!==FALSE) ? 'application/xhtml+xml' : 'text/html').'; charset=utf-8'); // 如果瀏覽器支援XHTML標準MIME就輸出
 	$dat .= '<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
@@ -13,7 +13,7 @@ function head(&$dat, $style=''){
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <meta http-equiv="Content-Language" content="zh-tw" />
 <title>'.TITLE.'</title>
-<link rel="stylesheet" type="text/css" href="mainstyle.css" />'.$style.'
+<link rel="stylesheet" type="text/css" href="mainstyle.css" />
 <!--[if IE]><script type="text/javascript" src="iedivfix.js"></script><![endif]-->
 <script type="text/javascript" src="mainscript.js"></script>
 <script type="text/javascript">

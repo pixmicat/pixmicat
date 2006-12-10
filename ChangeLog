@@ -1,5 +1,9 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2006/12/10
+01.[PTE][lib_common] 改回原本樣式，原獨立樣式表方式廢棄 (見2006/09/22,23)
+02.[pixmicat] 新增搜尋類別標籤的重新快取功能，以免 Session 快取過久無法顯示最新文章
+
 2006/12/09
 01.[FileIO] Satellite PHP & Perl CGI 完成
 02.[FileIO] FileIO Index File System 獨立，FileIO 完成

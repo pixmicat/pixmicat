@@ -4,7 +4,7 @@ function getMicrotime(){
     list($usec, $sec) = explode(' ', microtime());
     return ((double)$usec + (double)$sec);
 }
-define("PIXMICAT_VER", 'Pixmicat!-PIO 3rd.Release-dev b061205'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 3rd.Release-dev b061210'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -86,7 +86,7 @@ function updatelog($resno=0,$page_num=0){
 	// 生成靜態頁面一頁份內容
 	for($page = $page_start; $page <= $page_end; $page++){
 		$dat = '';
-		if(!$PTE){ head($dat, "\n".'<link rel="stylesheet" type="text/css" href="inc_pixmicat.css" />'."\n"); }else{ head($dat, $PTE->ReplaceStrings_Style()); }
+		head($dat);
 		form($dat, $resno);
 		$dat .= '<div id="contents">
 
@@ -961,14 +961,15 @@ END_OF_TR;
 /* 利用類別標籤搜尋符合的文章 */
 function searchCategory(){
 	global $PIO, $FileIO;
-	$category = isset($_GET['c']) ? strtolower(strip_tags(trim($_GET['c']))) : '';
-	$page = isset($_GET['p']) ? @intval($_GET['p']) : 1;
+	$category = isset($_GET['c']) ? strtolower(strip_tags(trim($_GET['c']))) : ''; // 搜尋之類別標籤
+	$page = isset($_GET['p']) ? @intval($_GET['p']) : 1; // 目前瀏覽頁數
+	$isrecache = isset($_GET['recache']) ? true : false; // 是否強制重新生成快取
 	if($page < 1) $page = 1;
 	if(!$category) error('請輸入類別標籤以搜尋類似文章。');
 
 	// 利用Session快取類別標籤出現篇別以減少負擔
 	session_start(); // 啟動Session
-	if(!isset($_SESSION['loglist_'.$category])){
+	if(!isset($_SESSION['loglist_'.$category]) || $isrecache){
 		$loglist = $PIO->searchCategory($category);
 		$_SESSION['loglist_'.$category] = serialize($loglist);
 	}else $loglist = unserialize($_SESSION['loglist_'.$category]);
@@ -982,8 +983,8 @@ function searchCategory(){
 	$loglist_cut_count = count($loglist_cut);
 
 	$dat = '';
-	if(!$PTE){ head($dat, "\n".'<link rel="stylesheet" type="text/css" href="inc_pixmicat.css" />'."\n"); }else{ head($dat, $PTE->ReplaceStrings_Style()); }
-	$dat .= '<div>[<a href="'.PHP_SELF2.'?'.time().'">回到版面</a>]</div>'."\n";
+	head($dat);
+	$dat .= '<div>[<a href="'.PHP_SELF2.'?'.time().'">回到版面</a>][<a href="'.PHP_SELF.'?mode=category&amp;c='.$category.'&amp;recache=1">重新快取</a>]</div>'."\n";
 	for($i = 0; $i < $loglist_cut_count; $i++){
 		$posts = $PIO->fetchPosts($loglist_cut[$i]); // 取得文章內容
 		$dat .= arrangeThread($PTE, 0, 0, $posts, 0, $loglist_cut[$i], 0, 0, 0, 0, false); // 逐個輸出 (引用連結不顯示)
