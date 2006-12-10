@@ -5,7 +5,7 @@
 
 require './cgi-lib.pl';
 
-$cgi_lib'maxdata = 2097152; # 檔案大小上限
+$cgi_lib'maxdata = 2097152; # 上傳檔案大小上限
 $TRANSPORT_KEY = '12345678'; # 傳輸認證金鑰
 $USER_AGENT = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1) Gecko/20061010 Firefox/2.0'; # Just for fun ;-)
 $STORAGE_DIRECTORY = 'src/'; # 圖檔儲存目錄
@@ -66,7 +66,7 @@ if ($mode eq 'init') { # 初始化
 
 ### 初始化
 sub DoConstruct{
-	if($Tkey != $TRANSPORT_KEY){ return undef; } # 金鑰不符
+	return undef if $Tkey != $TRANSPORT_KEY; # 金鑰不符
 
 	if(! -d $STORAGE_DIRECTORY){ mkdir($STORAGE_DIRECTORY); chmod($STORAGE_DIRECTORY, 0777); }
 	return 1;
@@ -97,29 +97,26 @@ sub DoTransload{
 	           "User-Agent: $USER_AGENT".$BLANK;
 
 	vec($rin='', fileno(SOCK), 1) = 1;
-	select($rin, undef, undef, 20) || return undef;
+	select($rin, undef, undef, 20) || return undef; # no response from server
 
 	while( <SOCK> ) {
 		s/\r\n/\n/g;
 		s/\r/\n/g;
 		if ( /HTTP([\/\.\d]+)\s+(\d+)\s+(.*)\n/i ) { $status         = $2; }
-		if ( /Content-Type: (\s*)([^;]+)(.*)\n/i ) { $content_type   = $2; }
 		if ( /Content-Length: (\s*)(\d+)\n/i )     { $content_length = $2; }
 		last if $_ =~ /^$/;
-		$header .= $_;
 	}
 
 	$content='';
 	if ($content_length) {
 		read(SOCK, $content, $content_length);
-	}
-	else {
+	} else {
 		while ( <SOCK> ) { $content .= $_; }
 	}
 	close(SOCK);
 	select($ofh);
 
-	if($status ne "200") { return undef; } # 檔案不存在或伺服器出現問題
+	return undef if $status ne "200"; # 檔案不存在或伺服器出現問題
 
 	open(FS,">$STORAGE_DIRECTORY$imgname") || return undef;
 	binmode(FS);
@@ -149,7 +146,7 @@ sub DoUpload{
 ### 刪除檔案
 sub DoDelete{
 	my $imgname=$_[0];
-	if($Tkey != $TRANSPORT_KEY){ return undef; }
+	return undef if $Tkey != $TRANSPORT_KEY; # 金鑰不符
 
 	return unlink($STORAGE_DIRECTORY.$imgname);
 }
@@ -158,7 +155,7 @@ sub DoDelete{
 sub DoNotFound{
 	print "Status: 404 Not Found".$EOL.
 	      "Content-type: text/html".$BLANK.
-	      "<?xml version=\"1.0\" encoding=\"iso-8859-1\"?>\n" .
+"<?xml version=\"1.0\" encoding=\"iso-8859-1\"?>\n".
 "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\"\n".
 "         \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n".
 "<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\" lang=\"en\">\n".
