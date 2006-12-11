@@ -50,7 +50,7 @@ class PIOlog{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.3 (v20061205β)';
+		return '0.3 (v20061211)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -86,6 +86,19 @@ class PIOlog{
 		if($this->prepared && !$reload) return true;
 		if($reload && $this->prepared) $this->porder = $this->torder = $this->LUT = $this->logs = $this->trees = array();
 		$this->logs = file($this->logfile); // Log每行原始資料
+		if(!file_exists($this->porderfile)){ // LUT不在，重生成
+			$lut = '';
+			foreach($this->logs as $line){
+				if(!isset($line)) continue;
+				$tmp = explode(',', $line); $lut .= $tmp[0]."\r\n";
+			}
+			$fp = fopen($this->porderfile, 'w'); // LUT
+			stream_set_write_buffer($fp, 0);
+			flock($fp, LOCK_EX); // 鎖定檔案
+			fwrite($fp, $lut);
+			flock($fp, LOCK_UN); // 解鎖
+			fclose($fp);
+		}
 		$this->porder = array_map('rtrim', file($this->porderfile)); // 文章編號陣列
 		$this->LUT = array_flip($this->porder); // LUT索引查找表
 
