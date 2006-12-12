@@ -1,7 +1,7 @@
 <?php
 /*
 FileIO - ImageShack
-@Version : 0.2 20061209
+@Version : 0.2 20061212
 
 使用此功能請遵守 ImageShack 網站的 Terms of Service，並注意以下條約:
 Terms specific to the XML API:
@@ -85,6 +85,8 @@ class FileIO{
 	}
 
 	function FileIO($parameter){
+		global $IFS;
+		$IFS->openIndex();
 		register_shutdown_function(array($this, '_setIndex')); // 設定解構元 (PHP 結束前執行)
 		set_time_limit(120); // 執行時間 120 秒 (傳輸過程可能很長)
 		$this->userAgent = 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)'; // Just for fun ;-)

@@ -1,5 +1,10 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+
+01.[pixmicat] 修改 Category 印出時使用 urlencode 以確保各瀏覽器相容性
+02.[FileIO] 修改 FileIO IndexFS 使其在需要時才讀取索引以節省 CPU
+
+
 2006/12/11
 01.[PIOlog] 修正當 LUT 快取不見時無法重新生成造成版面無法復原問題
 02.[PTE] 預設樣版新增類別標籤欄位 (供修改製作參考)

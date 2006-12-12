@@ -1,7 +1,7 @@
 <?php
 /*
 FileIO Index File System
-@Version : 20061209
+@Version : 20061212
 */
 
 class IndexFS{
@@ -10,7 +10,27 @@ class IndexFS{
 	/* 建構元 */
 	function IndexFS($logfile){
 		$this->logfile = $logfile; // 索引記錄檔位置
-		// 選定儲存索引方式並作讀寫準備
+	}
+
+	/* 初始化 */
+	function init(){
+		switch($this->backend){
+			case 'log':
+				touch($this->logfile); chmod($this->logfile, 0666); // 建立索引檔
+				break;
+			case 'sqlite2':
+				$execText = 'CREATE TABLE IndexFS (
+				"imgName" VARCHAR(20)  NOT NULL PRIMARY KEY,
+				"imgSize" INTEGER  NOT NULL,
+				"imgURL" VARCHAR(255)  NOT NULL
+				); CREATE INDEX IDX_IndexFS_imgName ON IndexFS(imgName);';
+				sqlite_exec($this->index, $execText);
+				break;
+		}
+	}
+
+	/* 開啟索引檔並讀入 */
+	function openIndex(){
 		if(extension_loaded('SQLite')){
 			$this->backend = 'sqlite2';
 			$this->index = sqlite_open($this->logfile, 0666);
@@ -29,23 +49,6 @@ class IndexFS{
 				// 索引格式: 檔名	檔案大小		對應路徑
 			}
 			unset($indexlog);
-		}
-	}
-
-	/* 初始化 */
-	function init(){
-		switch($this->backend){
-			case 'log':
-				touch($this->logfile); chmod($this->logfile, 0666); // 建立索引檔
-				break;
-			case 'sqlite2':
-				$execText = 'CREATE TABLE IndexFS (
-				"imgName" VARCHAR(20)  NOT NULL PRIMARY KEY,
-				"imgSize" INTEGER  NOT NULL,
-				"imgURL" VARCHAR(255)  NOT NULL
-				); CREATE INDEX IDX_IndexFS_imgName ON IndexFS(imgName);';
-				sqlite_exec($this->index, $execText);
-				break;
 		}
 	}
 

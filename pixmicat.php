@@ -4,7 +4,7 @@ function getMicrotime(){
     list($usec, $sec) = explode(' ', microtime());
     return ((double)$usec + (double)$sec);
 }
-define("PIXMICAT_VER", 'Pixmicat!-PIO 3rd.Release-dev b061210'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 3rd.Release-dev b061212'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -300,7 +300,7 @@ function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $
 			$ary_category_count = count($ary_category);
 			$ary_category2 = array();
 			for($p = 0; $p < $ary_category_count; $p++){
-				if($c = $ary_category[$p]) $ary_category2[] = '<a href="'.PHP_SELF.'?mode=category&amp;c='.$c.'">'.$c.'</a>';
+				if($c = $ary_category[$p]) $ary_category2[] = '<a href="'.PHP_SELF.'?mode=category&amp;c='.urlencode($c).'">'.$c.'</a>';
 			}
 			$category = implode(', ', $ary_category2);
 		}else $category = '';
@@ -962,6 +962,7 @@ END_OF_TR;
 function searchCategory(){
 	global $PIO, $FileIO;
 	$category = isset($_GET['c']) ? strtolower(strip_tags(trim($_GET['c']))) : ''; // 搜尋之類別標籤
+	$category_enc = urlencode($category); // URL 編碼後字串
 	$page = isset($_GET['p']) ? @intval($_GET['p']) : 1; // 目前瀏覽頁數
 	$isrecache = isset($_GET['recache']) ? true : false; // 是否強制重新生成快取
 	if($page < 1) $page = 1;
@@ -984,22 +985,22 @@ function searchCategory(){
 
 	$dat = '';
 	head($dat);
-	$dat .= '<div>[<a href="'.PHP_SELF2.'?'.time().'">回到版面</a>][<a href="'.PHP_SELF.'?mode=category&amp;c='.$category.'&amp;recache=1">重新快取</a>]</div>'."\n";
+	$dat .= '<div>[<a href="'.PHP_SELF2.'?'.time().'">回到版面</a>][<a href="'.PHP_SELF.'?mode=category&amp;c='.$category_enc.'&amp;recache=1">重新快取</a>]</div>'."\n";
 	for($i = 0; $i < $loglist_cut_count; $i++){
 		$posts = $PIO->fetchPosts($loglist_cut[$i]); // 取得文章內容
 		$dat .= arrangeThread($PTE, 0, 0, $posts, 0, $loglist_cut[$i], 0, 0, 0, 0, false); // 逐個輸出 (引用連結不顯示)
 	}
 
 	$dat .= '<table border="1"><tr>';
-	if($page > 1) $dat .= '<td><form action="'.PHP_SELF.'?mode=category&amp;c='.$category.'&amp;p='.($page - 1).'" method="post"><div><input type="submit" value="上一頁" /></div></form></td>';
+	if($page > 1) $dat .= '<td><form action="'.PHP_SELF.'?mode=category&amp;c='.$category_enc.'&amp;p='.($page - 1).'" method="post"><div><input type="submit" value="上一頁" /></div></form></td>';
 	else $dat .= '<td style="white-space: nowrap;">第一頁</td>';
 	$dat .= '<td>';
 	for($i = 1; $i <= $page_max ; $i++){
 		if($i==$page) $dat .= "[<b>".$i."</b>] ";
-		else $dat .= '[<a href="'.PHP_SELF.'?mode=category&amp;c='.$category.'&amp;p='.$i.'">'.$i.'</a>] ';
+		else $dat .= '[<a href="'.PHP_SELF.'?mode=category&amp;c='.$category_enc.'&amp;p='.$i.'">'.$i.'</a>] ';
 	}
 	$dat .= '</td>';
-	if($page < $page_max) $dat .= '<td><form action="'.PHP_SELF.'?mode=category&amp;c='.$category.'&amp;p='.($page + 1).'" method="post"><div><input type="submit" value="下一頁" /></div></form></td>';
+	if($page < $page_max) $dat .= '<td><form action="'.PHP_SELF.'?mode=category&amp;c='.$category_enc.'&amp;p='.($page + 1).'" method="post"><div><input type="submit" value="下一頁" /></div></form></td>';
 	else $dat .= '<td style="white-space: nowrap;">最後一頁</td>';
 	$dat .= '</tr></table>'."\n";
 
