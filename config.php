@@ -27,15 +27,16 @@ ini_set("memory_limit", '32M'); // PHP運行的最大記憶體使用量 (php內�
 // FileIO設定
 define("FILEIO_BACKEND", 'normal'); // FileIO後端指定
 define("FILEIO_INDEXLOG", 'fileioindex.dat'); // FileIO索引記錄檔 (儲存在本機端)
-define("FILEIO_PARAMETER", serialize(array('ftp.example.com', 21, 'demo', 'demo', 'PASV', '/pwd/', 'http://www.example.com/~demo/pwd/'))); // FileIO參數 (參數結構視後端而定)
-
-define("IMGLINK_URL_PREFIX", ''); // 圖像連結(檔名部份)的前置路徑/URL, 不使用的話請設為''
-define("IMG_URL_PREFIX", ''); // 圖像連結(預覽圖部份)的前置路徑/URL, 不使用的話請設為''
-define("THUMB_URL_PREFIX", ''); // 預覽圖URL的前置路徑/URL, 不使用的話請設為''
+define("FILEIO_PARAMETER", ''); // FileIO參數 (本機端儲存)
+//define("FILEIO_PARAMETER", serialize(array('ftp.example.com', 21, 'demo', 'demo', 'PASV', '/pwd/', 'http://www.example.com/~demo/pwd/'))); // FileIO參數 (FTP)
+//define("FILEIO_PARAMETER", serialize(array('00000000000000000000000000000000'))); // FileIO參數 (ImageShack)
+//define("FILEIO_PARAMETER", serialize(array('http://www.example.com/~demo/satellite.cgi', true, '12345678', 'http://www.example.com/~demo/src/'))); // FileIO參數 (Satellite)
 
 // PIO資料來源設定
 define("CONNECTION_STRING", 'log://img.log:tree.log/'); // PIO 連線字串 (Log)
-//define("CONNECTION_STRING", 'mysql://pixmicat:pass@127.0.0.1/test/imglog/'); // PIO 連線字串 (MySQL)
+//define("CONNECTION_STRING", 'mysql://pixmicat:pass@localhost/test/imglog/'); // PIO 連線字串 (MySQL)
+//define("CONNECTION_STRING", 'sqlite://pixmicat.db/imglog/'); // PIO 連線字串 (SQLite)
+//define("CONNECTION_STRING", 'pgsql://pixmicat:1234@localhost/pixmicat_use/imglog/'); // PIO 連線字串 (PostgreSQL)
 
 /*---- Part 2：板面各項細部功能設定 ----*/
 define("IMG_DIR", 'src/'); // 圖片存放目錄
