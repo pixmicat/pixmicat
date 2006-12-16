@@ -37,7 +37,7 @@ class PIOsqlite{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.3 (v20061205β)';
+		return '0.3 (v20061216)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -366,7 +366,7 @@ class PIOsqlite{
 		if(!$this->prepared) $this->dbPrepare();
 
 		$foundPosts = array();
-		$SearchQuery = 'SELECT no FROM '.$this->tablename." WHERE lower(category) LIKE '%,".strtolower(sqlite_escape_string($category)).",%'";
+		$SearchQuery = 'SELECT no FROM '.$this->tablename." WHERE lower(category) LIKE '%,".strtolower(sqlite_escape_string($category)).",%' ORDER BY no DESC";
 		$line = $this->_sqlite_call($SearchQuery);
 		while($rows=sqlite_fetch_array($line)) $foundPosts[] = $rows[0];
 

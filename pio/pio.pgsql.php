@@ -32,7 +32,7 @@ class PIOpgsql{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.3 (v20061205β)';
+		return '0.3 (v20061216)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -375,7 +375,7 @@ class PIOpgsql{
 		if(!$this->prepared) $this->dbPrepare();
 
 		$foundPosts = array();
-		$SearchQuery = 'SELECT no FROM '.$this->tablename." WHERE category ~* ',".pg_escape_string($category).",'";
+		$SearchQuery = 'SELECT no FROM '.$this->tablename." WHERE category ~* ',".pg_escape_string($category).",' ORDER BY no DESC";
 		$line = $this->_pgsql_call($SearchQuery);
 		while($rows=pg_fetch_array($line)) $foundPosts[] = $rows[0];
 

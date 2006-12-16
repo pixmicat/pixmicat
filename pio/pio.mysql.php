@@ -32,7 +32,7 @@ class PIOmysql{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.3 (v20061205β)';
+		return '0.3 (v20061216)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -379,7 +379,7 @@ class PIOmysql{
 		if(!$this->prepared) $this->dbPrepare();
 
 		$foundPosts = array();
-		$SearchQuery = 'SELECT no FROM '.$this->tablename." WHERE lower(category) LIKE '%,".strtolower(mysql_escape_string($category)).",%'";
+		$SearchQuery = 'SELECT no FROM '.$this->tablename." WHERE lower(category) LIKE '%,".strtolower(mysql_escape_string($category)).",%' ORDER BY no DESC";
 		$line = $this->_mysql_call($SearchQuery);
 		while($rows=mysql_fetch_row($line)) $foundPosts[] = $rows[0];
 
