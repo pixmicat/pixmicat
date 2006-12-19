@@ -37,7 +37,7 @@ class PIOsqlite{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.3 (v20061216)';
+		return '0.3 (v20061219)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -296,7 +296,7 @@ class PIOsqlite{
 	"'".sqlite_escape_string($category)."',". // 分類標籤
 	"$tim, '$ext',". // 附加檔名
 	$imgw.','.$imgh.",'".$imgsize."',".$tw.','.$th.','. // 圖檔長寬及檔案大小；預覽圖長寬
-	"'".sqlite_escape_string($pass)."',".
+	"'".sqlite_escape_string($pwd)."',".
 	"'$now',". // 時間(含ID)字串
 	"'".sqlite_escape_string($name)."',".
 	"'".sqlite_escape_string($email)."',".

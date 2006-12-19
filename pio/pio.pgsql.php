@@ -32,7 +32,7 @@ class PIOpgsql{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.3 (v20061216)';
+		return '0.3 (v20061219)';
 	}
 
 	/* 處理連線字串/連接 */
