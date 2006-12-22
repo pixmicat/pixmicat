@@ -1,10 +1,5 @@
 <?php
-$time1 = getMicrotime();
-function getMicrotime(){
-    list($usec, $sec) = explode(' ', microtime());
-    return ((double)$usec + (double)$sec);
-}
-define("PIXMICAT_VER", 'Pixmicat!-PIO 3rd.Release-dev b061212'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 3rd.Release Publicβ (b061223)'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
