@@ -2,6 +2,7 @@
 ----------------------
 2006/12/22
 01.[lib_common][pixmicat] Publicβ 開始
+02.[config] 修改部分預設設定
 
 2006/12/19
 01.[PIO] 修正 PIO PgSQL, SQLite 儲存密碼欄位時變數名稱打錯的問題

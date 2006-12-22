@@ -41,8 +41,8 @@ define("CONNECTION_STRING", 'log://img.log:tree.log/'); // PIO 連線字串 (Log
 /*---- Part 2：板面各項細部功能設定 ----*/
 define("IMG_DIR", 'src/'); // 圖片存放目錄
 define("THUMB_DIR", 'thumb/'); // 預覽圖存放目錄
-define("PHP_SELF2", 'index.html'); // 入口檔名
-define("PHP_EXT", '.html'); // 第一頁以後生成檔案之副檔名
+define("PHP_SELF2", 'index.htm'); // 入口檔名
+define("PHP_EXT", '.htm'); // 第一頁以後生成檔案之副檔名
 define("TITLE", 'Pixmicat!-PIO'); // 網頁標題
 define("HOME", '../'); // 回首頁的連結
 define("TOP_LINKS", ''); // 頁面右上方的額外連結，請直接以[<a href="網址" rel="_blank">名稱</a>]格式鍵入，如果不需要開新視窗可刪除rel一段
@@ -100,14 +100,14 @@ define("THUMB_Q", 75); // 預覽圖片之品質 (1-100, 建議預設75，越高�
 // 外觀設定
 $ADDITION_INFO = ""; // 可在表單下顯示額外文字
 define("USE_TEMPLATE", 0); // 是否使用樣板
-define("TEMPLATE_FILE", 'inc_futaba.tpl'); // 樣板位置
+define("TEMPLATE_FILE", 'inc_pixmicat.tpl'); // 樣板位置
 define("LOG_MAX", 500); // 記錄檔保留之最大資料筆數
 define("PAGE_DEF", 15); // 一頁顯示幾篇討論串
 define("ADMIN_PAGE_DEF", 20); // 管理模式下，一頁顯示幾筆資料
 define("RE_DEF", 10); // 一篇討論串最多顯示之回應筆數 (超過則自動隱藏，全部隱藏：0)
 define("RE_PAGE_DEF", 30); // 回應模式一頁顯示幾筆回應內容 (分頁用，全部顯示：0)
 define("MAX_RES", 30); // 回應筆數超過多少則不自動推文 (關閉：0)
-define("MAX_AGE_TIME", 48); // 討論串可接受推文的時間範圍 (單位：小時，討論串存在超過此時間則回應皆不再自動推文 關閉：0)
+define("MAX_AGE_TIME", 0); // 討論串可接受推文的時間範圍 (單位：小時，討論串存在超過此時間則回應皆不再自動推文 關閉：0)
 define("RE_COL", '#789922'); // ＞標註引用回文顏色
 define("COMM_MAX", 2000); // 內文接受Bytes數 (注意：中文字為2Bytes)
 define("BR_CHECK", 0); // 文字換行行數上限 (不限：0)
