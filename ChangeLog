@@ -1,5 +1,9 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2006/12/23
+01.[FileIO] 修改normal模式使用getImageURL()回傳相對位置造成mod_rss生成RSS不合語法的問題
+02.[FileIO] 減少getImageLocalURL()每次都要取目前伺服器絕對位置造成的CPU浪費
+
 2006/12/22
 01.[lib_common][pixmicat] Publicβ 開始
 02.[config] 修改部分預設設定

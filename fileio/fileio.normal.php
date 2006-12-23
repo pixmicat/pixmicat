@@ -1,7 +1,7 @@
 <?php
 /*
 FileIO - Normal
-@Version : 0.2 20061205
+@Version : 0.2 20061223
 */
 
 class FileIO{
@@ -22,12 +22,12 @@ class FileIO{
 	}
 
 	function imageExists($imgname){
-		return file_exists(FileIO::_getImagePhysicalPath($imgname));
+		return file_exists($this->_getImagePhysicalPath($imgname));
 	}
 
 	function deleteImage($imgname){
-		if(is_array($imgname)){ foreach($imgname as $i){ if(!@unlink(FileIO::_getImagePhysicalPath($i))) return false; } return true; }
-		else{ return @unlink(FileIO::_getImagePhysicalPath($imgname)); }
+		if(is_array($imgname)){ foreach($imgname as $i){ if(!@unlink($this->_getImagePhysicalPath($i))) return false; } return true; }
+		else{ return @unlink($this->_getImagePhysicalPath($imgname)); }
 	}
 
 	function uploadImage($imgname='', $imgpath='', $imgsize=0){
@@ -35,11 +35,11 @@ class FileIO{
 	}
 
 	function getImageFilesize($imgname){
-		return @filesize(FileIO::_getImagePhysicalPath($imgname));
+		return @filesize($this->_getImagePhysicalPath($imgname));
 	}
 
 	function getImageURL($imgname){
-		return (substr($imgname, -5)=='s.jpg' ? THUMB_DIR : IMG_DIR).$imgname;
+		return $this->getImageLocalURL($imgname);
 	}
 }
 ?>

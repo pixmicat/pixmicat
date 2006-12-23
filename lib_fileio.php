@@ -12,11 +12,14 @@ $IFS = new IndexFS(FILEIO_INDEXLOG); // IndexFS 物件
 
 // 擴充物件
 class FileIOWrapper extends FileIO{
+	var $absoluteURL; // 伺服器絕對位置
+	function _getAbsoluteURL(){
+		return 'http://'.$_SERVER['HTTP_HOST'].preg_replace('/(.*)\/.+$/', '$1/', $_SERVER['PHP_SELF']);
+	}
 	function getImageLocalURL($imgname){
-		$filename = preg_replace('/.*\/+/', '', $_SERVER['PHP_SELF']);
-		$path = preg_replace("/$filename$/", '', $_SERVER['PHP_SELF']);
+		if(!isset($this->absoluteURL)) $this->absoluteURL = $this->_getAbsoluteURL();
 
-		return 'http://'.$_SERVER['HTTP_HOST'].$path.(substr($imgname, -5)=='s.jpg' ? THUMB_DIR : IMG_DIR).$imgname;
+		return $this->absoluteURL.(substr($imgname, -5)=='s.jpg' ? THUMB_DIR : IMG_DIR).$imgname;
 	}
 }
 
