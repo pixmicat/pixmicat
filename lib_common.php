@@ -1,5 +1,5 @@
 <?php
-// Revision : 2006/12/22 22:43
+// Revision : 2006/12/28 20:06
 
 /* 輸出表頭 */
 function head(&$dat){
@@ -87,7 +87,7 @@ function form(&$dat, $resno){
 </td></tr>
 </table>
 </div>
-<script type="text/javascript">l2();</script>
+<script type="text/javascript">l1();</script>
 <hr />
 </div>
 </form>

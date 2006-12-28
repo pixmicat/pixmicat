@@ -1,5 +1,9 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2006/12/28
+01.[pixmicat] 新增回應模式分頁 [ALL] 全部顯示功能 (顯示條件:分頁數超過一頁)
+02.[lib_common] 修正 2006/10/27 01. 項失效的問題 (Cookie 無法正確填入欄位)
+
 2006/12/23
 01.[FileIO] 修改normal模式使用getImageURL()回傳相對位置造成mod_rss生成RSS不合語法的問題
 02.[FileIO] 減少getImageLocalURL()每次都要取目前伺服器絕對位置造成的CPU浪費

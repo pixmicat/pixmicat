@@ -1,5 +1,5 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 3rd.Release Publicβ (b061223)'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 3rd.Release b061228'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -106,11 +106,16 @@ function updatelog($resno=0,$page_num=0){
 			$hiddenReply = 0; // 被隱藏回應數
 			if($resno){ // 回應模式
 				if($tree_count && RE_PAGE_DEF){ // 有回應且RE_PAGE_DEF > 0才做分頁動作
-					if($page_num==='RE_PAGE_MAX') $page_num = ceil($tree_count / RE_PAGE_DEF) - 1; // 特殊值：最末頁
-					if($page_num < 0) $page_num = 0; // 負數
-					if($page_num * RE_PAGE_DEF >= $tree_count) error('對不起，您所要求的頁數並不存在');
-					$RES_start = $page_num * RE_PAGE_DEF + 1; // 開始
-					$RES_amount = RE_PAGE_DEF; // 取幾個
+					if($page_num==='all'){ // show all
+						$page_num = 0;
+						$RES_start = 1; $RES_amount = $tree_count;
+					}else{
+						if($page_num==='RE_PAGE_MAX') $page_num = ceil($tree_count / RE_PAGE_DEF) - 1; // 特殊值：最末頁
+						if($page_num < 0) $page_num = 0; // 負數
+						if($page_num * RE_PAGE_DEF >= $tree_count) error('對不起，您所要求的頁數並不存在');
+						$RES_start = $page_num * RE_PAGE_DEF + 1; // 開始
+						$RES_amount = RE_PAGE_DEF; // 取幾個
+					}
 				}elseif($page_num > 0) error('對不起，您所要求的頁數並不存在'); // 沒有回應的情況只允許page_num = 0 或負數
 				else{ $RES_start = 1; $RES_amount = $tree_count; } // 輸出全部回應
 			}else{ // 一般模式下的回應隱藏
@@ -152,13 +157,15 @@ function updatelog($resno=0,$page_num=0){
 				$dat .= "<td>";
 				if($tree_count==0) $dat .= '[<b>0</b>] '; // 無回應
 				else{
+					$AllRes = isset($_GET['page_num']) && $_GET['page_num']=='all'; // 是否使用 ALL 全部輸出
 					for($i = 0; $i < $tree_count ; $i += RE_PAGE_DEF){
-						if($page_num==$i/RE_PAGE_DEF) $dat .= '[<b>'.$i/RE_PAGE_DEF.'</b>] ';
+						if(!$AllRes && $page_num==$i/RE_PAGE_DEF) $dat .= '[<b>'.$i/RE_PAGE_DEF.'</b>] ';
 						else $dat .= '[<a href="'.PHP_SELF.'?res='.$resno.'&amp;page_num='.$i/RE_PAGE_DEF.'">'.$i/RE_PAGE_DEF.'</a>] ';
 					}
+					$dat .= $AllRes ? '[<b>ALL</b>] ' : ($tree_count > RE_PAGE_DEF ? '[<a href="'.PHP_SELF.'?res='.$resno.'&amp;page_num=all">ALL</a>] ' : '');
 				}
 				$dat .= '</td>';
-				if($tree_count > $next * RE_PAGE_DEF) $dat .= '<td><form action="'.PHP_SELF.'?res='.$resno.'&amp;page_num='.$next.'" method="post"><div><input type="submit" value="下一頁" /></div></form></td>';
+				if(!$AllRes && $tree_count > $next * RE_PAGE_DEF) $dat .= '<td><form action="'.PHP_SELF.'?res='.$resno.'&amp;page_num='.$next.'" method="post"><div><input type="submit" value="下一頁" /></div></form></td>';
 				else $dat .= '<td style="white-space: nowrap;">最後一頁</td>';
 				$dat .= '</tr></table>'."\n";
 			}
@@ -1145,7 +1152,9 @@ switch($mode){
 	default:
 		$res = isset($_GET['res']) ? $_GET['res'] : 0; // 欲回應編號
 		if($res){ // 回應模式輸出
-			updatelog($res, (isset($_GET['page_num'])?intval($_GET['page_num']):'RE_PAGE_MAX')); // 當分頁值>0實行分頁 (若無值則預設最末頁)
+			$page = isset($_GET['page_num']) ? $_GET['page_num'] : 'RE_PAGE_MAX';
+			if(!($page=='all' || $page=='RE_PAGE_MAX')) $page = intval($_GET['page_num']);
+			updatelog($res, $page); // 實行分頁
 		}elseif(@intval($_GET['page_num']) > 0){ // PHP動態輸出一頁
 			updatelog(0, intval($_GET['page_num']));
 		}else{ // 導至靜態庫存頁
