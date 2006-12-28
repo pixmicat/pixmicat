@@ -13,6 +13,12 @@ class PIOsqlite{
 		if($connstr) $this->dbConnect($connstr);
 	}
 
+	/* private 攔截SQL錯誤 */
+	function _error_handler($errtext, $errline){
+		$err = "Pixmicat! SQL Error: $errtext, debug info: at line $errline";
+		exit($err);
+	}
+
 	/* private 使用SQL字串和SQLite要求 */
 	function _sqlite_call($query){
 		$debug_mode = false; // 除錯模式：顯示SQL錯誤訊息
@@ -37,7 +43,7 @@ class PIOsqlite{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.3 (v20061219)';
+		return '0.3 (v20061228)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -93,7 +99,7 @@ class PIOsqlite{
 		if($this->prepared && !$reload) return true;
 
 		if($reload && $this->con) sqlite_close($this->con);
-		if(@!$this->con=sqlite_popen($this->dbname, 0666, $sqliteerrmsg)) echo $sqliteerrmsg;
+		if(@!$this->con=sqlite_popen($this->dbname, 0666)) $this->_error_handler('Open database failed', __LINE__);
 		if($transaction) @sqlite_exec($this->con, 'BEGIN;'); // 啟動交易性能模式
 
 		$this->prepared = 1;
@@ -201,7 +207,7 @@ class PIOsqlite{
 		$oldAttachments = array(); // 舊文的附加檔案清單
 		$countline = $this->postCount(); // 文章數目
 		$cutIndex = $countline - LOG_MAX + 1; // LIMIT用，取出最舊的幾篇
-		if(!$result=$this->_sqlite_call('SELECT no,ext,tim FROM '.$this->tablename." ORDER BY no LIMIT 0, ".$cutIndex)) echo '[ERROR] 取出舊文失敗<br />';
+		if(!$result=$this->_sqlite_call('SELECT no,ext,tim FROM '.$this->tablename." ORDER BY no LIMIT 0, ".$cutIndex)) $this->_error_handler('Get the old post failed', __LINE__);
 		else{
 			while(list($dno, $dext, $dtim)=sqlite_fetch_array($result)){ // 個別跑舊文迴圈
 				if($dext){
@@ -211,14 +217,14 @@ class PIOsqlite{
 					if($FileIO->imageExists($dthumb)) $oldAttachments[] = $dthumb;
 				}
 				// 逐次搜尋舊文之回應
-				if(!$resultres=$this->_sqlite_call('SELECT ext,tim FROM '.$this->tablename." WHERE ext <> '' AND resto = $dno")) echo '[ERROR] 取出舊文之回應失敗<br />';
+				if(!$resultres=$this->_sqlite_call('SELECT ext,tim FROM '.$this->tablename." WHERE ext <> '' AND resto = $dno")) $this->_error_handler('Get replies of the old post failed', __LINE__);
 				while(list($rext, $rtim)=sqlite_fetch_array($resultres)){
 					$rfile = $rtim.$rext; // 附加檔案名稱
 					$rthumb = $rtim.'s.jpg'; // 預覽檔案名稱
 					if($FileIO->imageExists($rfile)) $oldAttachments[] = $rfile;
 					if($FileIO->imageExists($rthumb)) $oldAttachments[] = $rthumb;
 				}
-				if(!$this->_sqlite_call('DELETE FROM '.$this->tablename.' WHERE no = '.$dno.' OR resto = '.$dno)) echo '[ERROR] 刪除舊文及其回應失敗<br />'; // 刪除文章
+				if(!$this->_sqlite_call('DELETE FROM '.$this->tablename.' WHERE no = '.$dno.' OR resto = '.$dno)) $this->_error_handler('Delete old posts and replies failed', __LINE__); // 刪除文章
 			}
 		}
 		return $oldAttachments; // 回傳需刪除檔案列表
@@ -230,7 +236,7 @@ class PIOsqlite{
 		if(!$this->prepared) $this->dbPrepare();
 
 		$arr_warn = $arr_kill = array(); // 警告 / 即將被刪除標記陣列
-		if(!$result=$this->_sqlite_call('SELECT no,ext,tim FROM '.$this->tablename." WHERE ext <> '' ORDER BY no")) echo '[ERROR] 取出舊文失敗<br />';
+		if(!$result=$this->_sqlite_call('SELECT no,ext,tim FROM '.$this->tablename." WHERE ext <> '' ORDER BY no")) $this->_error_handler('Get the old post failed', __LINE__);
 		else{
 			while(list($dno, $dext, $dtim)=sqlite_fetch_array($result)){ // 個別跑舊文迴圈
 				$dfile = $dtim.$dext; // 附加檔案名稱
@@ -249,7 +255,7 @@ class PIOsqlite{
 
 		$files = $this->removeAttachments($posts, true); // 先遞迴取得刪除文章及其回應附件清單
 		$pno = implode(', ', $posts); // ID字串
-		if(!$result=$this->_sqlite_call('DELETE FROM '.$this->tablename.' WHERE no IN ('.$pno.') OR resto IN('.$pno.')')) echo '[ERROR] 刪除文章及其回應失敗<br />'; // 刪掉文章
+		if(!$result=$this->_sqlite_call('DELETE FROM '.$this->tablename.' WHERE no IN ('.$pno.') OR resto IN('.$pno.')')) $this->_error_handler('Delete old posts and replies failed', __LINE__); // 刪掉文章
 		return $files;
 	}
 
@@ -263,7 +269,7 @@ class PIOsqlite{
 		if($recursion) $tmpSQL = 'SELECT ext,tim FROM '.$this->tablename.' WHERE (no IN ('.$pno.') OR resto IN('.$pno.")) AND ext <> ''"; // 遞迴取出 (含回應附件)
 		else $tmpSQL = 'SELECT ext,tim FROM '.$this->tablename.' WHERE no IN ('.$pno.") AND ext <> ''"; // 只有指定的編號
 
-		if(!$result=$this->_sqlite_call($tmpSQL)) echo '[ERROR] 取出附件清單失敗<br />';
+		if(!$result=$this->_sqlite_call($tmpSQL)) $this->_error_handler('Get attachments of the post failed', __LINE__);
 		else{
 			while(list($dext, $dtim)=sqlite_fetch_array($result)){ // 個別跑迴圈
 				$dfile = $dtim.$dext; // 附加檔案名稱
@@ -284,7 +290,7 @@ class PIOsqlite{
 			$root = '1980-01-01 00:00:00';
 			if($age){ // 推文
 				$query = 'UPDATE '.$this->tablename.' SET root = "'.strftime("%Y-%m-%d %H:%M:%S",time()).'" WHERE no = '.$resto; // 將被回應的文章往上移動
-				if(!$result=$this->_sqlite_call($query)) echo '[ERROR] 推文失敗<br />';
+				if(!$result=$this->_sqlite_call($query)) $this->_error_handler('Push the post failed', __LINE__);
 			}
 		}else $root = strftime("%Y-%m-%d %H:%M:%S",time()); // 新增討論串, 討論串最後被更新時間
 
@@ -303,7 +309,7 @@ class PIOsqlite{
 	"'".sqlite_escape_string($sub)."',".
 	"'".sqlite_escape_string($com)."',".
 	"'".sqlite_escape_string($host)."', '')";
-		if(!$result=$this->_sqlite_call($query)) echo '[ERROR] 新增文章失敗<br />';
+		if(!$result=$this->_sqlite_call($query)) $this->_error_handler('Insert a new post failed', __LINE__);
 	}
 
 	/* 檢查是否連續投稿 */
@@ -315,7 +321,7 @@ class PIOsqlite{
 		$tmpSQL = 'SELECT pwd,host FROM '.$this->tablename.' WHERE time > '.($timestamp - RENZOKU); // 一般投稿時間檢查
 		if($isupload) $tmpSQL .= ' OR time > '.($timestamp - RENZOKU2); // 附加圖檔的投稿時間檢查 (與下者兩者擇一)
 		else $tmpSQL .= " OR php('md5', com) = '".md5($com)."'"; // 內文一樣的檢查 (與上者兩者擇一) * 此取巧採用了PHP登錄的函式php來叫用md5
-		if(!$result=$this->_sqlite_call($tmpSQL)) echo '[ERROR] 取出文章判斷連續發文失敗<br />';
+		if(!$result=$this->_sqlite_call($tmpSQL)) $this->_error_handler('Get the post to check the succession failed', __LINE__);
 		else{
 			while(list($lpwd, $lhost)=sqlite_fetch_array($result)){
 				$pchk = 0;
@@ -331,7 +337,7 @@ class PIOsqlite{
 		global $FileIO;
 		if(!$this->prepared) $this->dbPrepare();
 
-		if(!$result=$this->_sqlite_call('SELECT tim,ext FROM '.$this->tablename." WHERE ext <> '' AND md5chksum = '$md5hash' ORDER BY no DESC")) echo '[ERROR] 取出文章判斷重複貼圖失敗<br />';
+		if(!$result=$this->_sqlite_call('SELECT tim,ext FROM '.$this->tablename." WHERE ext <> '' AND md5chksum = '$md5hash' ORDER BY no DESC")) $this->_error_handler('Get the post to check the duplicate attachment failed', __LINE__);
 		else{
 			while(list($ltim, $lext)=sqlite_fetch_array($result)){
 				if($FileIO->imageExists($ltim.$lext)){ return true; break; } // 有相同檔案
@@ -356,7 +362,7 @@ class PIOsqlite{
 		$SearchQuery = 'SELECT * FROM '.$this->tablename." WHERE {$field} LIKE '%".($keyword[0])."%'";
 		if($keyword_cnt > 1) for($i = 1; $i < $keyword_cnt; $i++) $SearchQuery .= " {$method} {$field} LIKE '%".($keyword[$i])."%'"; // 多重字串交集 / 聯集搜尋
 		$SearchQuery .= ' ORDER BY no DESC'; // 按照號碼大小排序
-		if(!$line=$this->_sqlite_call($SearchQuery)) echo '[ERROR] 搜尋文章失敗<br />';
+		if(!$line=$this->_sqlite_call($SearchQuery)) $this->_error_handler('Search the post failed', __LINE__);
 
 		return $this->_ArrangeArrayStructure($line); // 輸出陣列結構
 	}
@@ -397,7 +403,7 @@ class PIOsqlite{
 			switch($statusType[$i]){
 				case 'TS': // 討論串是否停止
 					$newStatus = $newValue[$i] ? ($status[$i].'T') : str_replace('T', '', $status[$i]); // 更改狀態字串
-					if(!$this->_sqlite_call('UPDATE '.$this->tablename." SET status = '$newStatus' WHERE no = ".$no[$i])) echo "[ERROR] 更新討論串狀態失敗<br>"; // 更新討論串屬性
+					if(!$this->_sqlite_call('UPDATE '.$this->tablename." SET status = '$newStatus' WHERE no = ".$no[$i])) $this->_error_handler('Update the status of the post failed', __LINE__); // 更新討論串屬性
 					break;
 				default:
 			}

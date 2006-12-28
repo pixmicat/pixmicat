@@ -13,6 +13,12 @@ class PIOmysql{
 		if($connstr) $this->dbConnect($connstr);
 	}
 
+	/* private 攔截SQL錯誤 */
+	function _error_handler($errtext, $errline){
+		$err = "Pixmicat! SQL Error: $errtext, debug info: at line $errline";
+		exit($err);
+	}
+
 	/* private 使用SQL字串和MySQL伺服器要求 */
 	function _mysql_call($query){
 		$debug_mode = false; // 除錯模式：顯示SQL錯誤訊息
@@ -32,7 +38,7 @@ class PIOmysql{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.3 (v20061216)';
+		return '0.3 (v20061228)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -93,11 +99,7 @@ class PIOmysql{
 		if($this->prepared && !$reload) return true;
 
 		if($reload && $this->con) mysql_close($this->con);
-		if(@!$this->con=mysql_pconnect($this->server, $this->username, $this->password)){
-			echo 'It occurred a fatal error when connecting to the MySQL server.<p>';
-			echo 'Check your MySQL login setting in config file or the MySQL server status.';
-			exit;
-		}
+		if(@!$this->con=mysql_pconnect($this->server, $this->username, $this->password)) $this->_error_handler('Open database failed', __LINE__);
 		@mysql_select_db($this->dbname, $this->con);
 		@mysql_query("SET NAMES 'utf8'"); // MySQL資料以UTF-8模式傳送
 		if($transaction) @mysql_query('START TRANSACTION'); // 啟動交易性能模式 (據說會降低效能，但可防止資料寫入不一致)
@@ -210,7 +212,7 @@ class PIOmysql{
 		$oldAttachments = array(); // 舊文的附加檔案清單
 		$countline = $this->postCount(); // 文章數目
 		$cutIndex = $countline - LOG_MAX + 1; // LIMIT用，取出最舊的幾篇
-		if(!$result=$this->_mysql_call('SELECT no,ext,tim FROM '.$this->tablename.' ORDER BY no LIMIT 0, '.$cutIndex)) echo '[ERROR] 取出舊文失敗<br />';
+		if(!$result=$this->_mysql_call('SELECT no,ext,tim FROM '.$this->tablename.' ORDER BY no LIMIT 0, '.$cutIndex)) $this->_error_handler('Get the old post failed', __LINE__);
 		else{
 			while(list($dno, $dext, $dtim)=mysql_fetch_row($result)){ // 個別跑舊文迴圈
 				if($dext){
@@ -220,7 +222,7 @@ class PIOmysql{
 					if($FileIO->imageExists($dthumb)) $oldAttachments[] = $dthumb;
 				}
 				// 逐次搜尋舊文之回應
-				if(!$resultres=$this->_mysql_call('SELECT ext,tim FROM '.$this->tablename." WHERE ext <> '' AND resto = $dno")) echo '[ERROR] 取出舊文之回應失敗<br />';
+				if(!$resultres=$this->_mysql_call('SELECT ext,tim FROM '.$this->tablename." WHERE ext <> '' AND resto = $dno")) $this->_error_handler('Get replies of the old post failed', __LINE__);
 				while(list($rext, $rtim)=mysql_fetch_row($resultres)){
 					$rfile = $rtim.$rext; // 附加檔案名稱
 					$rthumb = $rtim.'s.jpg'; // 預覽檔案名稱
@@ -228,7 +230,7 @@ class PIOmysql{
 					if($FileIO->imageExists($rthumb)) $oldAttachments[] = $rthumb;
 				}
 				mysql_free_result($resultres);
-				if(!$this->_mysql_call('DELETE FROM '.$this->tablename.' WHERE no = '.$dno.' OR resto = '.$dno)) echo '[ERROR] 刪除舊文及其回應失敗<br />'; // 刪除文章
+				if(!$this->_mysql_call('DELETE FROM '.$this->tablename.' WHERE no = '.$dno.' OR resto = '.$dno)) $this->_error_handler('Delete old posts and replies failed', __LINE__); // 刪除文章
 			}
 		}
 		mysql_free_result($result);
@@ -241,7 +243,7 @@ class PIOmysql{
 		if(!$this->prepared) $this->dbPrepare();
 
 		$arr_warn = $arr_kill = array(); // 警告 / 即將被刪除標記陣列
-		if(!$result=$this->_mysql_call('SELECT no,ext,tim FROM '.$this->tablename." WHERE ext <> '' ORDER BY no")) echo '[ERROR] 取出舊文失敗<br />';
+		if(!$result=$this->_mysql_call('SELECT no,ext,tim FROM '.$this->tablename." WHERE ext <> '' ORDER BY no")) $this->_error_handler('Get the old post failed', __LINE__);
 		else{
 			while(list($dno, $dext, $dtim)=mysql_fetch_row($result)){ // 個別跑舊文迴圈
 				$dfile = $dtim.$dext; // 附加檔案名稱
@@ -261,7 +263,7 @@ class PIOmysql{
 
 		$files = $this->removeAttachments($posts, true); // 先遞迴取得刪除文章及其回應附件清單
 		$pno = implode(', ', $posts); // ID字串
-		if(!$result=$this->_mysql_call('DELETE FROM '.$this->tablename.' WHERE no IN ('.$pno.') OR resto IN('.$pno.')')) echo '[ERROR] 刪除文章及其回應失敗<br />'; // 刪掉文章
+		if(!$result=$this->_mysql_call('DELETE FROM '.$this->tablename.' WHERE no IN ('.$pno.') OR resto IN('.$pno.')')) $this->_error_handler('Delete old posts and replies failed', __LINE__); // 刪掉文章
 		return $files;
 	}
 
@@ -275,7 +277,7 @@ class PIOmysql{
 		if($recursion) $tmpSQL = 'SELECT ext,tim FROM '.$this->tablename.' WHERE (no IN ('.$pno.') OR resto IN('.$pno.")) AND ext <> ''"; // 遞迴取出 (含回應附件)
 		else $tmpSQL = 'SELECT ext,tim FROM '.$this->tablename.' WHERE no IN ('.$pno.") AND ext <> ''"; // 只有指定的編號
 
-		if(!$result=$this->_mysql_call($tmpSQL)) echo '[ERROR] 取出附件清單失敗<br />';
+		if(!$result=$this->_mysql_call($tmpSQL)) $this->_error_handler('Get attachments of the post failed', __LINE__);
 		else{
 			while(list($dext, $dtim)=mysql_fetch_row($result)){ // 個別跑迴圈
 				$dfile = $dtim.$dext; // 附加檔案名稱
@@ -297,7 +299,7 @@ class PIOmysql{
 			$root = 0;
 			if($age){ // 推文
 				$query = 'UPDATE '.$this->tablename.' SET root = now() WHERE no = '.$resto; // 將被回應的文章往上移動
-				if(!$result=$this->_mysql_call($query)) echo '[ERROR] 推文失敗<br />';
+				if(!$result=$this->_mysql_call($query)) $this->_error_handler('Push the post failed', __LINE__);
 			}
 		}else $root = 'now()'; // 新增討論串, 討論串最後被更新時間
 
@@ -316,7 +318,7 @@ class PIOmysql{
 	"'".mysql_escape_string($sub)."',".
 	"'".mysql_escape_string($com)."',".
 	"'".mysql_escape_string($host)."', '')";
-		if(!$result=$this->_mysql_call($query)) echo '[ERROR] 新增文章失敗<br />';
+		if(!$result=$this->_mysql_call($query)) $this->_error_handler('Insert a new post failed', __LINE__);
 	}
 
 	/* 檢查是否連續投稿 */
@@ -328,7 +330,7 @@ class PIOmysql{
 		$tmpSQL = 'SELECT pwd,host FROM '.$this->tablename.' WHERE time > '.($timestamp - RENZOKU); // 一般投稿時間檢查
 		if($isupload) $tmpSQL .= ' OR time > '.($timestamp - RENZOKU2); // 附加圖檔的投稿時間檢查 (與下者兩者擇一)
 		else $tmpSQL .= ' OR md5(com) = "'.md5($com).'"'; // 內文一樣的檢查 (與上者兩者擇一)
-		if(!$result=$this->_mysql_call($tmpSQL)) echo '[ERROR] 取出文章判斷連續發文失敗<br />';
+		if(!$result=$this->_mysql_call($tmpSQL)) $this->_error_handler('Get the post to check the succession failed', __LINE__);
 		else{
 			while(list($lpwd, $lhost)=mysql_fetch_row($result)){
 				$pchk = 0;
@@ -344,7 +346,7 @@ class PIOmysql{
 		global $FileIO;
 		if(!$this->prepared) $this->dbPrepare();
 
-		if(!$result=$this->_mysql_call('SELECT tim,ext FROM '.$this->tablename." WHERE ext <> '' AND md5chksum = '$md5hash' ORDER BY no DESC")) echo '[ERROR] 取出文章判斷重複貼圖失敗<br />';
+		if(!$result=$this->_mysql_call('SELECT tim,ext FROM '.$this->tablename." WHERE ext <> '' AND md5chksum = '$md5hash' ORDER BY no DESC")) $this->_error_handler('Get the post to check the duplicate attachment failed', __LINE__);
 		else{
 			while(list($ltim, $lext)=mysql_fetch_row($result)){
 				if($FileIO->imageExists($ltim.$lext)){ return true; break; } // 有相同檔案
@@ -369,7 +371,7 @@ class PIOmysql{
 		$SearchQuery = 'SELECT * FROM '.$this->tablename." WHERE {$field} LIKE '%".($keyword[0])."%'";
 		if($keyword_cnt > 1) for($i = 1; $i < $keyword_cnt; $i++) $SearchQuery .= " {$method} {$field} LIKE '%".($keyword[$i])."%'"; // 多重字串交集 / 聯集搜尋
 		$SearchQuery .= ' ORDER BY no DESC'; // 按照號碼大小排序
-		if(!$line=$this->_mysql_call($SearchQuery)) echo '[ERROR] 搜尋文章失敗<br />';
+		if(!$line=$this->_mysql_call($SearchQuery)) $this->_error_handler('Search the post failed', __LINE__);
 
 		return $this->_ArrangeArrayStructure($line); // 輸出陣列結構
 	}
@@ -411,7 +413,7 @@ class PIOmysql{
 			switch($statusType[$i]){
 				case 'TS': // 討論串是否停止
 					$newStatus = $newValue[$i] ? ($status[$i].'T') : str_replace('T', '', $status[$i]); // 更改狀態字串
-					if(!$this->_mysql_call('UPDATE '.$this->tablename." SET status = '$newStatus' WHERE no = ".$no[$i])) echo "[ERROR] 更新討論串狀態失敗<br>"; // 更新討論串屬性
+					if(!$this->_mysql_call('UPDATE '.$this->tablename." SET status = '$newStatus' WHERE no = ".$no[$i])) $this->_error_handler('Update the status of the post failed', __LINE__); // 更新討論串屬性
 					break;
 				default:
 			}

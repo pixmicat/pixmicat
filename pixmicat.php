@@ -151,13 +151,13 @@ function updatelog($resno=0,$page_num=0){
 		$next = ($resno ? $page_num : $page) + 1;
 		if($resno){ // 回應分頁
 			if(RE_PAGE_DEF > 0){ // 回應分頁開啟
+				$AllRes = isset($_GET['page_num']) && $_GET['page_num']=='all'; // 是否使用 ALL 全部輸出
 				$dat .= '<table border="1"><tr>';
 				if($prev >= 0) $dat .= '<td><form action="'.PHP_SELF.'?res='.$resno.'&amp;page_num='.$prev.'" method="post"><div><input type="submit" value="上一頁" /></div></form></td>';
 				else $dat .= '<td style="white-space: nowrap;">第一頁</td>';
 				$dat .= "<td>";
 				if($tree_count==0) $dat .= '[<b>0</b>] '; // 無回應
 				else{
-					$AllRes = isset($_GET['page_num']) && $_GET['page_num']=='all'; // 是否使用 ALL 全部輸出
 					for($i = 0; $i < $tree_count ; $i += RE_PAGE_DEF){
 						if(!$AllRes && $page_num==$i/RE_PAGE_DEF) $dat .= '[<b>'.$i/RE_PAGE_DEF.'</b>] ';
 						else $dat .= '[<a href="'.PHP_SELF.'?res='.$resno.'&amp;page_num='.$i/RE_PAGE_DEF.'">'.$i/RE_PAGE_DEF.'</a>] ';
