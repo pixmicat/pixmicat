@@ -1,5 +1,5 @@
 <?php
-// Revision : 2006/12/28 20:06
+// Revision : 2007/1/5 21:28
 
 /* 輸出表頭 */
 function head(&$dat){
@@ -274,12 +274,13 @@ function CleanStr($str, $IsAdmin=false){
 function str_cut($str, $maxlen=20){
     $i = $l = 0; $len = strlen($str); $f = true; $return_str = $str;
 	while($i < $len){
-		if(ord($str{$i}) < 0x80){ $l++; $i++; }
-		elseif(ord($str{$i}) < 0xe0){ $l++; $i += 2; }
-		elseif(ord($str{$i}) < 0xf0){ $l += 2; $i += 3; }
-		elseif(ord($str{$i}) < 0xf8){ $l++; $i += 4; }
-      	elseif(ord($str{$i}) < 0xfc){ $l++; $i += 5; }
-		elseif(ord($str{$i}) < 0xfe){ $l++; $i += 6; }
+		$chars = ord($str{$i});
+		if($chars < 0x80){ $l++; $i++; }
+		elseif($chars < 0xe0){ $l++; $i += 2; }
+		elseif($chars < 0xf0){ $l += 2; $i += 3; }
+		elseif($chars < 0xf8){ $l++; $i += 4; }
+      	elseif($chars < 0xfc){ $l++; $i += 5; }
+		elseif($chars < 0xfe){ $l++; $i += 6; }
 		if(($l >= $maxlen) && $f){
 			$return_str = substr($str, 0, $i);
 			$f = false;
@@ -296,7 +297,7 @@ function str_cut($str, $maxlen=20){
 function CheckSupportGZip(){
 	$HTTP_ACCEPT_ENCODING = isset($_SERVER['HTTP_ACCEPT_ENCODING']) ? $_SERVER['HTTP_ACCEPT_ENCODING'] : '';
 	if(headers_sent() || connection_aborted()) return 0; // 已送出資料，取消
-	if(!extension_loaded('zlib') && !function_exists('gzencode') || !function_exists('ob_start') || !function_exists('ob_get_clean')) return 0; // 伺服器相關的套件或函式無法使用，取消
+	if(!(function_exists('gzencode') && function_exists('ob_start') && function_exists('ob_get_clean'))) return 0; // 伺服器相關的套件或函式無法使用，取消
 	if(strpos($HTTP_ACCEPT_ENCODING, 'gzip')!==false) return 'gzip';
 	return 0;
 }

@@ -1,9 +1,9 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 3rd.Release b061228'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 3rd.Release (v070106)'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
-版權所有 © 2005-2006 Pixmicat! Development Team
+版權所有 © 2005-2007 Pixmicat! Development Team
 
 版權聲明：
 此程式是基於レッツPHP!<http://php.s3.to/>的gazou.php、
@@ -19,12 +19,12 @@ http://pixmicat.openfoundry.org/
 請瀏覽http://pixmicat.openfoundry.org/license/以取得一份。
 
 最低運行需求：
-PHP 4.3.0 / 27 December 2002 (gd_info[取得GD資訊], md5_file[取得檔案內容MD5], ob_get_clean[輸出並清空緩衝區], //u[PCRE_UTF8])
-GD Version 2.0.28 / 21 July 2004 (ImageCreateFromGIF[GIF讀取支援])
+PHP 4.3.0 / 27 December 2002
+GD Version 2.0.28 / 21 July 2004
 
 建議運行環境：
-PHP 4.4.x或更高版本並開啟GD和zlib支援
-安裝PHP編譯快取套件 (如eAccelerator, APC) 或其他快取套件 (如memcached) 更佳
+PHP 5.1.x 或更高版本並開啟GD和zlib支援
+安裝PHP編譯快取套件 (如eAccelerator, XCache, APC) 或其他快取套件 (如memcached) 更佳
 
 設置方法：
 根目錄的權限請設為777，

@@ -1,7 +1,7 @@
 <?php
 /*
 FileIO - ImageShack
-@Version : 0.2 20061212
+@Version : 0.2 20070105
 
 使用此功能請遵守 ImageShack 網站的 Terms of Service，並注意以下條約:
 Terms specific to the XML API:
@@ -128,7 +128,9 @@ class FileIO{
 		$result = $this->_transloadImageShack($imgname);
 		if($result){
 			$IFS->addRecord($imgname, $imgsize, $result['image_link']); // 加入索引之中
-			$IFS->addRecord(substr($imgname, 0, 13).'s.jpg', ceil($imgsize * 0.25), $result['thumb_link']);
+			list($w, $h) = explode('x', $result['resolution']); // 原圖解析度
+			// 判斷是否自動生成預覽圖 (長寬任一大於200像素) 並儲存預覽圖位置
+			$IFS->addRecord(substr($imgname, 0, 13).'s.jpg', ceil($imgsize / 4), (($w > 200 || $h > 200) ?  $result['thumb_link'] : $result['image_link']));
 			unlink($imgpath); // 確實上傳後刪除本機暫存
 		}
 		return $result;
