@@ -38,7 +38,7 @@ class PIOpgsql{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.3 (v20061228)';
+		return '0.3 (v20070107)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -329,9 +329,8 @@ class PIOpgsql{
 		if(!$result=$this->_pgsql_call($tmpSQL)) $this->_error_handler('Get the post to check the succession failed', __LINE__);
 		else{
 			while(list($lpwd, $lhost)=pg_fetch_array($result)){
-				$pchk = 0;
-				if($host==$lhost || $pass==$lpwd || $passcookie==$lpwd) $pchk = 1;
-				if($pchk) return true; break; // 判斷為同一人發文且符合連續投稿條件
+				// 判斷為同一人發文且符合連續投稿條件
+				if($host==$lhost || $pass==$lpwd || $passcookie==$lpwd) return true;
 			}
 			return false;
 		}
@@ -345,7 +344,7 @@ class PIOpgsql{
 		if(!$result=$this->_pgsql_call('SELECT tim,ext FROM '.$this->tablename." WHERE ext <> '' AND md5chksum = '$md5hash' ORDER BY no DESC")) $this->_error_handler('Get the post to check the duplicate attachment failed', __LINE__);
 		else{
 			while(list($ltim, $lext)=pg_fetch_array($result)){
-				if($FileIO->imageExists($ltim.$lext)){ return true; break; } // 有相同檔案
+				if($FileIO->imageExists($ltim.$lext)) return true; // 有相同檔案
 			}
 			return false;
 		}
