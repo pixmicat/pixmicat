@@ -1,5 +1,5 @@
 <?php
-// Revision : 2007/1/5 21:28
+// Revision : 2007/1/24 16:46
 
 /* 輸出表頭 */
 function head(&$dat){
@@ -131,13 +131,6 @@ function error($mes, $dest=''){
 </div>
 ';
 	die("</body>\n</html>");
-}
-
-/* 判斷是否採用Proxy連線 */
-function proxy_connect($port){
-	$a = ""; $b = "";
-	$fp = @fsockopen($_SERVER["REMOTE_ADDR"], $port, $a, $b, 2);
-	if(!$fp){ return 0; }else{ return 1; }
 }
 
 /* 生成預覽圖：需要開啟GD模組 (GD 2.0.28以上) */
@@ -302,21 +295,40 @@ function CheckSupportGZip(){
 	return 0;
 }
 
-/* 使用DNSBL (RBL) 伺服器檢查是否為黑名單 */
-function DNSBLQuery(){
-	global $DNSBLservers, $DNSBLWHlist;
-	$flag = '';	$addr = $_SERVER['REMOTE_ADDR'];
-	if(DNSBL_CHECK && $addr != '127.0.0.1'){
-		if(array_search($addr, $DNSBLWHlist)!==FALSE) return false; // IP位置在白名單內
-		$rev = implode('.', array_reverse(explode('.', $addr)));
-		$maxcount = count($DNSBLservers);
-		if(DNSBL_CHECK < $maxcount) $maxcount = DNSBL_CHECK;
-		for($i = 0; $i < $maxcount; $i++){
-			$query = $rev.'.'.$DNSBLservers[$i].'.'; // 最後面加個點可以防止某些問題
-			$result = gethostbyname($query);
-			if($result && ($result != $query)){ $flag = $DNSBLservers[$i]; break; }
+/* 封鎖 IP / Hostname / DNSBL 綜合性檢查 */
+function BanIPHostDNSBLCheck($IP, $HOST, &$baninfo){
+	if(!BAN_CHECK) return false; // Disabled
+	global $BANPATTERN, $DNSBLservers, $DNSBLWHlist;
+
+	// IP/Hostname Check
+	$HOST = strtolower($HOST);
+	$checkTwice = ($IP != $HOST); // 是否需檢查第二次
+	$IsBanned = false;
+	foreach($BANPATTERN as $pattern){
+		if(substr_count($pattern, '/')==2){ // RegExp
+			$pattern .= 'i';
+		}elseif(strpos($pattern, '*')!==false || strpos($pattern, '?')!==false){ // Wildcard
+			$pattern = '/^'.str_replace(array('.', '*', '?'), array('\.', '.*', '.?'), $pattern).'$/i';
+		}else{ // Full-text
+			if($IP==$pattern || ($checkTwice && $HOST==strtolower($pattern))){ $IsBanned = true; break; }
+			continue;
 		}
+		if(preg_match($pattern, $HOST) || ($checkTwice && preg_match($pattern, $IP))){ $IsBanned = true; break; }
 	}
-	if($flag) error("您所使用的連線($addr) 已被 DNSBL($flag) 列為封鎖名單！<br />".'詳情: <a href="http://openrbl.org/client/#'.$addr.'" rel="_blank">Openrbl DNSBL RBL Blacklist Lookup</a>');
+	if($IsBanned){ $baninfo = '被列在 IP/Hostname 封鎖名單之內'; return true; }
+
+	// DNS-based Blackhole List(DNSBL) 黑名單
+	if(!$DNSBLservers[0]) return false; // Skip check
+	if(array_search($IP, $DNSBLWHlist)!==false) return false; // IP位置在白名單內
+	$rev = implode('.', array_reverse(explode('.', $IP)));
+	$lastPoint = count($DNSBLservers) - 1; if($DNSBLservers[0] < $lastPoint) $lastPoint = $DNSBLservers[0];
+	$isListed = false;
+	for($i = 1; $i <= $lastPoint; $i++){
+		$query = $rev.'.'.$DNSBLservers[$i].'.'; // FQDN
+		$result = gethostbyname($query);
+		if($result && ($result != $query)){ $isListed = $DNSBLservers[$i]; break; }
+	}
+	if($isListed){ $baninfo = '被列在 DNSBL('.$isListed.') 封鎖名單之內'; return true; }
+	return false;
 }
 ?>

@@ -65,7 +65,6 @@ define("RESIMG", 1); // 回應附加圖檔機能 (開啟：1 關閉：0)
 define("AUTO_LINK", 1); // 討論串文字內的URL是否自動作成超連結 (是：1 否：0)
 define("KILL_INCOMPLETE_UPLOAD", 1); // 自動刪除上傳不完整附加圖檔 (是：1 否：0)
 define("ALLOW_NONAME", 1); // 是否接受匿名發送 (強制砍名：2 是：1 否：0)
-define("PROXY_CHECK", 0); // 限制Proxy寫入 (是：1 否：0)
 define("DISP_ID", 2); // 顯示ID (強制顯示：2 選擇性顯示：1 永遠不顯示：0)
 define("CLEAR_SAGE", 0); // 使用不推文模式時清除E-mail中的「sage」關鍵字 (是：1 否：0)
 define("USE_QUOTESYSTEM", 1); // 是否打開引用瀏覽系統 [自動轉換>>No.xxx文字成連結並導引] (是：1 否：0)
@@ -73,12 +72,12 @@ define("SHOW_IMGWH", 1); // 是否顯示附加圖檔之原檔長寬尺寸 (是�
 define("USE_CATEGORY", 1); // 是否開啟使用類別標籤分類功能 (是：1 否：0)
 
 // 封鎖設定
-define("DNSBL_CHECK", 0); // DNS-based Blackhole List(DNSBL) 黑名單功能 (關閉：0, 數字：使用伺服器數目)
-$DNSBLservers = array('sbl-xbl.spamhaus.org', 'list.dsbl.org', 'bl.blbl.org', 'bl.spamcop.net'); // DNSBL伺服器列表，可自行增加
-$DNSBLWHlist = array(''); // DNSBL白名單，排除被列為黑名單的項目 (為求簡便請以IP位置輸入而非主機位置名稱)
+define("BAN_CHECK", 0); // 綜合性封鎖檢查功能 (關閉：0, 開啟：1)
+$BANPATTERN = array(); // IP/Hostname封鎖黑名單
+$DNSBLservers = array(0, 'zen.spamhaus.org', 'list.dsbl.org', 'bl.blbl.org', 'bl.spamcop.net'); // DNSBL伺服器列表 (首項：使用伺服器個數)
+$DNSBLWHlist = array(); // DNSBL白名單 (請輸入IP位置)
 $BAD_STRING = array("dummy_string","dummy_string2"); // 限制出現之文字
 $BAD_FILEMD5 = array("dummy","dummy2"); // 限制上傳附加圖檔之MD5檢查碼
-$BAD_IPADDR = array("addr.dummy.com","addr2.dummy.com"); // 限制之主機位置名稱
 
 // 附加圖檔限制
 define("MAX_KB", 2000); // 附加圖檔上傳容量限制KB (php內定為最高2MB)

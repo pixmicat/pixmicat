@@ -12,7 +12,7 @@ class PIOsqlite3{
 	public function __construct($connstr=''){
 		$this->prepared = false;
 		$this->mid = md5($_SERVER['SCRIPT_FILENAME']); // Unique ID
-		$this->memcached = null; // memcached object (null: use, false: don't use)
+		$this->memcached = false; // memcached object (null: use, false: don't use)
 		$this->mperiod = 600; // memcached expiration time
 		if($connstr) $this->dbConnect($connstr);
 	}

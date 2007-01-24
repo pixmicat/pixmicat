@@ -13,7 +13,7 @@ class PIOlog{
 		$this->logs = $this->trees = $this->LUT = $this->porder = $this->torder = array();
 		$this->prepared = 0;
 		$this->mid = md5($_SERVER['SCRIPT_FILENAME']); // Unique ID
-		$this->memcached = null; // memcached object (null: use, false: don't use)
+		$this->memcached = false; // memcached object (null: use, false: don't use)
 
 		if($connstr) $this->dbConnect($connstr);
 	}

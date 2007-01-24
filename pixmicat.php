@@ -1,5 +1,5 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 3rd.Release (v070106)'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release-dev (b070124)'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -361,19 +361,10 @@ function regist(){
 	$FTreply = isset($_POST['reply']) ? $_POST['reply'] : '';
 	if($FTname != 'spammer' || $FTemail != 'foo@foo.bar' || $FTsub != 'DO NOT FIX THIS' || $FTcom != 'EID OG SMAPS' || $FTreply != '') error('防止 Spambot 機制啟動！');
 
-	// 封鎖及阻擋措施
-	$host = gethostbyaddr($_SERVER["REMOTE_ADDR"]); // 取得主機位置名稱
-	// 封鎖設定：限制之主機位置名稱
-	if(array_search($host, $BAD_IPADDR)!==FALSE) error('您所使用的連線已被拒絕');
-	DNSBLQuery(); // DNSBL封鎖列表查詢
-	// 是否以Proxy來要求 (內建名單僅適用於日本地區)
-	if(PROXY_CHECK){
-		if(eregi("^mail",$host) || eregi("^ns",$host) || eregi("^dns",$host) || eregi("^ftp",$host) || eregi("^prox",$host) || eregi("^pc",$host) || eregi("^[^\.]\.[^\.]$",$host)) $pxck = 1;
-		if(eregi("ne\\.jp$",$host) || eregi("ad\\.jp$",$host) || eregi("bbtec\\.net$",$host) || eregi("aol\\.com$",$host) || eregi("uu\\.net$",$host) || eregi("asahi-net\\.or\\.jp$",$host) || eregi("rim\\.or\\.jp$",$host)) $pxck = 0;
-		else $pxck = 1;
-		if($pxck && (proxy_connect('80') || proxy_connect('8080'))) error('本版關閉使用公開Proxy寫入');
-	}
-	// 封鎖設定：限制出現之文字
+	// 封鎖：IP/Hostname/DNSBL 檢查機能
+	$ip = $_SERVER["REMOTE_ADDR"]; $host = gethostbyaddr($ip);
+	if(BanIPHostDNSBLCheck($ip, $host, $baninfo)) error('您所使用的連線已被拒絕。原因：'.$baninfo);
+	// 封鎖：限制出現之文字
 	foreach($BAD_STRING as $value){
 		if(strpos($com, $value)!==false || strpos($sub, $value)!==false || strpos($name, $value)!==false || strpos($email, $value)!==false){
 			error('發出的文章中有被管理員列為限制的字句，送出失敗');
@@ -1067,7 +1058,7 @@ function showstatus(){
 <tr><td>自動刪除上傳不完整附加圖檔</td><td colspan="2"> '.KILL_INCOMPLETE_UPLOAD.' (是：1 否：0)</td></tr>
 <tr><td>使用預覽圖機能 (品質：'.THUMB_Q.')</td><td colspan="2"> '.USE_THUMB.' (使用：1 不使用：0)</td></tr>';
 	if(USE_THUMB) $dat .= '<tr><td>└ 預覽圖生成功能</td><td colspan="2"> '.$thumb_IsAvailable.' </td></tr>'."\n";
-	$dat .= '<tr><td>限制Proxy寫入</td><td colspan="2"> '.PROXY_CHECK.' (是：1 否：0)</td></tr>
+	$dat .= '<tr><td>封鎖檢查功能</td><td colspan="2"> '.BAN_CHECK.' (啟動：1 關閉：0)</td></tr>
 <tr><td>顯示ID</td><td colspan="2"> '.DISP_ID.' (強制顯示：2 選擇性顯示：1 永遠不顯示：0)</td></tr>
 <tr><td>文字換行行數上限</td><td colspan="2"> '.BR_CHECK.' 行 (不限：0)</td></tr>
 <tr><td>時區設定</td><td colspan="2"> GMT '.TIME_ZONE.'</td></tr>

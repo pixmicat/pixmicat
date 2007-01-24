@@ -1,5 +1,9 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2007/01/24
+01.[lib_common] 廢除 PROXY_CHECK 檢查功能
+02.[config][pixmicat] 強化 IP 封鎖為綜合性 IP/Hostname/DNSBL 封鎖機能，支援 RegExp/Wildcard 模式
+
 2007/01/05：3rd.Release (v070106)
 01.[lib_common] 減少 str_cut() 的 ord() 呼叫次數
 02.[lib_common] CheckSupportGZip() 判斷式修改
