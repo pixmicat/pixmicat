@@ -1,8 +1,10 @@
 <?php
-// Revision : 2007/1/24 16:46
+// Revision : 2007/1/25 20:46
 
 /* 輸出表頭 */
 function head(&$dat){
+	global $PMS;
+
 	header('Content-Type: '.((strpos($_SERVER['HTTP_ACCEPT'],'application/xhtml+xml')!==FALSE) ? 'application/xhtml+xml' : 'text/html').'; charset=utf-8'); // 如果瀏覽器支援XHTML標準MIME就輸出
 	$dat .= '<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
@@ -14,6 +16,9 @@ function head(&$dat){
 <meta http-equiv="Content-Language" content="zh-tw" />
 <title>'.TITLE.'</title>
 <link rel="stylesheet" type="text/css" href="mainstyle.css" />
+';
+	$PMS->useModuleMethods('Head', array(&$dat)); // "Head" Hook Point
+$dat .= '
 <!--[if IE]><script type="text/javascript" src="iedivfix.js"></script><![endif]-->
 <script type="text/javascript" src="mainscript.js"></script>
 <script type="text/javascript">
@@ -115,6 +120,16 @@ function auto_link($proto){
 /* 引用標註 */
 function quoteLight($comment){
 	return preg_replace('/(^|<br \/>)((?:&gt;|＞).*?)(?=<br \/>|$)/u', '$1<span style="color: '.RE_COL.';">$2</span>', $comment);
+}
+
+/* 取得完整的網址 */
+function fullURL(){
+	return 'http://'.$_SERVER['HTTP_HOST'].preg_replace('/(.*)\/.+$/', '$1/', $_SERVER['PHP_SELF']);
+}
+
+/* 反櫻花字 */
+function anti_sakura($str){
+	return preg_match('/[\x{E000}-\x{F848}]/u', $str);
 }
 
 /* 輸出錯誤畫面 */

@@ -1,5 +1,9 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2007/01/25
+01.[PMS][config] 試驗性模組系統雛型架上，並完成 mod_rss 改寫
+02.[pixmicat][lib_common] fullURL(), anti_sakura() 移至 lib_common.php
+
 2007/01/24
 01.[lib_common] 廢除 PROXY_CHECK 檢查功能
 02.[config][pixmicat] 強化 IP 封鎖為綜合性 IP/Hostname/DNSBL 封鎖機能，支援 RegExp/Wildcard 模式

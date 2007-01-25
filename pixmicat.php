@@ -1,5 +1,5 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release-dev (b070124)'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release-dev b070125'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -39,6 +39,7 @@ include_once('./config.php'); // 引入設定檔
 include_once('./lib_common.php'); // 引入共通函式檔案
 include_once('./lib_fileio.php'); // 引入FileIO
 include_once('./lib_pio.php'); // 引入PIO
+include_once('./lib_pms.php'); // 引入PMS
 if(USE_TEMPLATE) include_once('./lib_pte.php'); // 引入PTE外部函式庫
 
 /* 更新記錄檔檔案／輸出討論串 */
@@ -879,18 +880,6 @@ function total_size($isupdate=false){
 	return (int)($all / 1024);
 }
 
-/* 取得完整的網址 */
-function fullURL(){
-	$filename = preg_replace('/.*\/+/', '', $_SERVER['PHP_SELF']);
-	$path = preg_replace("/$filename$/", '', $_SERVER['PHP_SELF']);
-	return 'http://'.$_SERVER['HTTP_HOST'].$path;
-}
-
-/* 反櫻花字 */
-function anti_sakura($str){
-	return preg_match('/[\x{E000}-\x{F848}]/u', $str);
-}
-
 /* 搜尋(全文檢索)功能 */
 function search(){
 	global $PIO, $FileIO;
@@ -1132,6 +1121,14 @@ switch($mode){
 		break;
 	case 'category':
 		searchCategory();
+		break;
+	case 'module':
+		$loadModule = isset($_GET['load']) ? $_GET['load'] : '';
+		if(array_search($loadModule, $PMS->hookPoints['ModulePage'])!==false){
+			$PMS->moduleInstance[$loadModule]->ModulePage();
+		}else{
+			echo '404 Not Found';
+		}
 		break;
 	case 'usrdel':
 		usrdel();
