@@ -1,5 +1,5 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release-dev b070125'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release-dev b070126'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -44,7 +44,7 @@ if(USE_TEMPLATE) include_once('./lib_pte.php'); // 引入PTE外部函式庫
 
 /* 更新記錄檔檔案／輸出討論串 */
 function updatelog($resno=0,$page_num=0){
-	global $PIO, $FileIO;
+	global $PIO, $FileIO, $PMS;
 
 	$page_start = $page_end = 0; // 靜態頁面編號
 	$inner_for_count = 1; // 內部迴圈執行次數
@@ -90,6 +90,7 @@ function updatelog($resno=0,$page_num=0){
 <div id="threads">
 
 ';
+		$PMS->useModuleMethods('ThreadFront', array(&$dat)); // "ThreadFront" Hook Point
 		// 輸出討論串內容
 		for($i = 0; $i < $inner_for_count; $i++){
 			// 取出討論串編號
@@ -129,6 +130,7 @@ function updatelog($resno=0,$page_num=0){
 			$posts = $PIO->fetchPosts($tree_cut); // 取得文章架構內容
 			$dat .= arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno, $arr_kill, $arr_old, $kill_sensor, $old_sensor); // 交給這個函式去搞討論串印出
 		}
+		$PMS->useModuleMethods('ThreadRear', array(&$dat)); // "ThreadRear" Hook Point
 		$dat .= '</div>
 
 <div id="del">
@@ -990,6 +992,38 @@ function searchCategory(){
 	echo $dat;
 }
 
+/* 顯示已載入模組資訊 */
+function listModules(){
+	global $PMS;
+	$dat = '';
+	head($dat);
+	$dat .= '<div id="banner">
+[<a href="'.PHP_SELF2.'?'.time().'">回到版面</a>]
+<div class="bar_admin">模組資訊</div>
+</div>
+
+<div id="modules">
+';
+	/* Module Loaded */
+	$dat .= 'Module Loaded:<ul>'."\n";
+	foreach($PMS->getLoadedModules() as $m){
+		$dat .= '<li>'.$m."</li>\n";
+	}
+	$dat .= "</ul><hr />\n";
+
+	/* Module Infomation */
+	$dat .= 'Module Infomation:<ul>'."\n";
+	foreach($PMS->moduleInstance as $m){
+		$dat .= '<li>'.$m->getModuleVersionInfo()."</li>\n";
+	}
+	$dat .= '</ul><hr />
+</div>
+
+';
+	foot($dat);
+	echo $dat;
+}
+
 /* 顯示系統各項資訊 */
 function showstatus(){
 	global $PIO, $FileIO;
@@ -1129,6 +1163,9 @@ switch($mode){
 		}else{
 			echo '404 Not Found';
 		}
+		break;
+	case 'moduleloaded':
+		listModules();
 		break;
 	case 'usrdel':
 		usrdel();

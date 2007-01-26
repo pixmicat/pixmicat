@@ -5,7 +5,7 @@ By: scribe
 */
 
 class mod_rss{
-	var $FEED_COUNT, $FEED_STATUSFILE, $FEED_CACHEFILE, $BASEDIR;
+	var $FEED_COUNT, $FEED_STATUSFILE, $FEED_CACHEFILE, $FEED_DISPLAYTYPE, $BASEDIR;
 
 	function mod_rss(){
 		global $PMS;
@@ -14,6 +14,7 @@ class mod_rss{
 		$this->FEED_COUNT = 10; // RSS產生最大篇數
 		$this->FEED_STATUSFILE = 'mod_rss.tmp'; // 資料狀態暫存檔 (檢查資料需不需要更新)
 		$this->FEED_CACHEFILE = 'rss.xml'; // 資料輸出暫存檔 (靜態快取Feed格式)
+		$this->FEED_DISPLAYTYPE = 'Thread'; // 資料取出形式 (Thread: 討論串取向, Post: 文章取向)
 		$this->BASEDIR = fullURL(); // 基底URL
 	}
 
@@ -24,7 +25,7 @@ class mod_rss{
 
 	/* Get the module version infomation */
 	function getModuleVersionInfo(){
-		return 'Pixmicat! RSS Feed Module v070125';
+		return 'Pixmicat! RSS Feed Module v070126';
 	}
 
 	/* Auto hook to "Head" hookpoint */
@@ -44,6 +45,7 @@ class mod_rss{
 	/* 檢查資料有沒有更新 */
 	function IsDATAUpdated(){
 		global $PIO;
+		return true;
 		if(isset($_GET['force'])) return true; // 強迫更新RSS Feed
 
 		$tmp_fsize = $PIO->getLastPostNo('afterCommit');
@@ -65,7 +67,19 @@ class mod_rss{
 		global $PIO, $FileIO;
 		$RFC_timezone = ' '.(TIME_ZONE < 0 ? '-' : '+').substr('0'.abs(TIME_ZONE), -2).'00'; // RFC標準所用之時區格式
 
-		$post = $PIO->fetchPosts($PIO->fetchPostList(0, 0, $this->FEED_COUNT)); // 取出前n筆號碼資料
+		switch($this->FEED_DISPLAYTYPE){
+			case 'Thread':
+				$plist = $PIO->fetchThreadList(0, $this->FEED_COUNT); // 取出前n筆討論串首篇編號
+				$plist_count = count($plist);
+				// 為何這樣取？避免 SQL-like 自動排序喪失時間順序
+				$post = array();
+				for($p = 0; $p < $plist_count; $p++) $post[] = array_pop($PIO->fetchPosts($plist[$p])); // 取出編號文章資料
+				break;
+			case 'Post':
+				$plist = $PIO->fetchPostList(0, 0, $this->FEED_COUNT); // 取出前n筆文章編號
+				$post = $PIO->fetchPosts($plist);
+				break;
+		}
 		$post_count = count($post);
 		// RSS Feed內容
 		$tmp_c = '<?xml version="1.0" encoding="UTF-8"?>
@@ -86,9 +100,17 @@ class mod_rss{
 			if($ext && $FileIO->imageExists($tim.'s.jpg')) $imglink = '<img src="'.$FileIO->getImageURL($tim.'s.jpg').'" alt="'.$tim.$ext.'" width="'.$tw.'" height="'.$th.'" /><br />';
 			$time = gmdate("D, d M Y H:i:s", $time + TIME_ZONE * 60 * 60).$RFC_timezone; // 本地時間RFC標準格式
 			$reslink = $this->BASEDIR.PHP_SELF.'?res='.($resto ? $resto : $no); // 回應連結
+			switch($this->FEED_DISPLAYTYPE){
+				case 'Thread':
+					$titleBar = $sub.' No.'.$no.' (Res: '.($PIO->postCount($no) - 1).')'; // 標題 No.編號 (Res:回應數)
+					break;
+				case 'Post':
+					$titleBar = $sub.' ('.$no.')'; // 標題 (編號)
+					break;
+			}
 
 			$tmp_c .= '<item>
-	<title>'.$sub.' ('.$no.')</title>
+	<title>'.$titleBar.'</title>
 	<link>'.$reslink.'</link>
 	<description>
 	<![CDATA[
@@ -114,7 +136,6 @@ class mod_rss{
 	/* 重導向到靜態快取 */
 	function RedirectToCache(){
 		header('HTTP/1.1 302 Moved Temporarily'); // 暫時性導向
-		header('Content-Type: text/xml;charset=utf-8');
 		header('Location: '.$this->BASEDIR.$this->FEED_CACHEFILE);
 	}
 }
