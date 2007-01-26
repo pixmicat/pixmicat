@@ -1,4 +1,9 @@
 <?php
+/*
+mod_rss : 提供RSS Feed訂閱服務
+By: scribe
+*/
+
 class mod_rss{
 	var $FEED_COUNT, $FEED_STATUSFILE, $FEED_CACHEFILE, $BASEDIR;
 
@@ -24,7 +29,7 @@ class mod_rss{
 
 	/* Auto hook to "Head" hookpoint */
 	function autoHookHead(&$txt){
-		$txt .= '<link rel="alternate" type="application/rss+xml" title="RSS 2.0 Feed" href="'.PHP_SELF.'?mode=module&amp;load=mod_rss" />';
+		$txt .= '<link rel="alternate" type="application/rss+xml" title="RSS 2.0 Feed" href="'.PHP_SELF.'?mode=module&amp;load=mod_rss" />'."\n";
 	}
 
 	/* 模組獨立頁面 */

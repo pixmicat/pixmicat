@@ -1,5 +1,5 @@
 <?php
-// Revision : 2007/1/25 20:46
+// Revision : 2007/1/26 12:33
 
 /* 輸出表頭 */
 function head(&$dat){
@@ -18,8 +18,7 @@ function head(&$dat){
 <link rel="stylesheet" type="text/css" href="mainstyle.css" />
 ';
 	$PMS->useModuleMethods('Head', array(&$dat)); // "Head" Hook Point
-$dat .= '
-<!--[if IE]><script type="text/javascript" src="iedivfix.js"></script><![endif]-->
+$dat .= '<!--[if IE]><script type="text/javascript" src="iedivfix.js"></script><![endif]-->
 <script type="text/javascript" src="mainscript.js"></script>
 <script type="text/javascript">
 // <![CDATA[
@@ -34,6 +33,7 @@ var ext="'.ALLOW_UPLOAD_EXT.'".toUpperCase().split("|");
 [<a href="'.HOME.'" rel="_top">回首頁</a>]
 ';
 	if(USE_SEARCH) $dat .= '[<a href="'.PHP_SELF.'?mode=search">搜尋</a>]'."\n";
+	$PMS->useModuleMethods('Toplink', array(&$dat)); // "Toplink" Hook Point
 	$dat .= TOP_LINKS.'
 [<a href="'.PHP_SELF.'?mode=status">系統資訊</a>]
 [<a href="'.PHP_SELF.'?mode=admin">管理區</a>]

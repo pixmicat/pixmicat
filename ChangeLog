@@ -1,5 +1,9 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2007/01/26
+01.[PMS] 增設 Toplink Hook Point, 並完成 mod_catalog
+02.[config] 更改模組載入形式，較可以自由切換載入模組 (註解起來即可)
+
 2007/01/25
 01.[PMS][config] 試驗性模組系統雛型架上，並完成 mod_rss 改寫
 02.[pixmicat][lib_common] fullURL(), anti_sakura() 移至 lib_common.php

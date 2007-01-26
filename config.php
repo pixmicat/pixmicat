@@ -72,7 +72,9 @@ define("SHOW_IMGWH", 1); // 是否顯示附加圖檔之原檔長寬尺寸 (是�
 define("USE_CATEGORY", 1); // 是否開啟使用類別標籤分類功能 (是：1 否：0)
 
 // 模組載入
-$ModuleList = array('mod_rss');
+$ModuleList = array();
+$ModuleList[] = 'mod_rss';
+//$ModuleList[] = 'mod_catalog';
 
 // 封鎖設定
 define("BAN_CHECK", 0); // 綜合性封鎖檢查功能 (關閉：0, 開啟：1)
