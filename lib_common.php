@@ -1,10 +1,9 @@
 <?php
-// Revision : 2007/1/26 12:33
+// Revision : 2007/1/27 15:26
 
 /* 輸出表頭 */
 function head(&$dat){
 	global $PMS;
-
 	header('Content-Type: '.((strpos($_SERVER['HTTP_ACCEPT'],'application/xhtml+xml')!==FALSE) ? 'application/xhtml+xml' : 'text/html').'; charset=utf-8'); // 如果瀏覽器支援XHTML標準MIME就輸出
 	$dat .= '<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
@@ -102,9 +101,12 @@ function form(&$dat, $resno){
 
 /* 輸出頁尾文字 */
 function foot(&$dat){
+	global $PMS;
 	$dat .= '<div id="footer">
 <!-- GazouBBS v3.0 --><!-- ふたば改0.8 --><!-- Pixmicat! -->
-<small>- <a href="http://php.s3.to" rel="_top">GazouBBS</a> + <a href="http://www.2chan.net/" rel="_top">futaba</a> + <a href="http://pixmicat.openfoundry.org/" rel="_blank">Pixmicat!</a> -</small>
+';
+	$PMS->useModuleMethods('Foot', array(&$dat)); // "Foot" Hook Point
+	$dat .= '<small>- <a href="http://php.s3.to" rel="_top">GazouBBS</a> + <a href="http://www.2chan.net/" rel="_top">futaba</a> + <a href="http://pixmicat.openfoundry.org/" rel="_blank">Pixmicat!</a> -</small>
 <script type="text/javascript">preset();</script>
 </div>
 

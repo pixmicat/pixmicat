@@ -1,7 +1,7 @@
 <?php
 /*
 Pixmicat! Module System
-@Date : 2007/1/26 12:26
+@Date : 2007/1/27 16:13
 */
 
 class PMS{
@@ -10,7 +10,13 @@ class PMS{
 
 	/* Constructor */
 	function PMS(){
-		$this->hookPoints = array('Head'=>array(), 'Toplink'=>array(), 'Foot'=>array(), 'ModulePage'=>array()); // 掛載點
+		// 掛載點
+		$this->hookPoints = array(
+			'Head'=>array(), 'Toplink'=>array(),
+			'ThreadFront'=>array(), 'ThreadRear'=>array(),
+			'ThreadPost'=>array(), 'ThreadReply'=>array(),
+			'Foot'=>array(), 'ModulePage'=>array()
+		);
 		$this->moduleInstance = array(); // 存放各模組實體
 		$this->moduleLists = array(); // 存放各模組類別名稱
 	}

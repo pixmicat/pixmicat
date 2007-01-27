@@ -25,7 +25,7 @@ class PIOsqlite3{
 
 	/* PIO模組版本 */
 	public function pioVersion() {
-		return '0.3 with memcached (v20070115β)';
+		return '0.3 with memcached (v20070127β)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -360,7 +360,7 @@ $this->con->quote($host).", '')";
 		if(!$this->prepared) $this->dbPrepare();
 
 		$result = $this->con->prepare('SELECT no FROM '.$this->tablename.' WHERE lower(category) LIKE :category');
-		$result->execute(array(':category' => strtolower($this->con->quote('%,'.$category.',%'))));
+		$result->execute(array(':category' => '%,'.strtolower($category).',%'));
 		return $result->fetchAll(PDO::FETCH_COLUMN, 0);
 	}
 

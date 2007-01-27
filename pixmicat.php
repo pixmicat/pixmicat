@@ -1,5 +1,5 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release-dev b070126'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release-dev b070127'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -228,7 +228,7 @@ function updatelog($resno=0,$page_num=0){
 
 /* 輸出討論串架構 */
 function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $arr_kill, $arr_old, $kill_sensor, $old_sensor, $showquotelink=true){
-	global $PIO, $FileIO;
+	global $PIO, $FileIO, $PMS;
 
 	$thdat = ''; // 討論串輸出碼
 	$posts_count = count($posts); // 迴圈次數
@@ -285,11 +285,11 @@ function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $
 
 		// 設定回應 / 引用連結
 		if($resno){ // 回應模式
-			if($showquotelink) $QUOTEBTN = '<a href="javascript:quote('.$no.');" class="qlink">';
-			else $QUOTEBTN = '<a href="#" class="qlink">';
+			if($showquotelink) $QUOTEBTN = '<a href="javascript:quote('.$no.');" class="qlink">No.'.$no.'</a>';
+			else $QUOTEBTN = '<a href="#" class="qlink">No.'.$no.'</a>';
 		}else{
 			if(!$i)	$REPLYBTN = '[<a href="'.PHP_SELF.'?res='.$no.'">回應</a>]'; // 首篇
-			$QUOTEBTN = '<a href="'.PHP_SELF.'?res='.$tree[0].'#q'.$no.'" class="qlink">';
+			$QUOTEBTN = '<a href="'.PHP_SELF.'?res='.$tree[0].'#q'.$no.'" class="qlink">No.'.$no.'</a>';
 		}
 
 		// 設定討論串屬性
@@ -312,20 +312,25 @@ function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $
 
 		// 最終輸出處
 		if(USE_TEMPLATE){ // 樣板輸出
-			// 回應
-			if($i) $thdat .= $PTE->ReplaceStrings_Reply(array('{$NO}'=>$no, '{$SUB}'=>$sub, '{$NAME}'=>$name, '{$NOW}'=>$now, '{$COM}'=>$com, '{$CATEGORY}'=>$category, '{$IMG_BAR}'=>$IMG_BAR, '{$IMG_SRC}'=>$imgsrc, '{$WARN_BEKILL}'=>$WARN_BEKILL));
-			// 首篇
-			else $thdat .= $PTE->ReplaceStrings_Main(array('{$NO}'=>$no, '{$SUB}'=>$sub, '{$NAME}'=>$name, '{$NOW}'=>$now, '{$COM}'=>$com, '{$CATEGORY}'=>$category, '{$REPLYBTN}'=>$REPLYBTN, '{$IMG_BAR}'=>$IMG_BAR, '{$IMG_SRC}'=>$imgsrc, '{$WARN_OLD}'=>$WARN_OLD, '{$WARN_BEKILL}'=>$WARN_BEKILL, '{$WARN_ENDREPLY}'=>$WARN_ENDREPLY, '{$WARN_HIDEPOST}'=>$WARN_HIDEPOST));
+			if($i){ // 回應
+				$arrLabels = array('{$NO}'=>$no, '{$SUB}'=>$sub, '{$NAME}'=>$name, '{$NOW}'=>$now, '{$COM}'=>$com, '{$CATEGORY}'=>$category, '{$QUOTEBTN}'=>$QUOTEBTN, '{$IMG_BAR}'=>$IMG_BAR, '{$IMG_SRC}'=>$imgsrc, '{$WARN_BEKILL}'=>$WARN_BEKILL, '{$QUOTEBTN}'=>$QUOTEBTN);
+				$PMS->useModuleMethods('ThreadReply', array(&$arrLabels, $posts[$i])); // "ThreadReply" Hook Point
+				$thdat .= $PTE->ReplaceStrings_Reply($arrLabels);
+			}else{ // 首篇
+				$arrLabels = array('{$NO}'=>$no, '{$SUB}'=>$sub, '{$NAME}'=>$name, '{$NOW}'=>$now, '{$COM}'=>$com, '{$CATEGORY}'=>$category, '{$QUOTEBTN}'=>$QUOTEBTN, '{$REPLYBTN}'=>$REPLYBTN, '{$IMG_BAR}'=>$IMG_BAR, '{$IMG_SRC}'=>$imgsrc, '{$WARN_OLD}'=>$WARN_OLD, '{$WARN_BEKILL}'=>$WARN_BEKILL, '{$WARN_ENDREPLY}'=>$WARN_ENDREPLY, '{$WARN_HIDEPOST}'=>$WARN_HIDEPOST);
+				$PMS->useModuleMethods('ThreadPost', array(&$arrLabels, $posts[$i])); // "ThreadPost" Hook Point
+				$thdat .= $PTE->ReplaceStrings_Main($arrLabels);
+			}
 		}else{ // 非樣板輸出
 			if($i){ // 回應
 				$thdat .= '<div class="reply" id="r'.$no.'">
-<input type="checkbox" name="'.$no.'" value="delete" /><span class="title">'.$sub.'</span> 名稱: <span class="name">'.$name.'</span> ['.$now.'] '.$QUOTEBTN.'No.'.$no.'</a>&nbsp;'.$IMG_BAR.$imgsrc.'
+<input type="checkbox" name="'.$no.'" value="delete" /><span class="title">'.$sub.'</span> 名稱: <span class="name">'.$name.'</span> ['.$now.'] '.$QUOTEBTN.'&nbsp;'.$IMG_BAR.$imgsrc.'
 <div class="quote">'.$com.'</div>'."\n";
 				if($category) $thdat .= '<div class="category">類別: '.$category.'</div>'."\n";
 				$thdat .= $WARN_BEKILL."</div>\n";
 			}else{ // 首篇
 				$thdat .= '<div class="threadpost">
-'.$IMG_BAR.$imgsrc.'<input type="checkbox" name="'.$no.'" value="delete" /><span class="title">'.$sub.'</span> 名稱: <span class="name">'.$name.'</span> ['.$now.'] '.$QUOTEBTN.'No.'.$no.'</a>&nbsp;'.$REPLYBTN.'
+'.$IMG_BAR.$imgsrc.'<input type="checkbox" name="'.$no.'" value="delete" /><span class="title">'.$sub.'</span> 名稱: <span class="name">'.$name.'</span> ['.$now.'] '.$QUOTEBTN.'&nbsp;'.$REPLYBTN.'
 <div class="quote">'.$com.'</div>'."\n";
 				if($category) $thdat .= '<div class="category">類別: '.$category.'</div>'."\n";
 				$thdat .= $WARN_OLD.$WARN_BEKILL.$WARN_ENDREPLY.$WARN_HIDEPOST."</div>\n";

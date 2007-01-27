@@ -1,5 +1,9 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2007/01/27
+01.[PIO] SQLite3 類別標籤搜尋 SQL 語法更正
+02.[pixmicat][PMS] 新增 Foot / ThreadPost, ThreadReply 掛載點，可搭配 PTE 動態新增插入標籤
+
 2007/01/26
 01.[PMS] 增設 Toplink Hook Point, 並完成 mod_catalog
 02.[config] 更改模組載入形式，較可以自由切換載入模組 (註解起來即可)
