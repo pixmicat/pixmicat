@@ -1,5 +1,5 @@
 <?php
-// Revision : 2007/1/27 15:26
+// Revision : 2007/1/29 20:53
 
 /* 輸出表頭 */
 function head(&$dat){
@@ -48,7 +48,7 @@ var ext="'.ALLOW_UPLOAD_EXT.'".toUpperCase().split("|");
 
 /* 發表用表單輸出 */
 function form(&$dat, $resno){
-	global $ADDITION_INFO;
+	global $PMS, $ADDITION_INFO;
 	$msg = '';
 	if($resno){
 		$msg .= '
@@ -84,6 +84,7 @@ function form(&$dat, $resno){
 <li>附加圖檔最大上傳資料量為 '.MAX_KB.' KB。當回文時E-mail填入sage為不推文功能</li>
 <li>當檔案超過寬 '.MAX_W.' 像素、高 '.MAX_H.' 像素時會自動縮小尺寸顯示</li>'."\n";
 	if(STORAGE_LIMIT) $dat .= "<li>目前附加圖檔使用量大小： ".total_size()." KB / ".STORAGE_MAX." KB</li>\n";
+	$PMS->useModuleMethods('PostInfo', array(&$dat)); // "PostInfo" Hook Point
 	$dat .= $ADDITION_INFO.'
 </ul>
 <noscript><div>＊您選擇關閉了JavaScript，但這對您的瀏覽及發文應無巨大影響</div></noscript>

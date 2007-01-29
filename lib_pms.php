@@ -1,7 +1,7 @@
 <?php
 /*
 Pixmicat! Module System
-@Date : 2007/1/27 16:13
+@Date : 2007/1/29 20:56
 */
 
 class PMS{
@@ -12,7 +12,7 @@ class PMS{
 	function PMS(){
 		// 掛載點
 		$this->hookPoints = array(
-			'Head'=>array(), 'Toplink'=>array(),
+			'Head'=>array(), 'Toplink'=>array(), 'PostInfo'=>array(),
 			'ThreadFront'=>array(), 'ThreadRear'=>array(),
 			'ThreadPost'=>array(), 'ThreadReply'=>array(),
 			'Foot'=>array(), 'ModulePage'=>array()
