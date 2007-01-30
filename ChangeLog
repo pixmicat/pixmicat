@@ -2,6 +2,7 @@
 ----------------------
 2007/01/30
 01.[FileIO] ImageShack 後端因應 mod_archiver 修改 getImageURL 方法
+02.[PMS] 新增 PMS::getModulePageURL()，可讓模組取得獨立頁面網址
 
 2007/01/28,29
 01.[PMS] ThreadPost, ThreadReply 掛載點新增是否位於回應模式的判斷參數

@@ -1,7 +1,7 @@
 <?php
 /*
 Pixmicat! Module System
-@Date : 2007/1/29 20:56
+@Date : 2007/1/30 22:55
 */
 
 class PMS{
@@ -43,6 +43,12 @@ class PMS{
 		return array_search($module, $this->moduleLists)!==false ? get_class_methods($module) : array();
 	}
 
+	//提供給模組的取用資訊
+	/* 取得模組註冊獨立頁面之網址 */
+	function getModulePageURL($name){
+		return PHP_SELF.'?mode=module&amp;load='.$name;
+	}
+
 	// 模組掛載與使用相關
 	/* 自動掛載相關模組方法於掛載點 */
 	function autoHookMethods(){
@@ -65,7 +71,6 @@ class PMS{
 		for($i = 0; $i < $imax; $i++){
 			call_user_func_array($this->hookPoints[$hookPoint][$i], $parameter);
 		}
-		//print_r($this->hookPoints[$hookPoint]);
 	}
 }
 $PMS = new PMS();
