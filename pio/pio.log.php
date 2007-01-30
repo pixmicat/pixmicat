@@ -96,7 +96,7 @@ class PIOlog{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.3 with memcached (v20070108α)';
+		return '0.3 with memcached (v20070130α)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -218,7 +218,7 @@ class PIOlog{
 	function postCount($resno=0){
 		if(!$this->prepared) $this->dbPrepare();
 
-		return $resno ? ($this->isThread($resno) ? count(@$this->trees[$resno]) - 1 : 0) : count($this->porder);
+		return $resno ? ($this->isThread($resno) ? count(@$this->trees[$resno]) : 0) : count($this->porder);
 	}
 
 	/* 討論串數目 */

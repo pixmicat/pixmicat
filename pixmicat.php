@@ -1,5 +1,5 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release-dev b070128'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release-dev b070130'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -597,7 +597,7 @@ function regist(){
 	USE_CATEGORY ? 0 : $category = '';
 	$age = false;
 	if($resto){
-		if(!stristr($email, 'sage') && ($PIO->postCount($resto) < MAX_RES || MAX_RES==0)){
+		if(!stristr($email, 'sage') && ($PIO->postCount($resto) <= MAX_RES || MAX_RES==0)){
 			if(!MAX_AGE_TIME || (($time - $chktime) < (MAX_AGE_TIME * 60 * 60))) $age = true; // 討論串並無過期，推文
 		}
 	}

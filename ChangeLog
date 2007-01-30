@@ -3,6 +3,8 @@
 2007/01/30
 01.[FileIO] ImageShack 後端因應 mod_archiver 修改 getImageURL 方法
 02.[PMS] 新增 PMS::getModulePageURL()，可讓模組取得獨立頁面網址
+03.[PIO] Log postCount() 修正為回傳本篇加回應的數目，非先前僅有回應數
+04.[pixmicat] 修正 MAX_RES 不推文判斷，回應超過這個數字才不推 (先前是等於就不推了)
 
 2007/01/28,29
 01.[PMS] ThreadPost, ThreadReply 掛載點新增是否位於回應模式的判斷參數
