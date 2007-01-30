@@ -1,7 +1,7 @@
 <?php
 /*
 FileIO - ImageShack
-@Version : 0.2 20070105
+@Version : 0.2 20070130
 
 使用此功能請遵守 ImageShack 網站的 Terms of Service，並注意以下條約:
 Terms specific to the XML API:
@@ -142,9 +142,8 @@ class FileIO{
 		return false;
 	}
 
-	function getImageURL($imgname){
+	function getImageURL($imgname, $ishotlink = false){ // 是否使用熱連結直連圖檔位置 (極有可能被 Ban 網域！請慎用)
 		global $IFS;
-		$ishotlink = false; // 是否使用熱連結直連圖檔位置 (極有可能被 Ban 網域！請慎用)
 		return ($rc = $IFS->getRecord($imgname)) ? (substr($imgname, -5)=='s.jpg' ? $rc['imgURL'] : $this->_myphpImageShack($rc['imgURL'], $ishotlink)) : false;
 	}
 }

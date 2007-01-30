@@ -1,5 +1,8 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2007/01/30
+01.[FileIO] ImageShack 後端因應 mod_archiver 修改 getImageURL 方法
+
 2007/01/28,29
 01.[PMS] ThreadPost, ThreadReply 掛載點新增是否位於回應模式的判斷參數
 02.[PMS][lib_common] 新增 PostInfo 掛載點
