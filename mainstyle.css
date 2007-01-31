@@ -28,6 +28,7 @@
 	.title { color: #CC1105; font-size: 1.125em; font-weight: bold; } /* 討論串標題樣式 */
 	.nor { font-weight: normal; } /* Trip取消粗體用 */
 	.quote { margin: 1em 2em; } /* 討論串內文縮排樣式 */
+	.resquote { color: #789922; } /* 標註引用回文顏色 */
 	.category { font-size: 0.8em; color: gray; } /* 類別標籤顯示樣式 */
 
 	.warn_txt { color: #F00000; font-weight: bold; } /* 討論串狀態警告文字(eg.文章即將被刪除) */

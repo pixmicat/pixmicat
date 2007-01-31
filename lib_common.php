@@ -1,5 +1,5 @@
 <?php
-// Revision : 2007/1/29 20:53
+// Revision : 2007/1/31 11:35
 
 /* 輸出表頭 */
 function head(&$dat){
@@ -122,7 +122,7 @@ function auto_link($proto){
 
 /* 引用標註 */
 function quoteLight($comment){
-	return preg_replace('/(^|<br \/>)((?:&gt;|＞).*?)(?=<br \/>|$)/u', '$1<span style="color: '.RE_COL.';">$2</span>', $comment);
+	return preg_replace('/(^|<br \/>)((?:&gt;|＞).*?)(?=<br \/>|$)/u', '$1<span class="resquote">$2</span>', $comment);
 }
 
 /* 取得完整的網址 */
