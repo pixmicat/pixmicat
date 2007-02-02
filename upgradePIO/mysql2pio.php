@@ -1,8 +1,8 @@
 <?php
 /*
 Pixmicat!-MySQL -> Pixmciat-PIO (MySQL) 資料格式轉換器
-@Version : 0.1
-@Date : 2006/12/11 22:44
+@Version : 0.2
+@Date : 2007/2/1 20:10
 */
 include_once('./config.php');
 
@@ -38,14 +38,13 @@ mysql_select_db(MYSQL_DBNAME, $con);
 @mysql_query("SET NAMES 'utf8'"); // MySQL資料以UTF-8模式傳送
 
 if(($result = mysql_query("SHOW COLUMNS FROM ".SQLLOG." LIKE 'category'"))  && mysql_num_rows($result) == 0){ // 更新資料表結構
-	mysql_query('ALTER TABLE '.SQLLOG.' ADD category VARCHAR(255) NOT NULL AFTER md5, COMMENT = "For Pixmicat!-PIO [Structure V2]"');
-	mysql_query('ALTER TABLE '.SQLLOG.' ADD imgsize VARCHAR(10) NOT NULL AFTER h'); // 需填
-	mysql_query('ALTER TABLE '.SQLLOG.' ADD imgw SMALLINT(1) NOT NULL AFTER imgsize'); // 需填
-	mysql_query('ALTER TABLE '.SQLLOG.' ADD imgh SMALLINT(1) NOT NULL AFTER imgw'); // 需填
-
-	mysql_query('ALTER TABLE '.SQLLOG.' CHANGE md5 md5chksum VARCHAR(32) NOT NULL');
-	mysql_query('ALTER TABLE '.SQLLOG.' CHANGE w tw SMALLINT(1) NOT NULL');
-	mysql_query('ALTER TABLE '.SQLLOG.' CHANGE h th SMALLINT(1) NOT NULL');
+	mysql_query('ALTER TABLE '.SQLLOG.' ADD category VARCHAR(255) NOT NULL AFTER md5, COMMENT = "For Pixmicat!-PIO [Structure V2]"'); // category
+	mysql_query('ALTER TABLE '.SQLLOG.' ADD imgw SMALLINT(1) NOT NULL AFTER ext'); // imgw
+	mysql_query('ALTER TABLE '.SQLLOG.' ADD imgh SMALLINT(1) NOT NULL AFTER imgw'); // imgh
+	mysql_query('ALTER TABLE '.SQLLOG.' ADD imgsize VARCHAR(10) NOT NULL AFTER imgh'); // imgsize
+	mysql_query('ALTER TABLE '.SQLLOG.' CHANGE md5 md5chksum VARCHAR(32) NOT NULL'); // md5chksum
+	mysql_query('ALTER TABLE '.SQLLOG.' CHANGE w tw SMALLINT(1) NOT NULL'); //tw
+	mysql_query('ALTER TABLE '.SQLLOG.' CHANGE h th SMALLINT(1) NOT NULL'); //th
 	mysql_free_result($result);
 
 	$tmpSQL = 'SELECT no,tim,ext FROM '.SQLLOG.' WHERE ext <> "" ORDER BY no';
