@@ -38,7 +38,7 @@ class PIOmysql{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.3 (v20070107)';
+		return '0.4alpha (b20070202)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -121,6 +121,25 @@ class PIOmysql{
 			if($this->_mysql_call('OPTIMIZE TABLES '.$this->tablename)) return true;
 			else return false;
 		}else return true; // 支援最佳化資料表
+	}
+
+	/* 匯入資料來源 */
+	function dbImport(){
+	
+	}
+
+	/* 匯出資料來源 */
+	function dbExport(){
+		if(!$this->prepared) $this->dbPrepare();
+		$line = $this->_mysql_call('SELECT no,resto,root,md5chksum,category,tim,ext,imgw,imgh,imgsize,tw,th,pwd,now,name,email,sub,com,host,status FROM '.$this->tablename.' ORDER BY no DESC');
+		$data = '';
+		$replaceComma = create_function('$txt', 'return str_replace(",", "&#44;", $txt);');
+		while($row=mysql_fetch_array($line, MYSQL_ASSOC)){
+			$row = array_map($replaceComma, $row); // 取代 , 為 &#44;
+			$data .= implode(',', $row).",\r\n";
+		}
+		mysql_free_result($line);
+		return $data;
 	}
 
 	/* 文章數目 */

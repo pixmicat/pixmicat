@@ -38,7 +38,7 @@ class PIOpgsql{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.3 (v20070107)';
+		return '0.4alpha (b20070202)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -116,6 +116,26 @@ class PIOpgsql{
 			if($this->_pgsql_call('VACUUM '.$this->tablename)) return true;
 			else return false;
 		}else return true; // 支援最佳化資料表
+	}
+
+	/* 匯入資料來源 */
+	function dbImport(){
+	
+	}
+
+	/* 匯出資料來源 */
+	function dbExport(){
+		if(!$this->prepared) $this->dbPrepare();
+		$line = $this->_pgsql_call('SELECT * FROM '.$this->tablename.' ORDER BY no DESC');
+		$data = '';
+		$replaceComma = create_function('$txt', 'return str_replace(",", "&#44;", $txt);');
+		while($row=pg_fetch_array($line, null, PGSQL_ASSOC)){
+			unset($row['time']); // 非必要欄位
+			$row = array_map($replaceComma, $row); // 取代 , 為 &#44;
+			$data .= implode(',', $row).",\r\n";
+		}
+		pg_free_result($line);
+		return $data;
 	}
 
 	/* 文章數目 */

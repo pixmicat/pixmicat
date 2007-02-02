@@ -1,19 +1,15 @@
 <?php
 /*
 PIO - Pixmicat! data source I/O
-SQLite (PDO) API (Note: Need PHP 5.1.0 or above)
+SQLite3 (PDO) API (Note: Need PHP 5.1.0 or above)
 */
 
 class PIOsqlite3{
 	private $DSN, $tablename; // Local Constant
 	private $con, $prepared; // Local Global
-	private $memcached, $mid, $mperiod; // memcache
 
 	public function __construct($connstr=''){
 		$this->prepared = false;
-		$this->mid = md5($_SERVER['SCRIPT_FILENAME']); // Unique ID
-		$this->memcached = false; // memcached object (null: use, false: don't use)
-		$this->mperiod = 600; // memcached expiration time
 		if($connstr) $this->dbConnect($connstr);
 	}
 
@@ -25,7 +21,7 @@ class PIOsqlite3{
 
 	/* PIO模組版本 */
 	public function pioVersion() {
-		return '0.3 with memcached (v20070127β)';
+		return '0.4alpha (b20070202)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -83,10 +79,6 @@ class PIOsqlite3{
 		if($reload && $this->con) $this->con = null;
 		($this->con = new PDO($this->DSN, '', '', array(PDO::ATTR_PERSISTENT => true))) or $this->_error_handler('Open database failed', __LINE__);
 		if($transaction) $this->con->beginTransaction(); // 啟動交易性能模式
-		if(extension_loaded('memcache') && $this->memcached===null){
-			$this->memcached = new Memcache;
-			$this->memcached->pconnect('localhost') or $this->memcached = false;
-		}
 
 		$this->prepared = true;
 	}
@@ -105,6 +97,34 @@ class PIOsqlite3{
 			if($this->con->exec('VACUUM '.$this->tablename)) return true;
 			else return false;
 		}else return true; // 支援最佳化資料表
+	}
+
+	/* 匯入資料來源 */
+	public function dbImport($data){
+		$this->dbInit();
+		$data = explode("\r\n", $data);
+		$data_count = count($data);
+		$replaceComma = create_function('$txt', 'return str_replace("&#44;", ",", $txt);');
+		for($i = 0; $i < $data_count - 1; $i++){
+			$line = explode(',', $data[$i]);
+			$line = array_map($replaceComma, $line); // 取代 &#44; 為 ,
+			$SQL = 'INSERT INTO '.$this->tablename.' (no,resto,root,time,md5chksum,category,tim,ext,imgw,imgh,imgsize,tw,th,pwd,now,name,email,sub,com,host,status) VALUES ('.
+			$line[0].','.$line[1].')';
+			if(!$this->con->exec($SQL)) $this->_error_handler('Insert a new post failed', __LINE__);
+		}
+	}
+
+	/* 匯出資料來源 */
+	public function dbExport(){
+		if(!$this->prepared) $this->dbPrepare();
+		$line = $this->con->query('SELECT no,resto,root,md5chksum,category,tim,ext,imgw,imgh,imgsize,tw,th,pwd,now,name,email,sub,com,host,status FROM '.$this->tablename.' ORDER BY no DESC');
+		$data = '';
+		$replaceComma = create_function('$txt', 'return str_replace(",", "&#44;", $txt);');
+		while($row = $line->fetch(PDO::FETCH_ASSOC)){
+			$row = array_map($replaceComma, $row); // 取代 , 為 &#44;
+			$data .= implode(',', $row).",\r\n";
+		}
+		return $data;
 	}
 
 	/* 文章數目 */
@@ -149,13 +169,6 @@ class PIOsqlite3{
 			$tmpSQL = 'SELECT no FROM '.$this->tablename.' ORDER BY no DESC';
 			if($amount) $tmpSQL .= " LIMIT {$start}, {$amount}"; // 指定數量
 		}
-		/*if($this->memcached){
-			$opuid = md5($tmpSQL);
-			if($result = $this->memcached->get('pmc'.$this->mid.'_'.$opuid)) return $result;
-		}
-		$line = $this->con->query($tmpSQL)->fetchAll(PDO::FETCH_COLUMN, 0);
-		if($this->memcached) $this->memcached->set('pmc'.$this->mid.'_'.$opuid, $line, $this->mperiod);
-		return $line;*/
 		return $this->con->query($tmpSQL)->fetchAll(PDO::FETCH_COLUMN, 0);
 	}
 
@@ -165,13 +178,6 @@ class PIOsqlite3{
 
 		$tmpSQL = 'SELECT no FROM '.$this->tablename.' WHERE resto = 0 ORDER BY root DESC';
 		if($amount) $tmpSQL .= " LIMIT {$start}, {$amount}"; // 指定數量
-		/*if($this->memcached){
-			$opuid = md5($tmpSQL);
-			if($result = $this->memcached->get('pmc'.$this->mid.'_'.$opuid)) return $result;
-		}
-		$line = $this->con->query($tmpSQL)->fetchAll(PDO::FETCH_COLUMN, 0);
-		if($this->memcached) $this->memcached->set('pmc'.$this->mid.'_'.$opuid, $line, $this->mperiod);
-		return $line;*/
 		return $this->con->query($tmpSQL)->fetchAll(PDO::FETCH_COLUMN, 0);
 	}
 
@@ -184,12 +190,7 @@ class PIOsqlite3{
 			$tmpSQL = 'SELECT * FROM '.$this->tablename.' WHERE no IN ('.$pno.') ORDER BY no';
 			if(count($postlist) > 1){ if($postlist[0] > $postlist[1]) $tmpSQL .= ' DESC'; } // 由大排到小
 		}else $tmpSQL = 'SELECT * FROM '.$this->tablename.' WHERE no = '.$postlist; // 取單串
-		if($this->memcached){
-			$opuid = md5($tmpSQL);
-			if($result = $this->memcached->get('pmc'.$this->mid.'_'.$opuid)) return $result;
-		}
 		$line = $this->con->query($tmpSQL)->fetchAll();
-		if($this->memcached) $this->memcached->set('pmc'.$this->mid.'_'.$opuid, $line, $this->mperiod);
 		return $line;
 	}
 

@@ -96,7 +96,7 @@ class PIOlog{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.3 with memcached (v20070130α)';
+		return '0.4alpha with memcached (b20070201)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -212,6 +212,31 @@ class PIOlog{
 	/* 優化資料表 */
 	function dbOptimize($doit=false){
 		return false; // 不支援
+	}
+
+	/* 匯入資料來源 */
+	function dbImport(){
+	
+	}
+
+	/* 匯出資料來源 */
+	function dbExport(){
+		if(!$this->prepared) $this->dbPrepare();
+		$f = file($this->logfile);
+		$data = '';
+		foreach($f as $line){
+			$line = explode(',', $line, 3); // 分成三段 (最後一段特別長)
+			if($line[1]==0 && isset($this->trees[$line[0]])){
+				$lastno = array_pop($this->trees[$line[0]]);
+				$line2 = $this->fetchPosts($lastno);
+				$root = strftime('%Y-%m-%d %H:%M:%S', substr($line2[0]['tim'], 0, 10) + TIME_ZONE * 3600);
+				unset($this->trees[$line[0]]); // 刪除表示已取過
+			}else{
+				$root = '0';
+			}
+			$data .= $line[0].','.$line[1].','.$root.','.$line[2];
+		}
+		return $data;
 	}
 
 	/* 文章數目 */

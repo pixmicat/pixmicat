@@ -1,5 +1,10 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2007/02/01,02
+01.[lib_common] str_cut() 補上來源
+02.[upgradePIO] mysql2pio.php 修正，新增欄位次序修正 (舊版無影響)
+03.[PIO] PIO 0.4 alpha，新增 dbImport / dbExport 方法
+
 2007/01/31
 01.[lib_common][config] 刪除 RE_COL，改以 CSS 樣式表設定
 

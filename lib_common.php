@@ -1,5 +1,5 @@
 <?php
-// Revision : 2007/1/31 11:35
+// Revision : 2007/1/31 21:55
 
 /* 輸出表頭 */
 function head(&$dat){
@@ -281,7 +281,8 @@ function CleanStr($str, $IsAdmin=false){
 }
 
 /* 適用UTF-8環境的擬substr，取出特定數目字元
-原出處：Sea Otter (？不確定) @ 2005.05.10 */
+原出處：Sea Otter @ 2005.05.10
+http://www.meyu.net/star/viewthread.php?tid=267&fpage=10 */
 function str_cut($str, $maxlen=20){
     $i = $l = 0; $len = strlen($str); $f = true; $return_str = $str;
 	while($i < $len){
