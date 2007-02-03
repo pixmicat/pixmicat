@@ -96,7 +96,7 @@ class PIOlog{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.4alpha with memcached (b20070201)';
+		return '0.4alpha with memcached (b20070203)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -215,8 +215,36 @@ class PIOlog{
 	}
 
 	/* 匯入資料來源 */
-	function dbImport(){
-	
+	function dbImport($data){
+		$arrData = explode("\r\n", $data);
+		$arrData_cnt = count($arrData) - 1; // 最後一個是空的
+		$arrTree = array();
+		$tree = $logs = $lut = '';
+		for($i = 0; $i < $arrData_cnt; $i++){
+			$line = explode(',', $arrData[$i], 4); // 切成四段
+			$logs .= $line[0].','.$line[1].','.$line[3]."\r\n"; // 重建討論結構
+			$lut .= $line[0]."\r\n"; // 重建 LUT 查找表結構
+			if($line[1]==0){ // 首篇
+				if(!isset($arrTree[$line[0]])) $arrTree[$line[0]] = array($line[0]); // 僅自身一篇
+				else array_unshift($arrTree[$line[0]], $line[0]);
+				continue;
+			}
+			if(!isset($arrTree[$line[1]])) $arrTree[$line[1]] = array();
+			array_unshift($arrTree[$line[1]], $line[0]);
+		}
+		foreach($arrTree as $t) $tree .= implode(',', $t)."\r\n"; // 重建樹狀結構
+		$chkfile = array($this->logfile, $this->treefile, $this->porderfile);
+		foreach($chkfile as $value){
+			$fp = fopen($value, 'w');
+			stream_set_write_buffer($fp, 0);
+			if($value==$this->logfile) fwrite($fp, $logs);
+			if($value==$this->treefile) fwrite($fp, $tree);
+			if($value==$this->porderfile) fwrite($fp, $lut);
+			fclose($fp);
+			unset($fp);
+			@chmod($value, 0666);
+		}
+		return true;
 	}
 
 	/* 匯出資料來源 */

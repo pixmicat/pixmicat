@@ -38,7 +38,7 @@ class PIOpgsql{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.4alpha (b20070202)';
+		return '0.4alpha (b20070203)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -56,7 +56,7 @@ class PIOpgsql{
 	}
 
 	/* 初始化 */
-	function dbInit(){
+	function dbInit($isAddInitData=true){
 		$this->dbPrepare();
 		if(pg_num_rows(pg_query($this->con, "SELECT relname FROM pg_class WHERE relname = '".$this->tablename."'"))!=1){ // 資料表不存在
 			$result = "CREATE SEQUENCE ".$this->tablename."_no_seq;
@@ -86,7 +86,7 @@ class PIOpgsql{
 			$idxs = array('resto', 'root', 'time');
 			foreach($idxs as $idx) $result .= 'CREATE INDEX '.$this->tablename.'_'.$idx.'_index ON '.$this->tablename.' ('.$idx.');';
 			pg_query($this->con, $result); // 正式新增資料表
-			$this->addPost(1, 0, '', '', 0, '', 0, 0, '', 0, 0, '', '05/01/01(六)00:00', '無名氏', '', '無標題', '無內文', ''); // 追加一筆新資料
+			if($isAddInitData) $this->addPost(1, 0, '', '', 0, '', 0, 0, '', 0, 0, '', '05/01/01(六)00:00', '無名氏', '', '無標題', '無內文', ''); // 追加一筆新資料
 			$this->dbCommit();
 		}
 	}
@@ -119,8 +119,35 @@ class PIOpgsql{
 	}
 
 	/* 匯入資料來源 */
-	function dbImport(){
-	
+	function dbImport($data){
+		$this->dbInit(false); // 僅新增結構不新增資料
+		$data = explode("\r\n", $data);
+		$data_count = count($data) - 1;
+		$replaceComma = create_function('$txt', 'return str_replace("&#44;", ",", $txt);');
+		for($i = 0; $i < $data_count; $i++){
+			$line = array_map($replaceComma, explode(',', $data[$i])); // 取代 &#44; 為 ,
+			$SQL = 'INSERT INTO '.$this->tablename.' (no,resto,root,time,md5chksum,category,tim,ext,imgw,imgh,imgsize,tw,th,pwd,now,name,email,sub,com,host,status) VALUES ('.
+$line[0].','.
+$line[1].',"'.
+$line[2].'",'.
+substr($line[5], 0, 10).',"'.
+pg_escape_string($line[3]).'","'.
+pg_escape_string($line[4]).'",'.
+$line[5].',"'.pg_escape_string($line[6]).'",'.
+$line[7].','.$line[8].',"'.pg_escape_string($line[9]).'",'.$line[10].','.$line[11].',"'.
+pg_escape_string($line[12]).'","'.
+pg_escape_string($line[13]).'","'.
+pg_escape_string($line[14]).'","'.
+pg_escape_string($line[15]).'","'.
+pg_escape_string($line[16]).'","'.
+pg_escape_string($line[17]).'","'.
+pg_escape_string($line[18]).'","'.
+$line[19].'")';
+			//echo $SQL."<BR>\n";
+			if(!$result=$this->_pgsql_call($query)) $this->_error_handler('Insert a new post failed', __LINE__);
+		}
+		$this->dbCommit(); // 送交
+		return true;
 	}
 
 	/* 匯出資料來源 */

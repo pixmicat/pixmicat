@@ -38,7 +38,7 @@ class PIOmysql{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.4alpha (b20070202)';
+		return '0.4alpha (b20070203)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -55,7 +55,7 @@ class PIOmysql{
 	}
 
 	/* 初始化 */
-	function dbInit(){
+	function dbInit($isAddInitData=true){
 		$this->dbPrepare();
 		if(mysql_num_rows(mysql_query("SHOW TABLES LIKE '".$this->tablename."'"))!=1){ // 資料表不存在
 			$result = "CREATE TABLE ".$this->tablename." (primary key(no),
@@ -89,7 +89,7 @@ class PIOmysql{
 				mysql_free_result($result2);
 			}
 			mysql_query($result); // 正式新增資料表
-			$this->addPost(1, 0, '', '', 0, '', 0, 0, '', 0, 0, '', '05/01/01(六)00:00', '無名氏', '', '無標題', '無內文', ''); // 追加一筆新資料
+			if($isAddInitData) $this->addPost(1, 0, '', '', 0, '', 0, 0, '', 0, 0, '', '05/01/01(六)00:00', '無名氏', '', '無標題', '無內文', ''); // 追加一筆新資料
 			$this->dbCommit();
 		}
 	}
@@ -124,8 +124,35 @@ class PIOmysql{
 	}
 
 	/* 匯入資料來源 */
-	function dbImport(){
-	
+	function dbImport($data){
+		$this->dbInit(false); // 僅新增結構不新增資料
+		$data = explode("\r\n", $data);
+		$data_count = count($data) - 1;
+		$replaceComma = create_function('$txt', 'return str_replace("&#44;", ",", $txt);');
+		for($i = 0; $i < $data_count; $i++){
+			$line = array_map($replaceComma, explode(',', $data[$i])); // 取代 &#44; 為 ,
+			$SQL = 'INSERT INTO '.$this->tablename.' (no,resto,root,time,md5chksum,category,tim,ext,imgw,imgh,imgsize,tw,th,pwd,now,name,email,sub,com,host,status) VALUES ('.
+$line[0].','.
+$line[1].',"'.
+$line[2].'",'.
+substr($line[5], 0, 10).',"'.
+mysql_escape_string($line[3]).'","'.
+mysql_escape_string($line[4]).'",'.
+$line[5].',"'.mysql_escape_string($line[6]).'",'.
+$line[7].','.$line[8].',"'.mysql_escape_string($line[9]).'",'.$line[10].','.$line[11].',"'.
+mysql_escape_string($line[12]).'","'.
+mysql_escape_string($line[13]).'","'.
+mysql_escape_string($line[14]).'","'.
+mysql_escape_string($line[15]).'","'.
+mysql_escape_string($line[16]).'","'.
+mysql_escape_string($line[17]).'","'.
+mysql_escape_string($line[18]).'","'.
+$line[19].'")';
+			//echo $SQL."<BR>\n";
+			if(!$result=$this->_mysql_call($query)) $this->_error_handler('Insert a new post failed', __LINE__);
+		}
+		$this->dbCommit(); // 送交
+		return true;
 	}
 
 	/* 匯出資料來源 */
