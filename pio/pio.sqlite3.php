@@ -108,22 +108,22 @@ class PIOsqlite3{
 		for($i = 0; $i < $data_count; $i++){
 			$line = array_map($replaceComma, explode(',', $data[$i])); // 取代 &#44; 為 ,
 			$SQL = 'INSERT INTO '.$this->tablename.' (no,resto,root,time,md5chksum,category,tim,ext,imgw,imgh,imgsize,tw,th,pwd,now,name,email,sub,com,host,status) VALUES ('.
-$line[0].','.
-$line[1].',\''.
-$line[2].'\','.
-substr($line[5], 0, 10).','.
-$this->con->quote($line[3]).','.
-$this->con->quote($line[4]).','.
-$line[5].','.$this->con->quote($line[6]).','.
-$line[7].','.$line[8].','.$this->con->quote($line[9]).','.$line[10].','.$line[11].','.
-$this->con->quote($line[12]).','.
-$this->con->quote($line[13]).','.
-$this->con->quote($line[14]).','.
-$this->con->quote($line[15]).','.
-$this->con->quote($line[16]).','.
-$this->con->quote($line[17]).','.
-$this->con->quote($line[18]).',\''.
-$line[19].'\')';
+	$line[0].','.
+	$line[1].',\''.
+	$line[2].'\','.
+	substr($line[5], 0, 10).','.
+	$this->con->quote($line[3]).','.
+	$this->con->quote($line[4]).','.
+	$line[5].','.$this->con->quote($line[6]).','.
+	$line[7].','.$line[8].','.$this->con->quote($line[9]).','.$line[10].','.$line[11].','.
+	$this->con->quote($line[12]).','.
+	$this->con->quote($line[13]).','.
+	$this->con->quote($line[14]).','.
+	$this->con->quote($line[15]).','.
+	$this->con->quote($line[16]).','.
+	$this->con->quote($line[17]).','.
+	$this->con->quote($line[18]).',\''.
+	$line[19].'\')';
 			//echo $SQL."<BR>\n";
 			if(!$this->con->exec($SQL)) $this->_error_handler('Insert a new post failed', __LINE__);
 		}
@@ -305,20 +305,20 @@ $line[19].'\')';
 		}else $root = $updatetime; // 新增討論串, 討論串最後被更新時間
 
 		$query = 'INSERT INTO '.$this->tablename.' (resto,root,time,md5chksum,category,tim,ext,imgw,imgh,imgsize,tw,th,pwd,now,name,email,sub,com,host,status) VALUES ('.
-(int)$resto.','. // 回應編號
-"'$root',". // 最後更新時間
-$time.','. // 發文時間數值
-"'$md5chksum',". // 附加檔案 MD5
-$this->con->quote($category).",". // 分類標籤
-"$tim, '$ext',". // 附檔檔名
-$imgw.','.$imgh.",'".$imgsize."',".$tw.','.$th.','. // 圖檔長寬及檔案大小；預覽圖長寬
-$this->con->quote($pwd).','.
-"'$now',". // 時間(含ID)字串
-$this->con->quote($name).','.
-$this->con->quote($email).','.
-$this->con->quote($sub).','.
-$this->con->quote($com).','.
-$this->con->quote($host).", '')";
+	(int)$resto.','. // 回應編號
+	"'$root',". // 最後更新時間
+	$time.','. // 發文時間數值
+	"'$md5chksum',". // 附加檔案 MD5
+	$this->con->quote($category).",". // 分類標籤
+	"$tim, '$ext',". // 附檔檔名
+	$imgw.','.$imgh.",'".$imgsize."',".$tw.','.$th.','. // 圖檔長寬及檔案大小；預覽圖長寬
+	$this->con->quote($pwd).','.
+	"'$now',". // 時間(含ID)字串
+	$this->con->quote($name).','.
+	$this->con->quote($email).','.
+	$this->con->quote($sub).','.
+	$this->con->quote($com).','.
+	$this->con->quote($host).", '')";
 		if(!$this->con->exec($query)) $this->_error_handler('Insert a new post failed', __LINE__);
 	}
 

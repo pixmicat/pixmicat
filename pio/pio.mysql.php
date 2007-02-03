@@ -132,22 +132,22 @@ class PIOmysql{
 		for($i = 0; $i < $data_count; $i++){
 			$line = array_map($replaceComma, explode(',', $data[$i])); // 取代 &#44; 為 ,
 			$SQL = 'INSERT INTO '.$this->tablename.' (no,resto,root,time,md5chksum,category,tim,ext,imgw,imgh,imgsize,tw,th,pwd,now,name,email,sub,com,host,status) VALUES ('.
-$line[0].','.
-$line[1].',"'.
-$line[2].'",'.
-substr($line[5], 0, 10).',"'.
-mysql_escape_string($line[3]).'","'.
-mysql_escape_string($line[4]).'",'.
-$line[5].',"'.mysql_escape_string($line[6]).'",'.
-$line[7].','.$line[8].',"'.mysql_escape_string($line[9]).'",'.$line[10].','.$line[11].',"'.
-mysql_escape_string($line[12]).'","'.
-mysql_escape_string($line[13]).'","'.
-mysql_escape_string($line[14]).'","'.
-mysql_escape_string($line[15]).'","'.
-mysql_escape_string($line[16]).'","'.
-mysql_escape_string($line[17]).'","'.
-mysql_escape_string($line[18]).'","'.
-$line[19].'")';
+	$line[0].','.
+	$line[1].',\''.
+	$line[2].'\','.
+	substr($line[5], 0, 10).',\''.
+	mysql_real_escape_string($line[3], $this->con).'\',\''.
+	mysql_real_escape_string($line[4], $this->con).'\','.
+	$line[5].',\''.mysql_real_escape_string($line[6], $this->con).'\','.
+	$line[7].','.$line[8].',\''.mysql_real_escape_string($line[9], $this->con).'\','.$line[10].','.$line[11].',\''.
+	mysql_real_escape_string($line[12], $this->con).'\',\''.
+	mysql_real_escape_string($line[13], $this->con).'\',\''.
+	mysql_real_escape_string($line[14], $this->con).'\',\''.
+	mysql_real_escape_string($line[15], $this->con).'\',\''.
+	mysql_real_escape_string($line[16], $this->con).'\',\''.
+	mysql_real_escape_string($line[17], $this->con).'\',\''.
+	mysql_real_escape_string($line[18], $this->con).'\',\''.
+	$line[19].'\')';
 			//echo $SQL."<BR>\n";
 			if(!$this->_mysql_call($SQL)) $this->_error_handler('Insert a new post failed', __LINE__);
 		}
@@ -354,17 +354,17 @@ $line[19].'")';
 	$root.','. // 最後更新時間
 	$time.','. // 發文時間數值
 	"'$md5chksum',". // 附加檔案md5
-	"'".mysql_escape_string($category)."',". // 分類標籤
+	"'".mysql_real_escape_string($category, $this->con)."',". // 分類標籤
 	"'$tim', '$ext',". // 附加檔名
 	$imgw.','.$imgh.",'".$imgsize."',".$tw.','.$th.','. // 圖檔長寬及檔案大小；預覽圖長寬
-	"'".mysql_escape_string($pwd)."',".
+	"'".mysql_real_escape_string($pwd, $this->con)."',".
 	"'$now',". // 時間(含ID)字串
-	"'".mysql_escape_string($name)."',".
-	"'".mysql_escape_string($email)."',".
-	"'".mysql_escape_string($sub)."',".
-	"'".mysql_escape_string($com)."',".
-	"'".mysql_escape_string($host)."', '')";
-		if(!$result=$this->_mysql_call($query)) $this->_error_handler('Insert a new post failed', __LINE__);
+	"'".mysql_real_escape_string($name, $this->con)."',".
+	"'".mysql_real_escape_string($email, $this->con)."',".
+	"'".mysql_real_escape_string($sub, $this->con)."',".
+	"'".mysql_real_escape_string($com, $this->con)."',".
+	"'".mysql_real_escape_string($host, $this->con)."', '')";
+		if(!$this->_mysql_call($query)) $this->_error_handler('Insert a new post failed', __LINE__);
 	}
 
 	/* 檢查是否連續投稿 */
@@ -426,7 +426,7 @@ $line[19].'")';
 		if(!$this->prepared) $this->dbPrepare();
 
 		$foundPosts = array();
-		$SearchQuery = 'SELECT no FROM '.$this->tablename." WHERE lower(category) LIKE '%,".strtolower(mysql_escape_string($category)).",%' ORDER BY no DESC";
+		$SearchQuery = 'SELECT no FROM '.$this->tablename." WHERE lower(category) LIKE '%,".strtolower(mysql_real_escape_string($category)).",%' ORDER BY no DESC";
 		$line = $this->_mysql_call($SearchQuery);
 		while($rows=mysql_fetch_row($line)) $foundPosts[] = $rows[0];
 

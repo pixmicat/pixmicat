@@ -21,10 +21,10 @@ class PIOsqlite{
 
 	/* private 使用SQL字串和SQLite要求 */
 	function _sqlite_call($query){
-		$debug_mode = false; // 除錯模式：顯示SQL錯誤訊息
+		$debug_mode = true; // 除錯模式：顯示SQL錯誤訊息
 
 		$ret = @sqlite_query($this->con, $query);
-		if(!$ret && $debug_mode) error('SQLite SQL指令錯誤：<p />指令: '.$query.'<br />錯誤訊息: '.sqlite_error_string(sqlite_last_error($this->con)));
+		if(!$ret && $debug_mode) echo 'ERRINFO: '.sqlite_error_string(sqlite_last_error($this->con))."\n";  //error('SQLite SQL指令錯誤：<p />指令: '.$query.'<br />錯誤訊息: '.sqlite_error_string(sqlite_last_error($this->con)));
 		return $ret;
 	}
 
@@ -130,24 +130,24 @@ class PIOsqlite{
 		for($i = 0; $i < $data_count; $i++){
 			$line = array_map($replaceComma, explode(',', $data[$i])); // 取代 &#44; 為 ,
 			$SQL = 'INSERT INTO '.$this->tablename.' (no,resto,root,time,md5chksum,category,tim,ext,imgw,imgh,imgsize,tw,th,pwd,now,name,email,sub,com,host,status) VALUES ('.
-$line[0].','.
-$line[1].',"'.
-$line[2].'",'.
-substr($line[5], 0, 10).',"'.
-sqlite_escape_string($line[3]).'","'.
-sqlite_escape_string($line[4]).'",'.
-$line[5].',"'.sqlite_escape_string($line[6]).'",'.
-$line[7].','.$line[8].',"'.sqlite_escape_string($line[9]).'",'.$line[10].','.$line[11].',"'.
-sqlite_escape_string($line[12]).'","'.
-sqlite_escape_string($line[13]).'","'.
-sqlite_escape_string($line[14]).'","'.
-sqlite_escape_string($line[15]).'","'.
-sqlite_escape_string($line[16]).'","'.
-sqlite_escape_string($line[17]).'","'.
-sqlite_escape_string($line[18]).'","'.
-$line[19].'")';
+	$line[0].','.
+	$line[1].',\''.
+	$line[2].'\','.
+	substr($line[5], 0, 10).',\''.
+	sqlite_escape_string($line[3]).'\',\''.
+	sqlite_escape_string($line[4]).'\','.
+	$line[5].',\''.sqlite_escape_string($line[6]).'\','.
+	$line[7].','.$line[8].',\''.sqlite_escape_string($line[9]).'\','.$line[10].','.$line[11].',\''.
+	sqlite_escape_string($line[12]).'\',\''.
+	sqlite_escape_string($line[13]).'\',\''.
+	sqlite_escape_string($line[14]).'\',\''.
+	sqlite_escape_string($line[15]).'\',\''.
+	sqlite_escape_string($line[16]).'\',\''.
+	sqlite_escape_string($line[17]).'\',\''.
+	sqlite_escape_string($line[18]).'\',\''.
+	$line[19].'\')';
 			//echo $SQL."<BR>\n";
-			if(!$this->_sqlite_call($SQL)) $this->_error_handler('Insert a new post failed', __LINE__);
+			if(!$this->_sqlite_call($SQL)){ echo $SQL."<BR>\n"; $this->_error_handler('Insert a new post failed', __LINE__); }
 		}
 		$this->dbCommit(); // 送交
 		return true;

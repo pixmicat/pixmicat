@@ -127,22 +127,22 @@ class PIOpgsql{
 		for($i = 0; $i < $data_count; $i++){
 			$line = array_map($replaceComma, explode(',', $data[$i])); // 取代 &#44; 為 ,
 			$SQL = 'INSERT INTO '.$this->tablename.' (no,resto,root,time,md5chksum,category,tim,ext,imgw,imgh,imgsize,tw,th,pwd,now,name,email,sub,com,host,status) VALUES ('.
-$line[0].','.
-$line[1].',"'.
-$line[2].'",'.
-substr($line[5], 0, 10).',"'.
-pg_escape_string($line[3]).'","'.
-pg_escape_string($line[4]).'",'.
-$line[5].',"'.pg_escape_string($line[6]).'",'.
-$line[7].','.$line[8].',"'.pg_escape_string($line[9]).'",'.$line[10].','.$line[11].',"'.
-pg_escape_string($line[12]).'","'.
-pg_escape_string($line[13]).'","'.
-pg_escape_string($line[14]).'","'.
-pg_escape_string($line[15]).'","'.
-pg_escape_string($line[16]).'","'.
-pg_escape_string($line[17]).'","'.
-pg_escape_string($line[18]).'","'.
-$line[19].'")';
+	$line[0].','.
+	$line[1].',\''.
+	$line[2].'\','.
+	substr($line[5], 0, 10).',\''.
+	pg_escape_string($line[3]).'\',\''.
+	pg_escape_string($line[4]).'\','.
+	$line[5].',\''.pg_escape_string($line[6]).'\','.
+	$line[7].','.$line[8].',\''.pg_escape_string($line[9]).'\','.$line[10].','.$line[11].',\''.
+	pg_escape_string($line[12]).'\',\''.
+	pg_escape_string($line[13]).'\',\''.
+	pg_escape_string($line[14]).'\',\''.
+	pg_escape_string($line[15]).'\',\''.
+	pg_escape_string($line[16]).'\',\''.
+	pg_escape_string($line[17]).'\',\''.
+	pg_escape_string($line[18]).'\',\''.
+	$line[19].'\')';
 			//echo $SQL."<BR>\n";
 			if(!$this->_pgsql_call($SQL)) $this->_error_handler('Insert a new post failed', __LINE__);
 		}
