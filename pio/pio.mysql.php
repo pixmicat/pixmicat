@@ -149,7 +149,7 @@ mysql_escape_string($line[17]).'","'.
 mysql_escape_string($line[18]).'","'.
 $line[19].'")';
 			//echo $SQL."<BR>\n";
-			if(!$result=$this->_mysql_call($query)) $this->_error_handler('Insert a new post failed', __LINE__);
+			if(!$this->_mysql_call($SQL)) $this->_error_handler('Insert a new post failed', __LINE__);
 		}
 		$this->dbCommit(); // 送交
 		return true;
@@ -163,7 +163,7 @@ $line[19].'")';
 		$replaceComma = create_function('$txt', 'return str_replace(",", "&#44;", $txt);');
 		while($row=mysql_fetch_array($line, MYSQL_ASSOC)){
 			$row = array_map($replaceComma, $row); // 取代 , 為 &#44;
-			$data .= implode(',', $row).",\r\n";
+			$data .= rtrim(implode(',', $row)).",\r\n";
 		}
 		mysql_free_result($line);
 		return $data;

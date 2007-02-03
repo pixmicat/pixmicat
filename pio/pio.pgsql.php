@@ -144,7 +144,7 @@ pg_escape_string($line[17]).'","'.
 pg_escape_string($line[18]).'","'.
 $line[19].'")';
 			//echo $SQL."<BR>\n";
-			if(!$result=$this->_pgsql_call($query)) $this->_error_handler('Insert a new post failed', __LINE__);
+			if(!$this->_pgsql_call($SQL)) $this->_error_handler('Insert a new post failed', __LINE__);
 		}
 		$this->dbCommit(); // 送交
 		return true;

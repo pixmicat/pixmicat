@@ -147,7 +147,7 @@ sqlite_escape_string($line[17]).'","'.
 sqlite_escape_string($line[18]).'","'.
 $line[19].'")';
 			//echo $SQL."<BR>\n";
-			if(!$result=$this->_sqlite_call($query)) $this->_error_handler('Insert a new post failed', __LINE__);
+			if(!$this->_sqlite_call($SQL)) $this->_error_handler('Insert a new post failed', __LINE__);
 		}
 		$this->dbCommit(); // 送交
 		return true;
