@@ -331,13 +331,14 @@ class PIOsqlite{
 		if(!$this->prepared) $this->dbPrepare();
 
 		$time = (int)substr($tim, 0, -3); // 13位數的數字串是檔名，10位數的才是時間數值
+		$updatetime = gmdate('Y-m-d H:i:s'); // 更動時間 (UTC)
 		if($resto){ // 新增回應
-			$root = '1980-01-01 00:00:00';
+			$root = '1970-01-01 00:00:00';
 			if($age){ // 推文
-				$query = 'UPDATE '.$this->tablename.' SET root = "'.gmdate('Y-m-d H:i:s', time() + TIME_ZONE * 3600).'" WHERE no = '.$resto; // 將被回應的文章往上移動
+				$query = 'UPDATE '.$this->tablename.' SET root = "'.$updatetime.'" WHERE no = '.$resto; // 將被回應的文章往上移動
 				if(!$result=$this->_sqlite_call($query)) $this->_error_handler('Push the post failed', __LINE__);
 			}
-		}else $root = gmdate('Y-m-d H:i:s', time() + TIME_ZONE * 3600); // 新增討論串, 討論串最後被更新時間
+		}else $root = $updatetime; // 新增討論串, 討論串最後被更新時間
 
 		$query = 'INSERT INTO '.$this->tablename.' (resto,root,time,md5chksum,category,tim,ext,imgw,imgh,imgsize,tw,th,pwd,now,name,email,sub,com,host,status) VALUES ('.
 	(int)$resto.','. // 回應編號

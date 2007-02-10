@@ -295,9 +295,9 @@ class PIOsqlite3{
 		if(!$this->prepared) $this->dbPrepare();
 
 		$time = (int)substr($tim, 0, -3); // 13位數的數字串是檔名，10位數的才是時間數值
-		$updatetime = gmdate('Y-m-d H:i:s', time() + TIME_ZONE * 3600); // 更動時間
+		$updatetime = gmdate('Y-m-d H:i:s'); // 更動時間 (UTC)
 		if($resto){ // 新增回應
-			$root = '1980-01-01 00:00:00';
+			$root = '1970-01-01 00:00:00';
 			if($age){ // 推文
 				$result = $this->con->prepare('UPDATE '.$this->tablename.' SET root = :now WHERE no = :resto');
 				$result->execute(array(':now' => $updatetime, ':resto' => $resto)) or $this->_error_handler('Push the post failed', __LINE__);

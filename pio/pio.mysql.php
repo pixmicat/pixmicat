@@ -38,7 +38,7 @@ class PIOmysql{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.4alpha (b20070203)';
+		return '0.4alpha (b20070210)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -341,17 +341,18 @@ class PIOmysql{
 		if(!$this->prepared) $this->dbPrepare();
 
 		$time = (int)substr($tim, 0, -3); // 13位數的數字串是檔名，10位數的才是時間數值
+		$updatetime = gmdate('Y-m-d H:i:s'); // 更動時間 (UTC)
 		if($resto){ // 新增回應
-			$root = 0;
+			$root = '1970-01-01 00:00:00';
 			if($age){ // 推文
-				$query = 'UPDATE '.$this->tablename.' SET root = now() WHERE no = '.$resto; // 將被回應的文章往上移動
+				$query = 'UPDATE '.$this->tablename.' SET root = "'.$updatetime.'" WHERE no = '.$resto; // 將被回應的文章往上移動
 				if(!$result=$this->_mysql_call($query)) $this->_error_handler('Push the post failed', __LINE__);
 			}
-		}else $root = 'now()'; // 新增討論串, 討論串最後被更新時間
+		}else $root = $updatetime; // 新增討論串, 討論串最後被更新時間
 
 		$query = 'INSERT INTO '.$this->tablename.' (resto,root,time,md5chksum,category,tim,ext,imgw,imgh,imgsize,tw,th,pwd,now,name,email,sub,com,host,status) VALUES ('.
 	(int)$resto.','. // 回應編號
-	$root.','. // 最後更新時間
+	"'$root',". // 最後更新時間
 	$time.','. // 發文時間數值
 	"'$md5chksum',". // 附加檔案md5
 	"'".mysql_real_escape_string($category, $this->con)."',". // 分類標籤

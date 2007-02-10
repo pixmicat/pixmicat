@@ -257,10 +257,10 @@ class PIOlog{
 			if($line[1]==0 && isset($this->trees[$line[0]])){
 				$lastno = array_pop($this->trees[$line[0]]);
 				$line2 = $this->fetchPosts($lastno);
-				$root = gmdate('Y-m-d H:i:s', substr($line2[0]['tim'], 0, 10) + TIME_ZONE * 3600);
+				$root = gmdate('Y-m-d H:i:s', substr($line2[0]['tim'], 0, 10)); // UTC 時間
 				unset($this->trees[$line[0]]); // 刪除表示已取過
 			}else{
-				$root = '0';
+				$root = '1970-01-01 00:00:00';
 			}
 			$data .= $line[0].','.$line[1].','.$root.','.$line[2];
 		}
