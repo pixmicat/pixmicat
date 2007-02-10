@@ -21,7 +21,7 @@ class PIOsqlite3{
 
 	/* PIO模組版本 */
 	public function pioVersion() {
-		return '0.4alpha (b20070203)';
+		return '0.4alpha (b20070210)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -295,7 +295,7 @@ class PIOsqlite3{
 		if(!$this->prepared) $this->dbPrepare();
 
 		$time = (int)substr($tim, 0, -3); // 13位數的數字串是檔名，10位數的才是時間數值
-		$updatetime = strftime('%Y-%m-%d %H:%M:%S', time()); // 更動時間
+		$updatetime = gmdate('Y-m-d H:i:s', time() + TIME_ZONE * 3600); // 更動時間
 		if($resto){ // 新增回應
 			$root = '1980-01-01 00:00:00';
 			if($age){ // 推文

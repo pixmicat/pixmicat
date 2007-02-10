@@ -96,7 +96,7 @@ class PIOlog{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.4alpha with memcached (b20070203)';
+		return '0.4alpha with memcached (b20070210)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -257,7 +257,7 @@ class PIOlog{
 			if($line[1]==0 && isset($this->trees[$line[0]])){
 				$lastno = array_pop($this->trees[$line[0]]);
 				$line2 = $this->fetchPosts($lastno);
-				$root = strftime('%Y-%m-%d %H:%M:%S', substr($line2[0]['tim'], 0, 10) + TIME_ZONE * 3600);
+				$root = gmdate('Y-m-d H:i:s', substr($line2[0]['tim'], 0, 10) + TIME_ZONE * 3600);
 				unset($this->trees[$line[0]]); // 刪除表示已取過
 			}else{
 				$root = '0';

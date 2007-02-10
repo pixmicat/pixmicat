@@ -79,7 +79,7 @@ $ModuleList[] = 'mod_rss';
 // 封鎖設定
 define("BAN_CHECK", 0); // 綜合性封鎖檢查功能 (關閉：0, 開啟：1)
 $BANPATTERN = array(); // IP/Hostname封鎖黑名單
-$DNSBLservers = array(0, 'zen.spamhaus.org', 'list.dsbl.org', 'bl.blbl.org', 'bl.spamcop.net'); // DNSBL伺服器列表 (首項：使用伺服器個數)
+$DNSBLservers = array(0, 'sbl-xbl.spamhaus.org', 'list.dsbl.org', 'bl.blbl.org', 'bl.spamcop.net'); // DNSBL伺服器列表 (首項：使用伺服器個數)
 $DNSBLWHlist = array(); // DNSBL白名單 (請輸入IP位置)
 $BAD_STRING = array("dummy_string","dummy_string2"); // 限制出現之文字
 $BAD_FILEMD5 = array("dummy","dummy2"); // 限制上傳附加圖檔之MD5檢查碼
