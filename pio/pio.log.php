@@ -96,7 +96,7 @@ class PIOlog{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.4alpha with memcached (b20070210)';
+		return '0.4alpha with memcached (b20070211)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -260,7 +260,7 @@ class PIOlog{
 				$root = gmdate('Y-m-d H:i:s', substr($line2[0]['tim'], 0, 10)); // UTC 時間
 				unset($this->trees[$line[0]]); // 刪除表示已取過
 			}else{
-				$root = '1970-01-01 00:00:00';
+				$root = '0';
 			}
 			$data .= $line[0].','.$line[1].','.$root.','.$line[2];
 		}

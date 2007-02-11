@@ -43,7 +43,7 @@ class PIOsqlite{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.4alpha (b20070210)';
+		return '0.4alpha (b20070211)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -333,7 +333,7 @@ class PIOsqlite{
 		$time = (int)substr($tim, 0, -3); // 13位數的數字串是檔名，10位數的才是時間數值
 		$updatetime = gmdate('Y-m-d H:i:s'); // 更動時間 (UTC)
 		if($resto){ // 新增回應
-			$root = '1970-01-01 00:00:00';
+			$root = '0';
 			if($age){ // 推文
 				$query = 'UPDATE '.$this->tablename.' SET root = "'.$updatetime.'" WHERE no = '.$resto; // 將被回應的文章往上移動
 				if(!$result=$this->_sqlite_call($query)) $this->_error_handler('Push the post failed', __LINE__);

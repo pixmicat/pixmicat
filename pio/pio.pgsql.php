@@ -38,7 +38,7 @@ class PIOpgsql{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.4alpha (b20070210)';
+		return '0.4alpha (b20070211)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -63,7 +63,7 @@ class PIOpgsql{
 	CREATE TABLE ".$this->tablename." (
 	\"no\" int NOT NULL DEFAULT nextval('".$this->tablename."_no_seq'),
 	\"resto\" int NOT NULL,
-	\"root\" timestamp NULL DEFAULT '1970-01-01 00:00:00',
+	\"root\" timestamp NULL DEFAULT '1970-00-00 00:00:00',
 	\"time\" int NOT NULL,
 	\"md5chksum\" varchar(32) NOT NULL,
 	\"category\" varchar(255) NOT NULL,
@@ -126,6 +126,7 @@ class PIOpgsql{
 		$replaceComma = create_function('$txt', 'return str_replace("&#44;", ",", $txt);');
 		for($i = 0; $i < $data_count; $i++){
 			$line = array_map($replaceComma, explode(',', $data[$i])); // 取代 &#44; 為 ,
+			if($line[2]=='0') $line[2] = '1970-00-00 00:00:00'; // 零值
 			$SQL = 'INSERT INTO '.$this->tablename.' (no,resto,root,time,md5chksum,category,tim,ext,imgw,imgh,imgsize,tw,th,pwd,now,name,email,sub,com,host,status) VALUES ('.
 	$line[0].','.
 	$line[1].',\''.
@@ -159,6 +160,7 @@ class PIOpgsql{
 		while($row=pg_fetch_array($line, null, PGSQL_ASSOC)){
 			unset($row['time']); // 非必要欄位
 			$row = array_map($replaceComma, $row); // 取代 , 為 &#44;
+			if($row['root']=='1970-00-00 00:00:00') $row['root'] = '0'; // 初始值設為 0
 			$data .= implode(',', $row).",\r\n";
 		}
 		pg_free_result($line);
@@ -340,7 +342,7 @@ class PIOpgsql{
 		$time = (int)substr($tim, 0, -3); // 13位數的數字串是檔名，10位數的才是時間數值
 		$updatetime = gmdate('Y-m-d H:i:s'); // 更動時間 (UTC)
 		if($resto){ // 新增回應
-			$root = '1970-01-01 00:00:00';
+			$root = '1970-00-00 00:00:00';
 			if($age){ // 推文
 				$query = 'UPDATE '.$this->tablename.' SET root = "'.$updatetime.'" WHERE no = '.$resto; // 將被回應的文章往上移動
 				if(!$result=$this->_pgsql_call($query)) $this->_error_handler('Push the post failed', __LINE__);
