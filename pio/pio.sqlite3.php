@@ -21,7 +21,7 @@ class PIOsqlite3{
 
 	/* PIO模組版本 */
 	public function pioVersion() {
-		return '0.4alpha (b20070211)';
+		return '0.4beta (b20070214)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -190,10 +190,10 @@ class PIOsqlite3{
 	}
 
 	/* 輸出討論串清單 */
-	public function fetchThreadList($start=0, $amount=0) {
+	public function fetchThreadList($start=0, $amount=0, $isDESC=false) {
 		if(!$this->prepared) $this->dbPrepare();
 
-		$tmpSQL = 'SELECT no FROM '.$this->tablename.' WHERE resto = 0 ORDER BY root DESC';
+		$tmpSQL = 'SELECT no FROM '.$this->tablename.' WHERE resto = 0 ORDER BY '.($isDESC ? 'no' : 'root').' DESC';
 		if($amount) $tmpSQL .= " LIMIT {$start}, {$amount}"; // 指定數量
 		return $this->con->query($tmpSQL)->fetchAll(PDO::FETCH_COLUMN, 0);
 	}

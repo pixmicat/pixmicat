@@ -96,7 +96,7 @@ class PIOlog{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.4alpha with memcached (b20070211)';
+		return '0.4beta with memcached (b20070214)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -313,10 +313,11 @@ class PIOlog{
 	}
 
 	/* 輸出討論串清單 */
-	function fetchThreadList($start=0, $amount=0){
+	function fetchThreadList($start=0, $amount=0, $isDESC=false){
 		if(!$this->prepared) $this->dbPrepare();
-
-		return $amount ? array_slice($this->torder, $start, $amount) : $this->torder;
+		$tmp_array = $this->torder;
+		if($isDESC) rsort($tmp_array); // 按編號遞減排序 (預設為按最後更新時間排序)
+		return $amount ? array_slice($tmp_array, $start, $amount) : $tmp_array;
 	}
 
 	/* 輸出文章 */

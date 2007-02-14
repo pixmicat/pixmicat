@@ -38,7 +38,7 @@ class PIOmysql{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.4alpha (b20070211)';
+		return '0.4beta (b20070214)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -224,11 +224,11 @@ class PIOmysql{
 	}
 
 	/* 輸出討論串清單 */
-	function fetchThreadList($start=0, $amount=0){
+	function fetchThreadList($start=0, $amount=0, $isDESC=false){
 		if(!$this->prepared) $this->dbPrepare();
 
 		$treeline = array();
-		$tmpSQL = 'SELECT no FROM '.$this->tablename.' WHERE resto = 0 ORDER BY root DESC';
+		$tmpSQL = 'SELECT no FROM '.$this->tablename.' WHERE resto = 0 ORDER BY '.($isDESC ? 'no' : 'root').' DESC';
 		if($amount) $tmpSQL .= " LIMIT {$start}, {$amount}"; // 有指定數量才用 LIMIT
 		$tree = $this->_mysql_call($tmpSQL);
 		while($rows=mysql_fetch_row($tree)) $treeline[] = $rows[0]; // 迴圈
