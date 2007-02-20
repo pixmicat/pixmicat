@@ -21,7 +21,7 @@ class PIOsqlite3{
 
 	/* PIO模組版本 */
 	public function pioVersion() {
-		return '0.4beta (b20070214)';
+		return '0.4beta (b20070221)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -357,7 +357,7 @@ class PIOsqlite3{
 		if(!$this->prepared) $this->dbPrepare();
 
 		$result = $this->con->query('SELECT no FROM '.$this->tablename.' WHERE no = '.$no.' AND resto = 0');
-		return count($result->fetch()) ? true : false;
+		return $result->fetch() ? true : false;
 	}
 
 	/* 搜尋文章 */

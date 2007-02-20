@@ -1,5 +1,8 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2007/02/21
+01.[PIO] 修正 SQLite3 isThread() 總是回傳 true 的錯誤
+
 2007/02/14
 01.[PIO] PIO 0.4 beta，修改 fetchThreadList 方法
 

@@ -1,5 +1,5 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release-dev b070130'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release-dev b070221'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -64,7 +64,7 @@ function updatelog($resno=0,$page_num=0){
 			$threads = $PIO->fetchThreadList($page_num * PAGE_DEF, PAGE_DEF); // 取出分頁後的討論串首篇列表
 			$inner_for_count = count($threads); // 討論串個數就是迴圈次數
 		}
-	}else if(!$PIO->isThread($resno)) error('欲回應之文章並不存在！');
+	}else{ if(!$PIO->isThread($resno)){ error('欲回應之文章並不存在！'); } }
 
 	// 預測過舊文章和將被刪除檔案
 	if($PIO->postCount() >= LOG_MAX * 0.95){
