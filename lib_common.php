@@ -1,5 +1,5 @@
 <?php
-// Revision : 2007/1/31 21:55
+// Revision : 2007/02/24 19:09
 
 /* 輸出表頭 */
 function head(&$dat){
@@ -138,6 +138,7 @@ function anti_sakura($str){
 /* 輸出錯誤畫面 */
 function error($mes, $dest=''){
 	if(is_file($dest)) unlink($dest);
+	$dat = '';
 	head($dat);
 	echo $dat;
 	echo '<div id="error">

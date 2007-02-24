@@ -1,5 +1,5 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release-dev b070221'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release-dev b070224'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -370,7 +370,7 @@ function regist(){
 	if($FTname != 'spammer' || $FTemail != 'foo@foo.bar' || $FTsub != 'DO NOT FIX THIS' || $FTcom != 'EID OG SMAPS' || $FTreply != '') error('防止 Spambot 機制啟動！');
 
 	// 封鎖：IP/Hostname/DNSBL 檢查機能
-	$ip = $_SERVER["REMOTE_ADDR"]; $host = gethostbyaddr($ip);
+	$ip = $_SERVER["REMOTE_ADDR"]; $host = gethostbyaddr($ip); $baninfo = '';
 	if(BanIPHostDNSBLCheck($ip, $host, $baninfo)) error('您所使用的連線已被拒絕。原因：'.$baninfo);
 	// 封鎖：限制出現之文字
 	foreach($BAD_STRING as $value){
@@ -700,6 +700,7 @@ function usrdel(){
 function valid(){
 	$pass = isset($_POST['pass']) ? $_POST['pass'] : ''; // 管理者密碼
 	if($pass && $pass != ADMIN_PASS) error('密碼錯誤');
+	$dat = '';
 	head($dat);
 	$dat .= '<div id="banner">
 [<a href="'.PHP_SELF2.'?'.time().'">回到版面</a>][<a href="'.PHP_SELF.'?mode=remake">更新文章</a>]
