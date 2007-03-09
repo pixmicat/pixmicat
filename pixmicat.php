@@ -36,6 +36,7 @@ PHP 5.1.x 或更高版本並開啟GD和zlib支援
 */
 
 include_once('./config.php'); // 引入設定檔
+include_once('./lib_language.php'); // 引入語系
 include_once('./lib_common.php'); // 引入共通函式檔案
 include_once('./lib_fileio.php'); // 引入FileIO
 include_once('./lib_pio.php'); // 引入PIO
@@ -44,7 +45,7 @@ if(USE_TEMPLATE) include_once('./lib_pte.php'); // 引入PTE外部函式庫
 
 /* 更新記錄檔檔案／輸出討論串 */
 function updatelog($resno=0,$page_num=0){
-	global $PIO, $FileIO, $PMS;
+	global $PIO, $FileIO, $PMS, $language;
 
 	$page_start = $page_end = 0; // 靜態頁面編號
 	$inner_for_count = 1; // 內部迴圈執行次數
@@ -59,12 +60,12 @@ function updatelog($resno=0,$page_num=0){
 			$page_end = ceil($threads_count / PAGE_DEF) - 1; // 頁面編號最後值
 		}else{ // 討論串分頁模式 (PHP動態輸出一頁份)
 			$threads_count = $PIO->threadCount(); // 討論串個數
-			if($page_num < 0 || ($page_num * PAGE_DEF) >= $threads_count) error('對不起，您所要求的頁數並不存在'); // $page_num超過範圍
+			if($page_num < 0 || ($page_num * PAGE_DEF) >= $threads_count) error(_T('page_not_found')); // $page_num超過範圍
 			$page_start = $page_end = $page_num; // 設定靜態頁面編號
 			$threads = $PIO->fetchThreadList($page_num * PAGE_DEF, PAGE_DEF); // 取出分頁後的討論串首篇列表
 			$inner_for_count = count($threads); // 討論串個數就是迴圈次數
 		}
-	}else{ if(!$PIO->isThread($resno)){ error('欲回應之文章並不存在！'); } }
+	}else{ if(!$PIO->isThread($resno)){ error(_T('thread_not_found')); } }
 
 	// 預測過舊文章和將被刪除檔案
 	if($PIO->postCount() >= LOG_MAX * 0.95){
@@ -114,11 +115,11 @@ function updatelog($resno=0,$page_num=0){
 					}else{
 						if($page_num==='RE_PAGE_MAX') $page_num = ceil($tree_count / RE_PAGE_DEF) - 1; // 特殊值：最末頁
 						if($page_num < 0) $page_num = 0; // 負數
-						if($page_num * RE_PAGE_DEF >= $tree_count) error('對不起，您所要求的頁數並不存在');
+						if($page_num * RE_PAGE_DEF >= $tree_count) error(_T('page_not_found'));
 						$RES_start = $page_num * RE_PAGE_DEF + 1; // 開始
 						$RES_amount = RE_PAGE_DEF; // 取幾個
 					}
-				}elseif($page_num > 0) error('對不起，您所要求的頁數並不存在'); // 沒有回應的情況只允許page_num = 0 或負數
+				}elseif($page_num > 0) error(_T('page_not_found')); // 沒有回應的情況只允許page_num = 0 或負數
 				else{ $RES_start = 1; $RES_amount = $tree_count; } // 輸出全部回應
 			}else{ // 一般模式下的回應隱藏
 				$RES_start = $tree_count - RE_DEF + 1; if($RES_start < 1) $RES_start = 1; // 開始
@@ -137,9 +138,9 @@ function updatelog($resno=0,$page_num=0){
 <table style="float: right;">
 <tr><td align="center" style="white-space: nowrap;">
 <input type="hidden" name="mode" value="usrdel" />
-【刪除文章】[<input type="checkbox" name="onlyimgdel" id="onlyimgdel" value="on" /><label for="onlyimgdel">僅刪除附加圖檔</label>]<br />
-刪除用密碼: <input type="password" name="pwd" size="8" maxlength="8" value="" />
-<input type="submit" value=" 刪除 " />
+'._T('del_head').'[<input type="checkbox" name="onlyimgdel" id="onlyimgdel" value="on" /><label for="onlyimgdel">'._T('del_img_only').'</label>]<br />
+'._T('del_pass').'<input type="password" name="pwd" size="8" maxlength="8" value="" />
+<input type="submit" value="'._T('del_btn').'" />
 <script type="text/javascript">l2();</script>
 </td></tr>
 </table>
@@ -156,8 +157,8 @@ function updatelog($resno=0,$page_num=0){
 			if(RE_PAGE_DEF > 0){ // 回應分頁開啟
 				$AllRes = isset($_GET['page_num']) && $_GET['page_num']=='all'; // 是否使用 ALL 全部輸出
 				$dat .= '<table border="1"><tr>';
-				if($prev >= 0) $dat .= '<td><form action="'.PHP_SELF.'?res='.$resno.'&amp;page_num='.$prev.'" method="post"><div><input type="submit" value="上一頁" /></div></form></td>';
-				else $dat .= '<td style="white-space: nowrap;">第一頁</td>';
+				if($prev >= 0) $dat .= '<td><form action="'.PHP_SELF.'?res='.$resno.'&amp;page_num='.$prev.'" method="post"><div><input type="submit" value="'._T('prev_page').'" /></div></form></td>';
+				else $dat .= '<td style="white-space: nowrap;">'._T('first_page').'</td>';
 				$dat .= "<td>";
 				if($tree_count==0) $dat .= '[<b>0</b>] '; // 無回應
 				else{
@@ -165,11 +166,11 @@ function updatelog($resno=0,$page_num=0){
 						if(!$AllRes && $page_num==$i/RE_PAGE_DEF) $dat .= '[<b>'.$i/RE_PAGE_DEF.'</b>] ';
 						else $dat .= '[<a href="'.PHP_SELF.'?res='.$resno.'&amp;page_num='.$i/RE_PAGE_DEF.'">'.$i/RE_PAGE_DEF.'</a>] ';
 					}
-					$dat .= $AllRes ? '[<b>ALL</b>] ' : ($tree_count > RE_PAGE_DEF ? '[<a href="'.PHP_SELF.'?res='.$resno.'&amp;page_num=all">ALL</a>] ' : '');
+					$dat .= $AllRes ? '[<b>'._T('all_pages').'</b>] ' : ($tree_count > RE_PAGE_DEF ? '[<a href="'.PHP_SELF.'?res='.$resno.'&amp;page_num=all">'._T('all_pages').'</a>] ' : '');
 				}
 				$dat .= '</td>';
-				if(!$AllRes && $tree_count > $next * RE_PAGE_DEF) $dat .= '<td><form action="'.PHP_SELF.'?res='.$resno.'&amp;page_num='.$next.'" method="post"><div><input type="submit" value="下一頁" /></div></form></td>';
-				else $dat .= '<td style="white-space: nowrap;">最後一頁</td>';
+				if(!$AllRes && $tree_count > $next * RE_PAGE_DEF) $dat .= '<td><form action="'.PHP_SELF.'?res='.$resno.'&amp;page_num='.$next.'" method="post"><div><input type="submit" value="'._T('next_page').'" /></div></form></td>';
+				else $dat .= '<td style="white-space: nowrap;">'._T('last_page').'</td>';
 				$dat .= '</tr></table>'."\n";
 			}
 		}else{ // 一般分頁
@@ -180,8 +181,8 @@ function updatelog($resno=0,$page_num=0){
 					if((STATIC_HTML_UNTIL != -1) && ($prev > STATIC_HTML_UNTIL)) $dat .= '<td><form action="'.PHP_SELF.'?page_num='.$prev.'" method="post">';
 					else $dat .= '<td><form action="'.$prev.PHP_EXT.'" method="get">';
 				}
-				$dat .= '<div><input type="submit" value="上一頁" /></div></form></td>';
-			}else $dat .= '<td style="white-space: nowrap;">第一頁</td>';
+				$dat .= '<div><input type="submit" value="'._T('prev_page').'" /></div></form></td>';
+			}else $dat .= '<td style="white-space: nowrap;">'._T('first_page').'</td>';
 			$dat .= '<td>';
 			for($i = 0; $i < $threads_count ; $i += PAGE_DEF){
 				if($page==$i/PAGE_DEF) $dat .= "[<b>".$i/PAGE_DEF."</b>] ";
@@ -195,8 +196,8 @@ function updatelog($resno=0,$page_num=0){
 			if($threads_count > $next * PAGE_DEF){
 				if((STATIC_HTML_UNTIL != -1) && ($next > STATIC_HTML_UNTIL)) $dat .= '<td><form action="'.PHP_SELF.'?page_num='.$next.'" method="post">';
 				else $dat .= '<td><form action="'.$next.PHP_EXT.'" method="get">';
-				$dat .= '<div><input type="submit" value="下一頁" /></div></form></td>';
-			}else $dat .= '<td style="white-space: nowrap;">最後一頁</td>';
+				$dat .= '<div><input type="submit" value="'._T('next_page').'" /></div></form></td>';
+			}else $dat .= '<td style="white-space: nowrap;">'._T('last_page').'</td>';
 			$dat .= '</tr></table>'."\n";
 		}
 		$dat .= '<br style="clear: left;" />
@@ -228,7 +229,7 @@ function updatelog($resno=0,$page_num=0){
 
 /* 輸出討論串架構 */
 function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $arr_kill, $arr_old, $kill_sensor, $old_sensor, $showquotelink=true){
-	global $PIO, $FileIO, $PMS;
+	global $PIO, $FileIO, $PMS, $language;
 
 	$thdat = ''; // 討論串輸出碼
 	$posts_count = count($posts); // 迴圈次數
@@ -241,10 +242,10 @@ function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $
 		// 設定欄位值
 		if(CLEAR_SAGE) $email = preg_replace('/^sage( *)/i', '', trim($email)); // 清除E-mail中的「sage」關鍵字
 		if(ALLOW_NONAME==2){ // 強制砍名
-			$name = preg_match('/(◆.{10})/', $name, $matches) ? '<span class="nor">'.$matches[1].'</span>' : '';
+			$name = preg_match('/(\\'._T('trip_pre').'.{10})/', $name, $matches) ? '<span class="nor">'.$matches[1].'</span>' : '';
 			if($email) $now = "<a href=\"mailto:$email\">$now</a>";
 		}else{
-			$name = preg_replace('/(◆.{10})/', '<span class="nor">$1</span>', $name); // Trip取消粗體
+			$name = preg_replace('/(\\'._T('trip_pre').'.{10})/', '<span class="nor">$1</span>', $name); // Trip取消粗體
 			if($email) $name = "<a href=\"mailto:$email\">$name</a>";
 		}
 		if(AUTO_LINK) $com = auto_link($com);
@@ -271,12 +272,12 @@ function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $
 			$imgsrc = '<a href="'.$imageURL.'" rel="_blank"><img src="nothumb.gif" class="img" alt="'.$imgsize.'" title="'.$imgsize.'" /></a>'; // 預設顯示圖樣式 (無預覽圖時)
 			if($tw && $th){
 				if($FileIO->imageExists($tim.'s.jpg')){ // 有預覽圖
-					$img_thumb = '<small>[以預覽圖顯示]</small>';
+					$img_thumb = '<small>'._T('img_sample').'</small>';
 					$imgsrc = '<a href="'.$imageURL.'" rel="_blank"><img src="'.$thumbURL.'" style="width: '.$tw.'px; height: '.$th.'px;" class="img" alt="'.$imgsize.'" title="'.$imgsize.'" /></a>';
 				}elseif($ext=='.swf') $imgsrc = ''; // swf檔案不需預覽圖
 			}
 			if(SHOW_IMGWH) $imgwh_bar = ', '.$imgw.'x'.$imgh; // 顯示附加圖檔之原檔長寬尺寸
-			$IMG_BAR = '檔名：<a href="'.$imageURL.'" rel="_blank">'.$tim.$ext.'</a>-('.$imgsize.$imgwh_bar.') '.$img_thumb;
+			$IMG_BAR = _T('img_filename').'<a href="'.$imageURL.'" rel="_blank">'.$tim.$ext.'</a>-('.$imgsize.$imgwh_bar.') '.$img_thumb;
 			if(!USE_TEMPLATE){
 				if($i) $IMG_BAR = '<br />&nbsp;'.$IMG_BAR; // 只有回應的IMG_BAR有資料時需要換行
 				$imgsrc = '<br />'.$imgsrc;
@@ -288,16 +289,16 @@ function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $
 			if($showquotelink) $QUOTEBTN = '<a href="javascript:quote('.$no.');" class="qlink">No.'.$no.'</a>';
 			else $QUOTEBTN = '<a href="#" class="qlink">No.'.$no.'</a>';
 		}else{
-			if(!$i)	$REPLYBTN = '[<a href="'.PHP_SELF.'?res='.$no.'">回應</a>]'; // 首篇
+			if(!$i)	$REPLYBTN = '[<a href="'.PHP_SELF.'?res='.$no.'">'._T('reply_btn').'</a>]'; // 首篇
 			$QUOTEBTN = '<a href="'.PHP_SELF.'?res='.$tree[0].'#q'.$no.'" class="qlink">No.'.$no.'</a>';
 		}
 
 		// 設定討論串屬性
-		if(STORAGE_LIMIT && $kill_sensor) if(isset($arr_kill[$no])) $WARN_BEKILL = '<span class="warn_txt">這篇因附加圖檔容量限制，附加圖檔不久後就會刪除。</span><br />'."\n"; // 預測刪除過大檔
+		if(STORAGE_LIMIT && $kill_sensor) if(isset($arr_kill[$no])) $WARN_BEKILL = '<span class="warn_txt">'._T('warn_sizelimit').'</span><br />'."\n"; // 預測刪除過大檔
 		if(!$i){ // 首篇 Only
-			if($old_sensor) if($arr_old[$no] + 1 >= LOG_MAX * 0.95) $WARN_OLD = '<span class="warn_txt">這篇已經很舊了，不久後就會刪除。</span><br />'."\n"; // 快要被刪除的提示
-			if($PIO->getPostStatus($status, 'TS')) $WARN_ENDREPLY = '<span class="warn_txt">這篇討論串已被管理員標記為禁止回應。</span><br />'."\n"; // 被標記為禁止回應
-			if($hiddenReply) $WARN_HIDEPOST = '<span class="warn_txt2">有回應 '.$hiddenReply.' 篇被省略。要閱讀所有回應請按下回應連結。</span><br />'."\n"; // 有隱藏的回應
+			if($old_sensor) if($arr_old[$no] + 1 >= LOG_MAX * 0.95) $WARN_OLD = '<span class="warn_txt">'._T('warn_oldthread').'</span><br />'."\n"; // 快要被刪除的提示
+			if($PIO->getPostStatus($status, 'TS')) $WARN_ENDREPLY = '<span class="warn_txt">'._T('warn_locked').'</span><br />'."\n"; // 被標記為禁止回應
+			if($hiddenReply) $WARN_HIDEPOST = '<span class="warn_txt2">'._T('notice_omitted',$hiddenReply).'</span><br />'."\n"; // 有隱藏的回應
 		}
 		// 對類別標籤作自動連結
 		if(USE_CATEGORY){
@@ -324,15 +325,15 @@ function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $
 		}else{ // 非樣板輸出
 			if($i){ // 回應
 				$thdat .= '<div class="reply" id="r'.$no.'">
-<input type="checkbox" name="'.$no.'" value="delete" /><span class="title">'.$sub.'</span> 名稱: <span class="name">'.$name.'</span> ['.$now.'] '.$QUOTEBTN.'&nbsp;'.$IMG_BAR.$imgsrc.'
+<input type="checkbox" name="'.$no.'" value="delete" /><span class="title">'.$sub.'</span> '._T('post_name').'<span class="name">'.$name.'</span> ['.$now.'] '.$QUOTEBTN.'&nbsp;'.$IMG_BAR.$imgsrc.'
 <div class="quote">'.$com.'</div>'."\n";
-				if($category) $thdat .= '<div class="category">類別: '.$category.'</div>'."\n";
+				if($category) $thdat .= '<div class="category">'._T('post_category').$category.'</div>'."\n";
 				$thdat .= $WARN_BEKILL."</div>\n";
 			}else{ // 首篇
 				$thdat .= '<div class="threadpost">
-'.$IMG_BAR.$imgsrc.'<input type="checkbox" name="'.$no.'" value="delete" /><span class="title">'.$sub.'</span> 名稱: <span class="name">'.$name.'</span> ['.$now.'] '.$QUOTEBTN.'&nbsp;'.$REPLYBTN.'
+'.$IMG_BAR.$imgsrc.'<input type="checkbox" name="'.$no.'" value="delete" /><span class="title">'.$sub.'</span> '._T('post_name').'<span class="name">'.$name.'</span> ['.$now.'] '.$QUOTEBTN.'&nbsp;'.$REPLYBTN.'
 <div class="quote">'.$com.'</div>'."\n";
-				if($category) $thdat .= '<div class="category">類別: '.$category.'</div>'."\n";
+				if($category) $thdat .= '<div class="category">'._T('post_category').$category.'</div>'."\n";
 				$thdat .= $WARN_OLD.$WARN_BEKILL.$WARN_ENDREPLY.$WARN_HIDEPOST."</div>\n";
 			}
 		}
@@ -343,10 +344,10 @@ function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $
 
 /* 寫入記錄檔 */
 function regist(){
-	global $path, $PIO, $FileIO, $BAD_STRING, $BAD_FILEMD5, $BAD_IPADDR;
+	global $path, $PIO, $FileIO, $language, $BAD_STRING, $BAD_FILEMD5, $BAD_IPADDR;
 	$dest = ''; $mes = ''; $up_incomplete = 0; $is_admin = false;
 
-	if($_SERVER['REQUEST_METHOD'] != 'POST') error('請使用此版提供的表單來上傳'); // 非正規POST方式
+	if($_SERVER['REQUEST_METHOD'] != 'POST') error(_T('regist_notpost')); // 非正規POST方式
 
 	$name = isset($_POST[FT_NAME]) ? $_POST[FT_NAME] : '';
 	$email = isset($_POST[FT_EMAIL]) ? $_POST[FT_EMAIL] : '';
@@ -367,15 +368,15 @@ function regist(){
 	$FTsub = isset($_POST['sub']) ? $_POST['sub'] : '';
 	$FTcom = isset($_POST['com']) ? $_POST['com'] : '';
 	$FTreply = isset($_POST['reply']) ? $_POST['reply'] : '';
-	if($FTname != 'spammer' || $FTemail != 'foo@foo.bar' || $FTsub != 'DO NOT FIX THIS' || $FTcom != 'EID OG SMAPS' || $FTreply != '') error('防止 Spambot 機制啟動！');
+	if($FTname != 'spammer' || $FTemail != 'foo@foo.bar' || $FTsub != 'DO NOT FIX THIS' || $FTcom != 'EID OG SMAPS' || $FTreply != '') error(_T('regist_nospam'));
 
 	// 封鎖：IP/Hostname/DNSBL 檢查機能
 	$ip = $_SERVER["REMOTE_ADDR"]; $host = gethostbyaddr($ip); $baninfo = '';
-	if(BanIPHostDNSBLCheck($ip, $host, $baninfo)) error('您所使用的連線已被拒絕。原因：'.$baninfo);
+	if(BanIPHostDNSBLCheck($ip, $host, $baninfo)) error(_T('regist_ipfiltered',$baninfo));
 	// 封鎖：限制出現之文字
 	foreach($BAD_STRING as $value){
 		if(strpos($com, $value)!==false || strpos($sub, $value)!==false || strpos($name, $value)!==false || strpos($email, $value)!==false){
-			error('發出的文章中有被管理員列為限制的字句，送出失敗');
+			error(_T('regist_wordfiltered'));
 		}
 	}
 
@@ -386,19 +387,19 @@ function regist(){
 	// 判斷上傳狀態
 	switch($upfile_status){
 		case 1:
-			error('上傳失敗<br />上傳的附加圖檔容量超過PHP內定值');
+			error(_T('regist_upload_exceedphp'));
 			break;
 		case 2:
-			error('上傳失敗<br />上傳的附加圖檔容量超過上傳容量限制');
+			error(_T('regist_upload_exceedcustom'));
 			break;
 		case 3:
-			error('上傳失敗<br />上傳的附加圖檔不完整，請回版面再重試');
+			error(_T('regist_upload_incompelete'));
 			break;
 		case 6:
-			error('上傳失敗<br />上傳的暫存資料夾設定錯誤，請通報系統管理員');
+			error(_T('regist_upload_direrror'));
 			break;
 		case 4: // 無上傳
-			if(!$resto && !isset($_POST['noimg'])) error('因應防止Spam對策，發文無附加圖檔請勾選[無貼圖]核選框！');
+			if(!$resto && !isset($_POST['noimg'])) error(_T('regist_upload_noimg'));
 			break;
 		case 0: // 上傳正常
 		default:
@@ -410,7 +411,7 @@ function regist(){
 		$dest = $path.$tim.'.tmp';
 		@move_uploaded_file($upfile, $dest);
 		@chmod($dest, 0666);
-		if(!is_file($dest)) error('上傳失敗<br />伺服器有可能禁止上傳、沒有權限，或不支援此格式', $dest);
+		if(!is_file($dest)) error(_T('regist_upload_filenotfound'), $dest);
 
 		// 二‧判斷上傳附加圖檔途中是否有中斷
 		$upsizeTTL = $_SERVER['CONTENT_LENGTH'];
@@ -432,13 +433,13 @@ function regist(){
 		if(($upsizeTTL - $upsizeHDR) > HTTP_UPLOAD_DIFF){
 			if(KILL_INCOMPLETE_UPLOAD){
 				unlink($dest);
-				die('[Notice] Your sending was canceled because of the incorrect file size.'); // 給瀏覽器的提示，假如使用者還看的到的話才不會納悶
+				die(_T('regist_upload_killincomp')); // 給瀏覽器的提示，假如使用者還看的到的話才不會納悶
 			}else $up_incomplete = 1;
 		}
 
 		// 三‧檢查是否為可接受的檔案
 		$size = @getimagesize($dest);
-		if(!is_array($size)) error('上傳失敗<br />不接受圖片以外的檔案', $dest); // $size不為陣列就不是圖檔
+		if(!is_array($size)) error(_T('regist_upload_notimage'), $dest); // $size不為陣列就不是圖檔
 		$imgsize = @filesize($dest); // 檔案大小
 		$imgsize = ($imgsize>=1024) ? (int)($imgsize/1024).' KB' : $imgsize.' B'; // KB和B的判別
 		switch($size[2]){ // 判斷上傳附加圖檔之格式
@@ -449,13 +450,13 @@ function regist(){
 			case 5 : $ext = ".psd"; break;
 			case 6 : $ext = ".bmp"; break;
 			case 13 : $ext = ".swf"; break;
-			default : $ext = ".xxx"; error('附加圖檔為系統不支援的格式', $dest);
+			default : $ext = ".xxx"; error(_T('regist_upload_notsupport'), $dest);
 		}
 		$allow_exts = explode('|', strtolower(ALLOW_UPLOAD_EXT)); // 接受之附加圖檔副檔名
-		if(array_search(substr($ext, 1), $allow_exts)===false) error('附加圖檔為系統不支援的格式', $dest); // 並無在接受副檔名之列
+		if(array_search(substr($ext, 1), $allow_exts)===false) error(_T('regist_upload_notsupport'), $dest); // 並無在接受副檔名之列
 		// 封鎖設定：限制上傳附加圖檔之MD5檢查碼
 		$md5chksum = md5_file($dest); // 檔案MD5
-		if(array_search($md5chksum, $BAD_FILEMD5)!==FALSE) error('上傳失敗<br />此附加圖檔被管理員列為禁止上傳', $dest); // 在封鎖設定內則阻擋
+		if(array_search($md5chksum, $BAD_FILEMD5)!==FALSE) error(_T('regist_upload_blocked'), $dest); // 在封鎖設定內則阻擋
 
 		// 四‧計算附加圖檔圖檔縮圖顯示尺寸
 		$W = $imgW = $size[0];
@@ -469,35 +470,35 @@ function regist(){
 			$W = ceil($W * $key);
 			$H = ceil($H * $key);
 		}
-		$mes = '附加圖檔'.CleanStr($upfile_name).'上傳完畢<br />';
+		$mes = _T('regist_uploaded',CleanStr($upfile_name));
 	}
 
 	// 檢查是否輸入櫻花日文假名
 	$chkanti = array($name, $email, $sub, $com);
-	foreach($chkanti as $anti) if(anti_sakura($anti)) error('偵測到您有輸入櫻花日文假名', $dest);
+	foreach($chkanti as $anti) if(anti_sakura($anti)) error(_T('regist_sakuradetected'), $dest);
 
 	// 檢查表單欄位內容並修整
 	if(!$name || ereg("^[ |　|]*$", $name)){
-		if(ALLOW_NONAME) $name = '無名氏';
-		else error('您沒有填寫名稱', $dest);
+		if(ALLOW_NONAME) $name = DEFAULT_NONAME;
+		else error(_T('regist_withoutname'), $dest);
 	}
-	if(!$com && $upfile_status==4) error('在沒有附加圖檔的情況下，請寫入內文');
-	if(!$com || ereg("^[ |　|\t]*$", $com)) $com = '無內文';
-	if(!$sub || ereg("^[ |　|]*$", $sub)) $sub = '無標題';
-	if(strlen($name) > 100) error('名稱過長', $dest);
-	if(strlen($email) > 100) error('E-mail過長', $dest);
-	if(strlen($sub) > 100) error('標題過長', $dest);
-	if(strlen($resto) > 10) error('欲回應的文章編號可能有誤', $dest);
+	if(!$com && $upfile_status==4) error(_T('regist_withoutcomment'));
+	if(!$com || ereg("^[ |　|\t]*$", $com)) $com = DEFAULT_NOCOMMENT;
+	if(!$sub || ereg("^[ |　|]*$", $sub)) $sub = DEFAULT_NOTITLE;
+	if(strlen($name) > 100) error(_T('regist_nametoolong'), $dest);
+	if(strlen($email) > 100) error(_T('regist_emailtoolong'), $dest);
+	if(strlen($sub) > 100) error(_T('regist_topictoolong'), $dest);
+	if(strlen($resto) > 10) error(_T('regist_longthreadnum'), $dest);
 
 	$email = CleanStr($email); $email = str_replace("\r\n", '', $email);
 	$sub = CleanStr($sub); $sub = str_replace("\r\n", '', $sub);
 	$resto = CleanStr($resto); $resto = str_replace("\r\n", '', $resto);
 	// 名稱修整
 	$name = CleanStr($name);
-	$name = str_replace('管理','"管理"', $name);
-	$name = str_replace('刪除','"刪除"', $name);
-	$name = str_replace('◆','◇', $name); // 防止トリップ偽造
-	$name = str_replace('★','☆', $name); // 防止管理員キャップ偽造
+	$name = str_replace(_T('admin'), '"'._T('admin').'"', $name);
+	$name = str_replace(_T('deletor'), '"'._T('deletor').'"', $name);
+	$name = str_replace(_T('trip_pre'),_T('trip_pre_fake'), $name); // 防止トリップ偽造
+	$name = str_replace(_T('cap_char'),_T('cap_char_fake'), $name); // 防止管理員キャップ偽造
 	$name = str_replace("\r\n", '', $name);
 	$is_tripped = false; // 名稱一欄是否經過Trip
 	if(ereg("(#|＃)(.*)", $name, $regs)){ // 使用トリップ(Trip)機能 (ex：無名#abcd)
@@ -507,11 +508,11 @@ function regist(){
 		$salt = substr($cap.'H.',1,2);
 		$salt = ereg_replace("[^\.-z]",'.',$salt);
 		$salt = strtr($salt,":;<=>?@[\\]^_`","ABCDEFGabcdef");
-		$name = $name.'◆'.substr(crypt($cap,$salt),-10);
+		$name = $name._T('trip_pre').substr(crypt($cap,$salt),-10);
 		$is_tripped = true; // 有Trip過。如果進入下面的Cap則要先去掉Trip留下主名稱
 	}
 	if(ereg("(.*)(#|＃)(.*)",$email,$aregs) && CAP_ENABLE){ // 使用管理員キャップ(Cap)機能
-		$acap_name = $is_tripped ? preg_replace('/◆.{10}/', '', $name) : $name; // 識別名稱 (如果有Trip則要先拿掉)
+		$acap_name = $is_tripped ? preg_replace('/\\'._T('trip_pre').'.{10}/', '', $name) : $name; // 識別名稱 (如果有Trip則要先拿掉)
 		$acap_pwd = $aregs[3];
 		$acap_pwd = strtr($acap_pwd, array("&amp;"=>"&","&#44;"=>","));
 		if($acap_name==CAP_NAME && $acap_pwd==CAP_PASS){
@@ -522,7 +523,7 @@ function regist(){
 		}
 	}
 	// 內文修整
-	if((strlen($com) > COMM_MAX) && !$is_admin) error('內文過長', $dest);
+	if((strlen($com) > COMM_MAX) && !$is_admin) error(_T('regist_commenttoolong'), $dest);
 	$com = CleanStr($com, $is_admin); // 引入$is_admin參數是因為當管理員キャップ啟動時，允許管理員依config設定是否使用HTML
 	$com = str_replace("\r\n","\n", $com);
 	$com = str_replace("\r","\n", $com);
@@ -533,12 +534,12 @@ function regist(){
 		$category = explode(',', $category); // 把標籤拆成陣列
 		$category = ','.implode(',', array_map('trim', $category)).','; // 去空白再合併為單一字串 (左右含,便可以直接以,XX,形式搜尋)
 	}
-	if($up_incomplete) $com .= '<br /><br /><span class="warn_txt">注意：附加圖檔上傳不完全</span>'; // 上傳附加圖檔不完全的提示
+	if($up_incomplete) $com .= '<br /><br /><span class="warn_txt">'._T('notice_incompletefile').'</span>'; // 上傳附加圖檔不完全的提示
 
 	// 密碼和時間的樣式
 	if($pwd=='') $pwd = ($pwdc=='') ? substr(rand(),0,8) : $pwdc;
 	$pass = $pwd ? substr(md5($pwd), 2, 8) : '*'; // 生成真正儲存判斷用的密碼
-	$youbi = array('日','一','二','三','四','五','六');
+	$youbi = array(_T('sun'),_T('mon'),_T('tue'),_T('wed'),_T('thu'),_T('fru'),_T('sat'));
 	$yd = $youbi[gmdate('w', $time+TIME_ZONE*60*60)];
 	$now = gmdate('y/m/d', $time+TIME_ZONE*60*60).'('.(string)$yd.')'.gmdate('H:i', $time+TIME_ZONE*60*60);
 	if(DISP_ID){ // 顯示ID
@@ -549,8 +550,8 @@ function regist(){
 	// 連續投稿 / 相同附加圖檔檢查
 	$checkcount = 50; // 預設檢查50筆資料
 	$pwdc = substr(md5($pwdc), 2, 8); // Cookies密碼
-	if($PIO->isSuccessivePost($checkcount, $com, $time, $pass, $pwdc, $host, $upfile_name)) error('連續投稿請稍候一段時間', $dest); // 連續投稿檢查
-	if($dest){ if($PIO->isDuplicateAttechment($checkcount, $md5chksum)) error('上傳失敗<br />近期已經有相同的附加圖檔', $dest); } // 相同附加圖檔檢查
+	if($PIO->isSuccessivePost($checkcount, $com, $time, $pass, $pwdc, $host, $upfile_name)) error(_T('regist_successivepost'), $dest); // 連續投稿檢查
+	if($dest){ if($PIO->isDuplicateAttechment($checkcount, $md5chksum)) error(_T('regist_duplicatefile'), $dest); } // 相同附加圖檔檢查
 
 	if($resto) $ThreadExistsBefore = $PIO->isThread($resto);
 	// 記錄檔行數已達上限：刪除過舊檔
@@ -575,14 +576,14 @@ function regist(){
 				// 提前更新資料來源，此筆新增亦不紀錄
 				$PIO->dbCommit();
 				updatelog();
-				error('此討論串因為過舊已被刪除！', $dest);
+				error(_T('regist_threaddeleted'), $dest);
 			}else{ // 檢查是否討論串被設為禁止回應 (順便取出原討論串的貼文時間)
 				$post = $PIO->fetchPosts($resto); // [特殊] 取單篇文章內容，但是回傳的$post同樣靠[$i]切換文章！
 				list($chkstatus, $chktime) = array($post[0]['status'], $post[0]['tim']);
 				$chktime = substr($chktime, 0, -3); // 拿掉微秒 (後面三個字元)
-				if($PIO->getPostStatus($chkstatus, 'TS')) error('這篇討論串已被管理員標記為禁止回應！', $dest);
+				if($PIO->getPostStatus($chkstatus, 'TS')) error(_T('regist_threadlocked'), $dest);
 			}
-		}else error('無此討論串！', $dest); // 不存在
+		}else error(_T('thread_not_found'), $dest); // 不存在
 	}
 
 	// 計算某些欄位值
@@ -655,17 +656,15 @@ setTimeout("redir()", 1000);
 </head>
 <body>
 <div>
-$mes 畫面正在切換
-<p>如果瀏覽器沒有自動切換，請手動按連結前往：<a href="$RedirURL">回到版面</a></p>
-</div>
-</body>
-</html>
 _REDIR_;
+echo _T('regist_redirect',$mes,$RedirURL).'</div>
+</body>
+</html>';
 }
 
 /* 使用者刪除 */
 function usrdel(){
-	global $PIO, $FileIO;
+	global $PIO, $FileIO, $language;
 	// $pwd: 使用者輸入值, $pwdc: Cookie記錄密碼
 	$pwd = isset($_POST['pwd']) ? $_POST['pwd'] : '';
 	$pwdc = isset($_COOKIE['pwdc']) ? $_COOKIE['pwdc'] : '';
@@ -678,7 +677,7 @@ function usrdel(){
 	$delno = array();
 	reset($_POST);
 	while($item = each($_POST)) if($item[1]=='delete') array_push($delno, $item[0]);
-	if(!count($delno)) error('你真的有要刪除嗎？請回頁面重勾選');
+	if(!count($delno)) error(_T('del_notchecked'));
 
 	$delposts = array(); // 真正符合刪除條件文章
 	$posts = $PIO->fetchPosts($delno);
@@ -693,18 +692,19 @@ function usrdel(){
 		$FileIO->deleteImage($files);
 		total_size(true); // 刪除容量快取
 		$PIO->dbCommit();
-	}else error('無此文章或是密碼錯誤');
+	}else error(_T('del_wrongpwornotfound'));
 }
 
 /* 管理員密碼認證 */
 function valid(){
+	global $language;
 	$pass = isset($_POST['pass']) ? $_POST['pass'] : ''; // 管理者密碼
-	if($pass && $pass != ADMIN_PASS) error('密碼錯誤');
+	if($pass && $pass != ADMIN_PASS) error(_T('admin_wrongpassword'));
 	$dat = '';
 	head($dat);
 	$dat .= '<div id="banner">
-[<a href="'.PHP_SELF2.'?'.time().'">回到版面</a>][<a href="'.PHP_SELF.'?mode=remake">更新文章</a>]
-<div class="bar_admin">管理模式</div>
+[<a href="'.PHP_SELF2.'?'.time().'">'._T('return').'</a>][<a href="'.PHP_SELF.'?mode=remake">'._T('admin_remake').'</a>]
+<div class="bar_admin">'._T('admin_top').'</div>
 </div>
 <form action="'.PHP_SELF.'" method="post">
 <div id="admin-check" style="text-align: center;">
@@ -712,29 +712,27 @@ function valid(){
 	echo $dat;
 	// 登錄用表單
 	if(!$pass){
-		echo <<< __VALID_EOF__
-<br />
-<input type="radio" name="admin" value="del" checked="checked" />管理文章
-<input type="radio" name="admin" value="opt" />資料表最佳化<p />
+		echo '<br />
+<input type="radio" name="admin" value="del" checked="checked" />'._T('admin_manageposts').'
+<input type="radio" name="admin" value="opt" />'._T('admin_optimize').'<p />
 <input type="hidden" name="mode" value="admin" />
 <input type="password" name="pass" size="8" />
-<input type="submit" value=" 認證 " />
+<input type="submit" value="'._T('admin_verify_btn').'" />
 </div>
-</form>
-__VALID_EOF__;
+</form>';
 		die("\n</body>\n</html>");
 	}
 }
 
 /* 管理文章模式 */
 function admindel(){
-	global $PIO, $FileIO;
+	global $PIO, $FileIO, $language;
 
 	$pass = isset($_POST['pass']) ? $_POST['pass'] : ''; // 管理者密碼
 	$page = isset($_POST['page']) ? $_POST['page'] : 0; // 切換頁數
 	$onlyimgdel = isset($_POST['onlyimgdel']) ? $_POST['onlyimgdel'] : ''; // 只刪圖
 	$mod_archiver = file_exists('./mod_archiver.php'); // 與mod_archiver連動
-	$make_archive = $mod_archiver ? '<th>庫存</th>' : ''; // 生成庫存功能
+	$make_archive = $mod_archiver ? _T('admin_archive') : ''; // 生成庫存功能
 	$delno = $thsno = array();
 	$delflag = isset($_POST['delete']); // 是否有「刪除」勾選
 	$thsflag = isset($_POST['stop']); // 是否有「停止」勾選
@@ -768,8 +766,7 @@ function admindel(){
 	$posts = $PIO->fetchPosts($line); // 文章內容陣列
 
 	// 印出刪除表格
-	echo <<< _N_EOT_
-<script type="text/javascript">
+	echo '<script type="text/javascript">
 // <![CDATA[
 function ChangePage(page){
 	document.forms[0].page.value = page;
@@ -779,14 +776,13 @@ function ChangePage(page){
 </script>
 <input type="hidden" name="mode" value="admin" />
 <input type="hidden" name="admin" value="del" />
-<input type="hidden" name="pass" value="$pass" />
-<input type="hidden" name="page" value="$page" />
-<div style="text-align: left;"><ul><li>想刪除文章，請勾選該文章前之「刪除」核取框之後按下執行按鈕</li><li>只想刪除文章的附加圖檔，請先勾選「僅刪除附加圖檔」再按照一般刪文方式</li><li>想停止／繼續討論串，請勾選該文章前之「停止」核取框之後按下執行按鈕</li><li>勾選後換頁亦相當於執行，請慎用此功能</li><li>管理文章完畢，記得順手按下「更新文章」以更新靜態快取</li></ul></div>
-<p><input type="submit" value=" 執行 " /> <input type="reset" value=" 重置 " /> [<input type="checkbox" name="onlyimgdel" id="onlyimgdel" value="on" /><label for="onlyimgdel">僅刪除附加圖檔</label>]</p>
+<input type="hidden" name="pass" value="'.$pass.'" />
+<input type="hidden" name="page" value="'.$page.'" />
+<div style="text-align: left;">'._T('admin_notices').'</div>
+<p><input type="submit" value="'._T('admin_submit_btn').'" /> <input type="reset" value="'._T('admin_reset_btn').'" /> [<input type="checkbox" name="onlyimgdel" id="onlyimgdel" value="on" /><label for="onlyimgdel">'._T('del_img_only').'</label>]</p>
 <table border="1" cellspacing="0" style="margin: 0px auto;">
-<tr style="background-color: #6080f6;"> $make_archive <th>停止</th><th>刪除</th><th>投稿日</th><th>標題</th><th>名稱</th><th>內文</th><th>主機位置名稱</th><th>附加圖檔 (Bytes)<br />MD5 檢查碼</th></tr>
-
-_N_EOT_;
+<tr style="background-color: #6080f6;">'._T('admin_list_header',$make_archive).'</tr>
+';
 
 	for($j = 0; $j < $posts_count; $j++){
 		$bg = ($j % 2) ? 'ListRow1_bg' : 'ListRow2_bg'; // 背景顏色
@@ -803,8 +799,8 @@ _N_EOT_;
 		// 討論串首篇停止勾選框 及 庫存功能
 		$make_archive_link = '';
 		if($resto==0){ // $resto = 0 (即討論串首篇)
-			if($mod_archiver) $make_archive_link = '<th align="center"><a href="mod_archiver.php?res='.$no.'" rel="_blank">存</a></th>';
-			$THstop = '<input type="checkbox" name="stop[]" value="'.$no.'" />'.(($PIO->getPostStatus($status, 'TS')==1)?'停':'');
+			if($mod_archiver) $make_archive_link = '<th align="center"><a href="mod_archiver.php?res='.$no.'" rel="_blank">'._T('admin_archive_btn').'</a></th>';
+			$THstop = '<input type="checkbox" name="stop[]" value="'.$no.'" />'.(($PIO->getPostStatus($status, 'TS')==1)?_T('admin_stop_btn'):'');
 		}else{
 			if($mod_archiver) $make_archive_link = '<th align="center">--</th>';
 			$THstop = '--';
@@ -829,24 +825,24 @@ $make_archive_link<th align="center">$THstop</th><th><input type="checkbox" name
 _ADMINEOF_;
 	}
 	echo '</table>
-<p><input type="submit" value=" 執行 " /> <input type="reset" value=" 重置 " /></p>
-<p>【 附加圖檔使用容量總計 : <b>'.total_size().'</b> KB 】</p>
+<p><input type="submit" value="'._T('admin_submit_btn').'" /> <input type="reset" value="'._T('admin_reset_btn').'" /></p>
+<p>'._T('admin_totalsize',total_size()).'</p>
 <hr />
 ';
 
 	$countline = $PIO->postCount(); // 總文章數
 	$page_max = ceil($countline / ADMIN_PAGE_DEF) - 1; // 總頁數
 	echo '<table border="1" style="float: left;"><tr>';
-	if($page) echo '<td><input type="button" value="上一頁" onclick="ChangePage('.($page - 1).');" /></td>';
-	else echo '<td style="white-space: nowrap;">第一頁</td>';
+	if($page) echo '<td><input type="button" value="'._T('prev_page').'" onclick="ChangePage('.($page - 1).');" /></td>';
+	else echo '<td style="white-space: nowrap;">'._T('first_page').'</td>';
 	echo '<td>';
 	for($i = 0; $i <= $page_max; $i++){
 		if($i==$page) echo '[<b>'.$i.'</b>] ';
 		else echo '[<a href="javascript:ChangePage('.$i.');">'.$i.'</a>] ';
 	}
 	echo '</td>';
-	if($page < $page_max) echo '<td><input type="button" value="下一頁" onclick="ChangePage('.($page + 1).');" /></td>';
-	else echo '<td style="white-space: nowrap;">最後一頁</td>';
+	if($page < $page_max) echo '<td><input type="button" value="'._T('next_page').'" onclick="ChangePage('.($page + 1).');" /></td>';
+	else echo '<td style="white-space: nowrap;">'._T('last_page').'</td>';
 	die('</tr></table>
 </div>
 </form>
@@ -890,15 +886,15 @@ function total_size($isupdate=false){
 
 /* 搜尋(全文檢索)功能 */
 function search(){
-	global $PIO, $FileIO;
+	global $PIO, $FileIO, $language;
 
-	if(!USE_SEARCH) error('管理員選擇不開放搜尋功能！');
+	if(!USE_SEARCH) error(_T('search_disabled'));
 	$searchKeyword = isset($_POST['keyword']) ? trim($_POST['keyword']) : ''; // 欲搜尋的文字
 	$dat = '';
 	head($dat);
 	$dat .= '<div id="banner">
-[<a href="'.PHP_SELF2.'?'.time().'">回到版面</a>]
-<div class="bar_admin">搜尋</div>
+[<a href="'.PHP_SELF2.'?'.time().'">'._T('return').'</a>]
+<div class="bar_admin">'._T('search_top').'</div>
 </div>
 ';
 	echo $dat;
@@ -907,21 +903,14 @@ function search(){
 <div id="search">
 <input type="hidden" name="mode" value="search" />
 ';
-		echo <<< END_OF_HTML
-<ul>
-<li>請輸入要搜尋的關鍵字，設定好搜尋目標之後，按下「搜尋」按鈕。</li>
-<li>關鍵字使用半形空白可以區隔多個搜尋關鍵字作搜尋。</li>
-<li>如果有多個關鍵字，可以選擇搜尋方法，系統提供 AND(交集) 和 OR(聯集) 方式搜尋。<p />
-關鍵字：<input type="text" name="keyword" size="30" />
-搜尋目標：<select name="field"><option value="com" selected="selected">內文</option><option value="name">名稱</option><option value="sub">標題</option><option value="no">編號</option></select>
-搜尋方法：<select name="method"><option value="AND" selected="selected">AND</option><option value="OR">OR</option></select>
-<input type="submit" value=" 搜尋 " />
+		echo '<ul>'._T('search_notice').'<input type="text" name="keyword" size="30" />
+'._T('search_target').'<select name="field"><option value="com" selected="selected">'._T('search_target_comment').'</option><option value="name">'._T('search_target_name').'</option><option value="sub">'._T('search_target_topic').'</option><option value="no">'._T('search_target_number').'</option></select>
+'._T('search_method').'<select name="method"><option value="AND" selected="selected">'._T('search_method_and').'</option><option value="OR">'._T('search_method_or').'</option></select>
+<input type="submit" value="'._T('search_submit_btn').'" />
 </li>
 </ul>
 </div>
-</form>
-
-END_OF_HTML;
+</form>';
 	}else{
 		$searchField = $_POST['field']; // 搜尋目標 (no:編號, name:名稱, sub:標題, com:內文)
 		$searchMethod = $_POST['method']; // 搜尋方法
@@ -934,15 +923,12 @@ END_OF_HTML;
 		$resultlist = '';
 		foreach($hitPosts as $post){
 			extract($post);
-			$resultlist .= <<< END_OF_TR
-<tr><td>
-<span class="title">$sub</span> 名稱: <span class="name">$name</span> [$now] No.{$no} <br />
+			$resultlist .= '<tr><td>
+<span class="title">$sub</span> '._T('post_name').'<span class="name">$name</span> [$now] No.{$no} <br />
 <div class="quote">$com</div><hr />
-</td></tr>
-
-END_OF_TR;
+</td></tr>';
 		}
-		echo $resultlist ? $resultlist : '<tr align="center"><td>找不到符合的關鍵字。</td></tr><tr align="center"><td><a href="?mode=search">[回上一頁]</a></td></tr>';
+		echo $resultlist ? $resultlist : '<tr align="center"><td>'._T('search_notfound').'</td></tr><tr align="center"><td><a href="?mode=search">'._T('search_back').'</a></td></tr>';
 		echo "\n</table>\n</div>\n";
 	}
 	echo "</body>\n</html>";
@@ -950,13 +936,13 @@ END_OF_TR;
 
 /* 利用類別標籤搜尋符合的文章 */
 function searchCategory(){
-	global $PIO, $FileIO;
+	global $PIO, $FileIO, $language;
 	$category = isset($_GET['c']) ? strtolower(strip_tags(trim($_GET['c']))) : ''; // 搜尋之類別標籤
 	$category_enc = urlencode($category); // URL 編碼後字串
 	$page = isset($_GET['p']) ? @intval($_GET['p']) : 1; // 目前瀏覽頁數
 	$isrecache = isset($_GET['recache']) ? true : false; // 是否強制重新生成快取
 	if($page < 1) $page = 1;
-	if(!$category) error('請輸入類別標籤以搜尋類似文章。');
+	if(!$category) error(_T('category_nokeyword'));
 
 	// 利用Session快取類別標籤出現篇別以減少負擔
 	session_start(); // 啟動Session
@@ -965,7 +951,7 @@ function searchCategory(){
 		$_SESSION['loglist_'.$category] = serialize($loglist);
 	}else $loglist = unserialize($_SESSION['loglist_'.$category]);
 	$loglist_count = count($loglist);
-	if(!$loglist_count) error('沒有符合此類別標籤的文章');
+	if(!$loglist_count) error(_T('category_notfound'));
 	$page_max = ceil($loglist_count / PAGE_DEF); if($page > $page_max) $page = $page_max; // 總頁數
 
 	// 分割陣列取出適當範圍作分頁之用
@@ -975,23 +961,23 @@ function searchCategory(){
 
 	$dat = '';
 	head($dat);
-	$dat .= '<div>[<a href="'.PHP_SELF2.'?'.time().'">回到版面</a>][<a href="'.PHP_SELF.'?mode=category&amp;c='.$category_enc.'&amp;recache=1">重新快取</a>]</div>'."\n";
+	$dat .= '<div>[<a href="'.PHP_SELF2.'?'.time().'">'._T('return').'</a>][<a href="'.PHP_SELF.'?mode=category&amp;c='.$category_enc.'&amp;recache=1">'._T('category_recache').'</a>]</div>'."\n";
 	for($i = 0; $i < $loglist_cut_count; $i++){
 		$posts = $PIO->fetchPosts($loglist_cut[$i]); // 取得文章內容
 		$dat .= arrangeThread($PTE, 0, 0, $posts, 0, $loglist_cut[$i], 0, 0, 0, 0, false); // 逐個輸出 (引用連結不顯示)
 	}
 
 	$dat .= '<table border="1"><tr>';
-	if($page > 1) $dat .= '<td><form action="'.PHP_SELF.'?mode=category&amp;c='.$category_enc.'&amp;p='.($page - 1).'" method="post"><div><input type="submit" value="上一頁" /></div></form></td>';
-	else $dat .= '<td style="white-space: nowrap;">第一頁</td>';
+	if($page > 1) $dat .= '<td><form action="'.PHP_SELF.'?mode=category&amp;c='.$category_enc.'&amp;p='.($page - 1).'" method="post"><div><input type="submit" value="'._T('prev_page').'" /></div></form></td>';
+	else $dat .= '<td style="white-space: nowrap;">'._T('first_page').'</td>';
 	$dat .= '<td>';
 	for($i = 1; $i <= $page_max ; $i++){
 		if($i==$page) $dat .= "[<b>".$i."</b>] ";
 		else $dat .= '[<a href="'.PHP_SELF.'?mode=category&amp;c='.$category_enc.'&amp;p='.$i.'">'.$i.'</a>] ';
 	}
 	$dat .= '</td>';
-	if($page < $page_max) $dat .= '<td><form action="'.PHP_SELF.'?mode=category&amp;c='.$category_enc.'&amp;p='.($page + 1).'" method="post"><div><input type="submit" value="下一頁" /></div></form></td>';
-	else $dat .= '<td style="white-space: nowrap;">最後一頁</td>';
+	if($page < $page_max) $dat .= '<td><form action="'.PHP_SELF.'?mode=category&amp;c='.$category_enc.'&amp;p='.($page + 1).'" method="post"><div><input type="submit" value="'._T('next_page').'" /></div></form></td>';
+	else $dat .= '<td style="white-space: nowrap;">'._T('last_page').'</td>';
 	$dat .= '</tr></table>'."\n";
 
 	foot($dat);
@@ -1000,25 +986,25 @@ function searchCategory(){
 
 /* 顯示已載入模組資訊 */
 function listModules(){
-	global $PMS;
+	global $PMS, $language;
 	$dat = '';
 	head($dat);
 	$dat .= '<div id="banner">
-[<a href="'.PHP_SELF2.'?'.time().'">回到版面</a>]
-<div class="bar_admin">模組資訊</div>
+[<a href="'.PHP_SELF2.'?'.time().'">'._T('return').'</a>]
+<div class="bar_admin">'._T('module_info_top').'</div>
 </div>
 
 <div id="modules">
 ';
 	/* Module Loaded */
-	$dat .= 'Module Loaded:<ul>'."\n";
+	$dat .= _T('module_loaded').'<ul>'."\n";
 	foreach($PMS->getLoadedModules() as $m){
 		$dat .= '<li>'.$m."</li>\n";
 	}
 	$dat .= "</ul><hr />\n";
 
 	/* Module Infomation */
-	$dat .= 'Module Infomation:<ul>'."\n";
+	$dat .= _T('module_info').'<ul>'."\n";
 	foreach($PMS->moduleInstance as $m){
 		$dat .= '<li>'.$m->getModuleVersionInfo()."</li>\n";
 	}
@@ -1032,7 +1018,7 @@ function listModules(){
 
 /* 顯示系統各項資訊 */
 function showstatus(){
-	global $PIO, $FileIO;
+	global $PIO, $FileIO, $language;
 	$countline = $PIO->postCount(); // 計算投稿文字記錄檔目前資料筆數
 	$counttree = $PIO->threadCount(); // 計算樹狀結構記錄檔目前資料筆數
 	$tmp_total_size = total_size(); // 附加圖檔使用量總大小
@@ -1054,61 +1040,61 @@ function showstatus(){
 	else $clrflag_sl = 'F2004A';
 
 	// 判斷是否開啟GD模組、取出GD版本號及功能是否正常
-	$func_gd = '<span style="color: red;">未開啟</span>';
+	$func_gd = '<span style="color: red;">'._T('info_disabled').'</span>';
 	$func_gdver = '(No info)';
 	if(extension_loaded('gd')){
-		$func_gd = '<span style="color: blue;">已開啟</span>';
+		$func_gd = '<span style="color: blue;">'._T('info_enabled').'</span>';
 		if($func_gdver = @gd_info()) $func_gdver = $func_gdver['GD Version'];
 	}
-	$thumb_IsAvailable = function_exists('ImageCreateTrueColor') ? '<span style="color: blue;">功能正常</span>' : '<span style="color: red">功能失常</span>';
+	$thumb_IsAvailable = function_exists('ImageCreateTrueColor') ? '<span style="color: blue;">'._T('info_functional').'</span>' : '<span style="color: red">'._T('info_nonfunctional').'</span>';
 
 	$dat = '';
 	head($dat);
 	$dat .= '<div id="banner">
-[<a href="'.PHP_SELF2.'?'.time().'">回到版面</a>]
-<div class="bar_admin">系統資訊</div>
+[<a href="'.PHP_SELF2.'?'.time().'">'._T('return').'</a>]
+<div class="bar_admin">'._T('info_top').'</div>
 </div>
 ';
 
 	$dat .= '
 <div id="status-table" style="text-align: center;">
 <table border="1" style="margin: 0px auto; text-align: left;">
-<tr><td align="center" colspan="3">基本設定</td></tr>
-<tr><td style="width: 240px;">程式版本</td><td colspan="2"> '.PIXMICAT_VER.' </td></tr>
-<tr><td>PIO 函式庫後端及版本</td><td colspan="2"> '.PIXMICAT_BACKEND.' : '.$PIO->pioVersion().'</td></tr>
-<tr><td>一頁顯示幾篇討論串</td><td colspan="2"> '.PAGE_DEF.' 篇</td></tr>
-<tr><td>一篇討論串最多顯示之回應筆數</td><td colspan="2"> '.RE_DEF.' 筆</td></tr>
-<tr><td>回應模式一頁顯示幾筆回應內容</td><td colspan="2"> '.RE_PAGE_DEF.' 筆 (全部顯示：0)</td></tr>
-<tr><td>回應筆數超過多少則不自動推文</td><td colspan="2"> '.MAX_RES.' 筆 (關閉：0)</td></tr>
-<tr><td>討論串可接受推文的時間範圍</td><td colspan="2"> '.MAX_AGE_TIME.' 小時 (關閉：0)</td></tr>
-<tr><td>URL文字自動作成超連結</td><td colspan="2"> '.AUTO_LINK.' (是：1 否：0)</td></tr>
-<tr><td>內文接受Bytes數</td><td colspan="2"> '.COMM_MAX.' Bytes (中文字為2Bytes)</td></tr>
-<tr><td>接受匿名發送</td><td colspan="2"> '.ALLOW_NONAME.' (強制砍名：2 是：1 否：0)</td></tr>
-<tr><td>自動刪除上傳不完整附加圖檔</td><td colspan="2"> '.KILL_INCOMPLETE_UPLOAD.' (是：1 否：0)</td></tr>
-<tr><td>使用預覽圖機能 (品質：'.THUMB_Q.')</td><td colspan="2"> '.USE_THUMB.' (使用：1 不使用：0)</td></tr>';
-	if(USE_THUMB) $dat .= '<tr><td>└ 預覽圖生成功能</td><td colspan="2"> '.$thumb_IsAvailable.' </td></tr>'."\n";
-	$dat .= '<tr><td>封鎖檢查功能</td><td colspan="2"> '.BAN_CHECK.' (啟動：1 關閉：0)</td></tr>
-<tr><td>顯示ID</td><td colspan="2"> '.DISP_ID.' (強制顯示：2 選擇性顯示：1 永遠不顯示：0)</td></tr>
-<tr><td>文字換行行數上限</td><td colspan="2"> '.BR_CHECK.' 行 (不限：0)</td></tr>
-<tr><td>時區設定</td><td colspan="2"> GMT '.TIME_ZONE.'</td></tr>
-<tr><td>目前總討論串篇數</td><td colspan="2"> '.$counttree.' 篇</td></tr>
-<tr><td align="center" colspan="3">記錄檔使用量</td></tr>
-<tr align="center"><td>最大筆數</td><td>'.LOG_MAX.'</td><td rowspan="2">使用率<br /><span style="color: #'.$clrflag_log.';">'.substr(($tmp_log_ratio * 100), 0, 6).'</span> ％</td></tr>
-<tr align="center"><td>目前筆數</td><td><span style="color: #'.$clrflag_log.';">'.$countline.'</span></td></tr>
-<tr><td align="center" colspan="3">附加圖檔總容量限制功能：'.STORAGE_LIMIT.' (啟動：1 關閉：0)</td></tr>';
+<tr><td align="center" colspan="3">'._T('info_basic').'</td></tr>
+<tr><td style="width: 240px;">'._T('info_basic_ver').'</td><td colspan="2"> '.PIXMICAT_VER.' </td></tr>
+<tr><td>'._T('info_basic_pio').'</td><td colspan="2"> '.PIXMICAT_BACKEND.' : '.$PIO->pioVersion().'</td></tr>
+<tr><td>'._T('info_basic_threadsperpage').'</td><td colspan="2"> '.PAGE_DEF.' '._T('info_basic_threads').'</td></tr>
+<tr><td>'._T('info_basic_postsperpage').'</td><td colspan="2"> '.RE_DEF.' '._T('info_basic_posts').'</td></tr>
+<tr><td>'._T('info_basic_postsinthread').'</td><td colspan="2"> '.RE_PAGE_DEF.' '._T('info_basic_posts').' '._T('info_basic_posts_showall').'</td></tr>
+<tr><td>'._T('info_basic_bumpposts').'</td><td colspan="2"> '.MAX_RES.' '._T('info_basic_posts').' '._T('info_basic_0disable').'</td></tr>
+<tr><td>'._T('info_basic_bumphours').'</td><td colspan="2"> '.MAX_AGE_TIME.' '._T('info_basic_hours').' '._T('info_basic_0disable').'</td></tr>
+<tr><td>'._T('info_basic_urllinking').'</td><td colspan="2"> '.AUTO_LINK.' '._T('info_0no1yes').'</td></tr>
+<tr><td>'._T('info_basic_com_limit').'</td><td colspan="2"> '.COMM_MAX._T('info_basic_com_after').'</td></tr>
+<tr><td>'._T('info_basic_anonpost').'</td><td colspan="2"> '.ALLOW_NONAME.' '._T('info_basic_anonpost_opt').'</td></tr>
+<tr><td>'._T('info_basic_del_incomplete').'</td><td colspan="2"> '.KILL_INCOMPLETE_UPLOAD.' '._T('info_0no1yes').'</td></tr>
+<tr><td>'._T('info_basic_use_sample',THUMB_Q).'</td><td colspan="2"> '.USE_THUMB.' '._T('info_0notuse1use').'</td></tr>';
+	if(USE_THUMB) $dat .= '<tr><td>'._T('info_basic_use_sample_func').'</td><td colspan="2"> '.$thumb_IsAvailable.' </td></tr>'."\n";
+	$dat .= '<tr><td>'._T('info_basic_useblock').'</td><td colspan="2"> '.BAN_CHECK.' '._T('info_0disable1enable').'</td></tr>
+<tr><td>'._T('info_basic_showid').'</td><td colspan="2"> '.DISP_ID.' '._T('info_basic_showid_after').'</td></tr>
+<tr><td>'._T('info_basic_cr_limit').'</td><td colspan="2"> '.BR_CHECK._T('info_basic_cr_after').'</td></tr>
+<tr><td>'._T('info_basic_timezone').'</td><td colspan="2"> GMT '.TIME_ZONE.'</td></tr>
+<tr><td>'._T('info_basic_threadcount').'</td><td colspan="2"> '.$counttree.' '._T('info_basic_threads').'</td></tr>
+<tr><td align="center" colspan="3">'._T('info_dsuseage_top').'</td></tr>
+<tr align="center"><td>'._T('info_dsuseage_max').'</td><td>'.LOG_MAX.'</td><td rowspan="2">'._T('info_dsuseage_usage').'<br /><span style="color: #'.$clrflag_log.';">'.substr(($tmp_log_ratio * 100), 0, 6).'</span> %</td></tr>
+<tr align="center"><td>'._T('info_dsuseage_count').'</td><td><span style="color: #'.$clrflag_log.';">'.$countline.'</span></td></tr>
+<tr><td align="center" colspan="3">'._T('info_fileuseage_top').STORAGE_LIMIT.' '._T('info_0disable1enable').'</td></tr>';
 
 	if(STORAGE_LIMIT){
 		$dat .= '
-<tr align="center"><td>上限大小</td><td>'.STORAGE_MAX.' KB</td><td rowspan="2">使用率<br /><span style="color: #'.$clrflag_sl.'">'.substr(($tmp_ts_ratio * 100), 0, 6).'</span> ％</td></tr>
-<tr align="center"><td>目前容量</td><td><span style="color: #'.$clrflag_sl.'">'.$tmp_total_size.' KB</span></td></tr>';
+<tr align="center"><td>'._T('info_fileuseage_limit').'</td><td>'.STORAGE_MAX.' KB</td><td rowspan="2">'._T('info_dsuseage_usage').'<br /><span style="color: #'.$clrflag_sl.'">'.substr(($tmp_ts_ratio * 100), 0, 6).'</span> %</td></tr>
+<tr align="center"><td>'._T('info_fileuseage_count').'</td><td><span style="color: #'.$clrflag_sl.'">'.$tmp_total_size.' KB</span></td></tr>';
 	}else{
 		$dat .= '
-<tr align="center"><td>目前容量</td><td>'.$tmp_total_size.' KB</td><td>使用率<br /><span style="color: green;">無上限</span></td></tr>';
+<tr align="center"><td>'._T('info_fileuseage_count').'</td><td>'.$tmp_total_size.' KB</td><td>'._T('info_dsuseage_usage').'<br /><span style="color: green;">'._T('info_fileuseage_unlimited').'</span></td></tr>';
 	}
 
 	$dat .= '
-<tr><td align="center" colspan="3">伺服器支援情報</td></tr>
-<tr align="center"><td colspan="2">GD函式庫 '.$func_gdver.'</td><td>'.$func_gd.'</td></tr>
+<tr><td align="center" colspan="3">'._T('info_server_top').'</td></tr>
+<tr align="center"><td colspan="2">'._T('info_server_gd').$func_gdver.'</td><td>'.$func_gd.'</td></tr>
 </table>
 <hr />
 </div>'."\n";
@@ -1119,8 +1105,8 @@ function showstatus(){
 
 /* 程式首次執行之初始化 */
 function init(){
-	global $PIO, $FileIO;
-	if(!is_writable(realpath('./'))) error('根目錄沒有寫入權限，請修改權限<br />');
+	global $PIO, $FileIO, $language;
+	if(!is_writable(realpath('./'))) error(_T('init_permerror'));
 
 	$chkfolder = array(IMG_DIR, THUMB_DIR);
 	// 逐一自動建置IMG_DIR和THUMB_DIR
@@ -1129,7 +1115,7 @@ function init(){
 	$PIO->dbInit(); // PIO Init
 	$FileIO->init(); // FileIO Init
 
-	error('環境初始化成功！<br />請現在打開此程式刪除init()程式環境初始化區段<br />');
+	error(_T('init_inited'));
 }
 
 /*-----------程式各項功能主要判斷-------------*/
@@ -1148,8 +1134,8 @@ switch($mode){
 		valid();
 		if($admin=='del') admindel();
 		if($admin=='opt'){
-			if(!$PIO->dbOptimize()) echo '後端並不支援此動作';
-			else echo '資料表最佳化'.($PIO->dbOptimize(true)?'成功':'失敗').'！';
+			if(!$PIO->dbOptimize()) echo _T('action_opt_notsupport');
+			else echo _T('action_opt_optimize').($PIO->dbOptimize(true)?_T('action_opt_success'):_T('action_opt_failed'));
 			die("</div></form></body>\n</html>");
 		}
 		break;

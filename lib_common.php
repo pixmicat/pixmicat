@@ -3,7 +3,7 @@
 
 /* 輸出表頭 */
 function head(&$dat){
-	global $PMS;
+	global $PMS, $language;
 	header('Content-Type: '.((strpos($_SERVER['HTTP_ACCEPT'],'application/xhtml+xml')!==FALSE) ? 'application/xhtml+xml' : 'text/html').'; charset=utf-8'); // 如果瀏覽器支援XHTML標準MIME就輸出
 	$dat .= '<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
@@ -18,6 +18,7 @@ function head(&$dat){
 ';
 	$PMS->useModuleMethods('Head', array(&$dat)); // "Head" Hook Point
 $dat .= '<!--[if IE]><script type="text/javascript" src="iedivfix.js"></script><![endif]-->
+<script type="text/javascript" src="mainscript.lang.php"></script>
 <script type="text/javascript" src="mainscript.js"></script>
 <script type="text/javascript">
 // <![CDATA[
@@ -29,14 +30,14 @@ var ext="'.ALLOW_UPLOAD_EXT.'".toUpperCase().split("|");
 
 <div id="header">
 <div id="toplink">
-[<a href="'.HOME.'" rel="_top">回首頁</a>]
+[<a href="'.HOME.'" rel="_top">'._T('head_home').'</a>]
 ';
-	if(USE_SEARCH) $dat .= '[<a href="'.PHP_SELF.'?mode=search">搜尋</a>]'."\n";
+	if(USE_SEARCH) $dat .= '[<a href="'.PHP_SELF.'?mode=search">'._T('head_search').'</a>]'."\n";
 	$PMS->useModuleMethods('Toplink', array(&$dat)); // "Toplink" Hook Point
 	$dat .= TOP_LINKS.'
-[<a href="'.PHP_SELF.'?mode=status">系統資訊</a>]
-[<a href="'.PHP_SELF.'?mode=admin">管理區</a>]
-[<a href="'.PHP_SELF2.'?">重新整理</a>]
+[<a href="'.PHP_SELF.'?mode=status">'._T('head_info').'</a>]
+[<a href="'.PHP_SELF.'?mode=admin">'._T('head_admin').'</a>]
+[<a href="'.PHP_SELF2.'?">'._T('head_refresh').'</a>]
 </div>
 <br />
 <h1>'.TITLE.'</h1>
@@ -48,14 +49,14 @@ var ext="'.ALLOW_UPLOAD_EXT.'".toUpperCase().split("|");
 
 /* 發表用表單輸出 */
 function form(&$dat, $resno){
-	global $PMS, $ADDITION_INFO;
+	global $PMS, $ADDITION_INFO, $language;
 	$msg = '';
 	if($resno){
 		$msg .= '
-[<a href="'.PHP_SELF2.'?'.time().'">回到版面</a>]
-<div class="bar_reply">回應模式</div>';
+[<a href="'.PHP_SELF2.'?'.time().'">'._T('return').'</a>]
+<div class="bar_reply">'._T('form_top').'</div>';
 	}
-	if(USE_FLOATFORM && !$resno) $msg .= "\n".'[<span id="show" class="hide" onmouseover="showform();" onclick="showform();">投稿</span><span id="hide" class="show" onmouseover="hideform();" onclick="hideform();">隱藏表單</span>]';
+	if(USE_FLOATFORM && !$resno) $msg .= "\n".'[<span id="show" class="hide" onmouseover="showform();" onclick="showform();">'._T('form_showpostform').'</span><span id="hide" class="show" onmouseover="hideform();" onclick="hideform();">'._T('form_hidepostform').'</span>]';
 	$dat .= '<form action="'.PHP_SELF.'" method="post" enctype="multipart/form-data" onsubmit="return c();" id="postform_main">
 <div id="postform">'.$msg.'
 <input type="hidden" name="mode" value="regist" />
@@ -65,29 +66,26 @@ function form(&$dat, $resno){
 	if($resno) $dat .= '<input type="hidden" name="resto" value="'.$resno.'" />'."\n";
 	$dat .= '<div style="text-align: center;">
 <table cellpadding="1" cellspacing="1" id="postform_tbl" style="margin: 0px auto; text-align: left;">
-<tr><td class="Form_bg"><b>名 稱</b></td><td><input class="hide" type="text" name="name" value="spammer" /><input type="text" name="'.FT_NAME.'" id="fname" size="28" /></td></tr>
-<tr><td class="Form_bg"><b>E-mail</b></td><td><input type="text" name="'.FT_EMAIL.'" id="femail" size="28" /><input type="text" class="hide" name="email" value="foo@foo.bar" /></td></tr>
-<tr><td class="Form_bg"><b>標 題</b></td><td><input class="hide" value="DO NOT FIX THIS" type="text" name="sub" /><input type="text" name="'.FT_SUBJECT.'" id="fsub" size="28" /><input type="submit" name="sendbtn" value="送 出" /></td></tr>
-<tr><td class="Form_bg"><b>內 文</b></td><td><textarea name="'.FT_COMMENT.'" id="fcom" cols="48" rows="4" style="width: 400px; height: 80px;"></textarea><textarea name="com" class="hide" cols="48" rows="4">EID OG SMAPS</textarea></td></tr>
+<tr><td class="Form_bg"><b>'._T('form_name').'</b></td><td><input class="hide" type="text" name="name" value="spammer" /><input type="text" name="'.FT_NAME.'" id="fname" size="28" /></td></tr>
+<tr><td class="Form_bg"><b>'._T('form_email').'</b></td><td><input type="text" name="'.FT_EMAIL.'" id="femail" size="28" /><input type="text" class="hide" name="email" value="foo@foo.bar" /></td></tr>
+<tr><td class="Form_bg"><b>'._T('form_topic').'</b></td><td><input class="hide" value="DO NOT FIX THIS" type="text" name="sub" /><input type="text" name="'.FT_SUBJECT.'" id="fsub" size="28" /><input type="submit" name="sendbtn" value="'._T('form_submit_btn').'" /></td></tr>
+<tr><td class="Form_bg"><b>'._T('form_comment').'</b></td><td><textarea name="'.FT_COMMENT.'" id="fcom" cols="48" rows="4" style="width: 400px; height: 80px;"></textarea><textarea name="com" class="hide" cols="48" rows="4">EID OG SMAPS</textarea></td></tr>
 ';
 	if(RESIMG || !$resno){
-		$dat .= '<tr><td class="Form_bg"><b>附加圖檔</b></td><td><input type="file" name="upfile" id="fupfile" size="25" /> <input class="hide" type="checkbox" name="reply" value="yes" />[<input type="checkbox" name="noimg" id="noimg" value="on" /><label for="noimg">無貼圖</label>]';
-		if(USE_UPSERIES) $dat .= ' [<input type="checkbox" name="up_series" id="up_series" value="on"'.((isset($_GET["upseries"]) && $resno)?' checked="checked"':'').' /><label for="up_series">連貼機能</label>]'; // 啟動連貼機能
+		$dat .= '<tr><td class="Form_bg"><b>'._T('form_attechment').'</b></td><td><input type="file" name="upfile" id="fupfile" size="25" /> <input class="hide" type="checkbox" name="reply" value="yes" />[<input type="checkbox" name="noimg" id="noimg" value="on" /><label for="noimg">'._T('form_noattechment').'</label>]';
+		if(USE_UPSERIES) $dat .= ' [<input type="checkbox" name="up_series" id="up_series" value="on"'.((isset($_GET["upseries"]) && $resno)?' checked="checked"':'').' /><label for="up_series">'._T('form_contpost').'</label>]'; // 啟動連貼機能
 		$dat .= '</td></tr>'."\n";
 	}
-	if(USE_CATEGORY) $dat .= '<tr><td class="Form_bg"><b>類別標籤</b></td><td><input type="text" name="category" size="28" /><small>(請以 , 逗號分隔多個標籤)</small></td></tr>'."\n";
-	$dat .= '<tr><td class="Form_bg"><b>刪除用密碼</b></td><td><input type="password" name="pwd" size="8" maxlength="8" value="" /><small>(刪除文章用。英數字8字元以內)</small></td></tr>
+	if(USE_CATEGORY) $dat .= '<tr><td class="Form_bg"><b>'._T('form_category').'</b></td><td><input type="text" name="category" size="28" /><small>'._T('form_category_notice').'</small></td></tr>'."\n";
+	$dat .= '<tr><td class="Form_bg"><b>'._T('form_delete_password').'</b></td><td><input type="password" name="pwd" size="8" maxlength="8" value="" /><small>'._T('form_delete_password_notice').'</small></td></tr>
 <tr><td colspan="2">
 <div id="postinfo">
-<ul>
-<li>可附加圖檔類型：GIF, JPG, PNG，瀏覽器才能正常附加圖檔</li>
-<li>附加圖檔最大上傳資料量為 '.MAX_KB.' KB。當回文時E-mail填入sage為不推文功能</li>
-<li>當檔案超過寬 '.MAX_W.' 像素、高 '.MAX_H.' 像素時會自動縮小尺寸顯示</li>'."\n";
-	if(STORAGE_LIMIT) $dat .= "<li>目前附加圖檔使用量大小： ".total_size()." KB / ".STORAGE_MAX." KB</li>\n";
+<ul>'._T('form_notice',MAX_KB,MAX_W,MAX_H);
+	if(STORAGE_LIMIT) $dat .= _T('form_notice_storage_limit',total_size(),STORAGE_MAX);
 	$PMS->useModuleMethods('PostInfo', array(&$dat)); // "PostInfo" Hook Point
 	$dat .= $ADDITION_INFO.'
 </ul>
-<noscript><div>＊您選擇關閉了JavaScript，但這對您的瀏覽及發文應無巨大影響</div></noscript>
+<noscript><div>'._T('form_notice_noscript').'</div></noscript>
 </div>
 </td></tr>
 </table>
@@ -102,7 +100,7 @@ function form(&$dat, $resno){
 
 /* 輸出頁尾文字 */
 function foot(&$dat){
-	global $PMS;
+	global $PMS, $language;
 	$dat .= '<div id="footer">
 <!-- GazouBBS v3.0 --><!-- ふたば改0.8 --><!-- Pixmicat! -->
 ';
@@ -144,7 +142,7 @@ function error($mes, $dest=''){
 	echo '<div id="error">
 <div style="text-align: center; font-size: 1.5em; font-weight: bold;">
 <span style="color: red;">'.$mes.'</span><p />
-<a href="'.PHP_SELF2.'?'.time().'">回到版面</a>　<a href="javascript:history.back();">回上頁</a>
+<a href="'.PHP_SELF2.'?'.time().'">'._T('return').'</a>　<a href="javascript:history.back();">'._T('error_back').'</a>
 </div>
 <hr />
 </div>
@@ -335,7 +333,7 @@ function BanIPHostDNSBLCheck($IP, $HOST, &$baninfo){
 		}
 		if(preg_match($pattern, $HOST) || ($checkTwice && preg_match($pattern, $IP))){ $IsBanned = true; break; }
 	}
-	if($IsBanned){ $baninfo = '被列在 IP/Hostname 封鎖名單之內'; return true; }
+	if($IsBanned){ $baninfo = _T('ip_banned'); return true; }
 
 	// DNS-based Blackhole List(DNSBL) 黑名單
 	if(!$DNSBLservers[0]) return false; // Skip check
@@ -348,7 +346,7 @@ function BanIPHostDNSBLCheck($IP, $HOST, &$baninfo){
 		$result = gethostbyname($query);
 		if($result && ($result != $query)){ $isListed = $DNSBLservers[$i]; break; }
 	}
-	if($isListed){ $baninfo = '被列在 DNSBL('.$isListed.') 封鎖名單之內'; return true; }
+	if($isListed){ $baninfo = _T('ip_dnsbl_banned',$isListed); return true; }
 	return false;
 }
 ?>

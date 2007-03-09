@@ -21,6 +21,7 @@ http://pixmicat.openfoundry.org/
 // 伺服器常態設定
 define("PHP_SELF", basename($_SERVER['PHP_SELF'])); // 此程式名 (此欄不需修改)
 define("TIME_ZONE", '+8'); // 時區設定 (GMT時區，參照 http://wwp.greenwichmeantime.com/ )
+define("PIXMICAT_LANGUAGE", 'zh_TW'); // 語系語定
 define("HTTP_UPLOAD_DIFF", 50); // HTTP上傳所有位元組與實際位元組之允許誤差值
 ini_set("memory_limit", '32M'); // PHP運行的最大記憶體使用量 (php內定8M / 建議32M)
 
@@ -116,6 +117,9 @@ define("COMM_MAX", 2000); // 內文接受Bytes數 (注意：中文字為2Bytes)
 define("BR_CHECK", 0); // 文字換行行數上限 (不限：0)
 define("STATIC_HTML_UNTIL", -1); // 更新文章時自動生成的靜態網頁至第幾頁止 (全部生成：-1 僅入口頁：0)
 define("GZIP_COMPRESS_LEVEL", 3); // PHP動態輸出頁面使用Gzip壓縮層級 (關閉：0 啟動：1～9，推薦值：3)
+define("DEFAULT_NOTITLE", '無標題'); // 預設文章標題
+define("DEFAULT_NONAME", '無名氏'); // 預設文章名稱
+define("DEFAULT_NOCOMMENT", '無內文'); // 預設文章內文
 
 /*---- Part 3：Anti-SPAM 防止垃圾訊息機器人發文 ----*/
 /* 欄位陷阱 (Field Trap)
