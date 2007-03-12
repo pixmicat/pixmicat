@@ -1,5 +1,5 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release-dev b070224'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release-dev b070312'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -1078,18 +1078,18 @@ function showstatus(){
 <tr><td>'._T('info_basic_cr_limit').'</td><td colspan="2"> '.BR_CHECK._T('info_basic_cr_after').'</td></tr>
 <tr><td>'._T('info_basic_timezone').'</td><td colspan="2"> GMT '.TIME_ZONE.'</td></tr>
 <tr><td>'._T('info_basic_threadcount').'</td><td colspan="2"> '.$counttree.' '._T('info_basic_threads').'</td></tr>
-<tr><td align="center" colspan="3">'._T('info_dsuseage_top').'</td></tr>
-<tr align="center"><td>'._T('info_dsuseage_max').'</td><td>'.LOG_MAX.'</td><td rowspan="2">'._T('info_dsuseage_usage').'<br /><span style="color: #'.$clrflag_log.';">'.substr(($tmp_log_ratio * 100), 0, 6).'</span> %</td></tr>
-<tr align="center"><td>'._T('info_dsuseage_count').'</td><td><span style="color: #'.$clrflag_log.';">'.$countline.'</span></td></tr>
-<tr><td align="center" colspan="3">'._T('info_fileuseage_top').STORAGE_LIMIT.' '._T('info_0disable1enable').'</td></tr>';
+<tr><td align="center" colspan="3">'._T('info_dsusage_top').'</td></tr>
+<tr align="center"><td>'._T('info_dsusage_max').'</td><td>'.LOG_MAX.'</td><td rowspan="2">'._T('info_dsusage_usage').'<br /><span style="color: #'.$clrflag_log.';">'.substr(($tmp_log_ratio * 100), 0, 6).'</span> %</td></tr>
+<tr align="center"><td>'._T('info_dsusage_count').'</td><td><span style="color: #'.$clrflag_log.';">'.$countline.'</span></td></tr>
+<tr><td align="center" colspan="3">'._T('info_fileusage_top').STORAGE_LIMIT.' '._T('info_0disable1enable').'</td></tr>';
 
 	if(STORAGE_LIMIT){
 		$dat .= '
-<tr align="center"><td>'._T('info_fileuseage_limit').'</td><td>'.STORAGE_MAX.' KB</td><td rowspan="2">'._T('info_dsuseage_usage').'<br /><span style="color: #'.$clrflag_sl.'">'.substr(($tmp_ts_ratio * 100), 0, 6).'</span> %</td></tr>
-<tr align="center"><td>'._T('info_fileuseage_count').'</td><td><span style="color: #'.$clrflag_sl.'">'.$tmp_total_size.' KB</span></td></tr>';
+<tr align="center"><td>'._T('info_fileusage_limit').'</td><td>'.STORAGE_MAX.' KB</td><td rowspan="2">'._T('info_dsusage_usage').'<br /><span style="color: #'.$clrflag_sl.'">'.substr(($tmp_ts_ratio * 100), 0, 6).'</span> %</td></tr>
+<tr align="center"><td>'._T('info_fileusage_count').'</td><td><span style="color: #'.$clrflag_sl.'">'.$tmp_total_size.' KB</span></td></tr>';
 	}else{
 		$dat .= '
-<tr align="center"><td>'._T('info_fileuseage_count').'</td><td>'.$tmp_total_size.' KB</td><td>'._T('info_dsuseage_usage').'<br /><span style="color: green;">'._T('info_fileuseage_unlimited').'</span></td></tr>';
+<tr align="center"><td>'._T('info_fileusage_count').'</td><td>'.$tmp_total_size.' KB</td><td>'._T('info_dsusage_usage').'<br /><span style="color: green;">'._T('info_fileusage_unlimited').'</span></td></tr>';
 	}
 
 	$dat .= '
