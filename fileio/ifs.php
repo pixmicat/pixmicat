@@ -1,8 +1,13 @@
 <?php
-/*
-FileIO Index File System
-@Version : 20061212
-*/
+/**
+ * FileIO Index File System
+ *
+ * 把遠端圖檔的各種屬性作本機快取及記錄，方便程式取用
+ *
+ * @package PMCLibrary
+ * @version $Id: ifs.php 379 2007-03-31 15:51:40Z scribe $
+ * @date $Date: 2007-03-31 23:51:40 +0800 (星期六, 31 三月 2007) $
+ */
 
 class IndexFS{
 	var $logfile, $backend, $index, $modified;
@@ -46,7 +51,7 @@ class IndexFS{
 				if(!($trimline = rtrim($indexlog[$i]))) continue; // 本行無意義
 				$field = explode("\t\t", $trimline);
 				$this->index[$field[0]] = array('imgSize' => $field[1], 'imgURL' => $field[2]);
-				// 索引格式: 檔名	檔案大小		對應路徑
+				// 索引格式: 檔名	檔案大小	對應路徑
 			}
 			unset($indexlog);
 		}

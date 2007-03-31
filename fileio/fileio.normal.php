@@ -1,8 +1,13 @@
 <?php
-/*
-FileIO - Normal
-@Version : 0.2 20061223
-*/
+/**
+ * FileIO Normal 本機儲存 API
+ *
+ * 以本機硬碟空間作為圖檔儲存的方式，並提供一套方法供程式管理圖片
+ *
+ * @package PMCLibrary
+ * @version $Id: fileio.normal.php 379 2007-03-31 15:51:40Z scribe $
+ * @date $Date: 2007-03-31 23:51:40 +0800 (星期六, 31 三月 2007) $
+ */
 
 class FileIO{
 	var $path, $imgPath, $thumbPath;
@@ -12,9 +17,10 @@ class FileIO{
 		return (substr($imgname, -5)=='s.jpg' ? $this->thumbPath : $this->imgPath).$imgname;
 	}
 
-	function FileIO($parameter=''){
-		$this->path = realpath('.').DIRECTORY_SEPARATOR;
-		$this->imgPath = $this->path.IMG_DIR; $this->thumbPath = $this->path.THUMB_DIR;
+	function FileIO($parameter='', $ENV){
+		$this->path = $ENV['PATH'];
+		$this->imgPath = $this->path.$ENV['IMG'];
+		$this->thumbPath = $this->path.$ENV['THUMB'];
 	}
 
 	function init(){

@@ -1,11 +1,17 @@
 <?php
-/*
-FileIO - FTP
-@Version : 0.2 20061212
-*/
+/**
+ * FileIO FTP 遠端儲存 API
+ *
+ * 以遠端硬碟空間作為圖檔儲存的方式 (以 FTP 存取)，並提供一套方法供程式管理圖片
+ *
+ * @package PMCLibrary
+ * @version $Id: fileio.ftp.php 379 2007-03-31 15:51:40Z scribe $
+ * @date $Date: 2007-03-31 23:51:40 +0800 (星期六, 31 三月 2007) $
+ */
 
 class FileIO{
 	var $conn, $parameter;
+	var $IFS;
 
 	/* private 登入 FTP */
 	function _ftp_login(){
@@ -21,17 +27,17 @@ class FileIO{
 
 	/* private 關閉 FTP 及儲存索引檔 */
 	function _ftp_close(){
-		global $IFS;
 		if($this->conn) ftp_close($this->conn); // 有開啟 FTP 連線則關閉
-		$IFS->saveIndex(); // 索引表更新
+		$this->IFS->saveIndex(); // 索引表更新
 	}
 
-	function FileIO($parameter){
-		global $IFS;
-		$IFS->openIndex();
+	function FileIO($parameter, $ENV){
+		require($ENV['IFS.PATH']);
+		$this->IFS = new IndexFS($ENV['IFS.LOG']); // IndexFS 物件
+		$this->IFS->openIndex();
 		register_shutdown_function(array($this, '_ftp_close')); // 設定解構元 (PHP 結束前執行)
 		set_time_limit(120); // 執行時間 120 秒 (FTP 傳輸過程可能很長)
-		$this->parameter = unserialize($parameter); // 將參數重新解析
+		$this->parameter = $parameter; // 將參數重新解析
 		/*
 			[0] : FTP 伺服器位置
 			[1] : FTP 伺服器埠號
@@ -48,47 +54,42 @@ class FileIO{
 	}
 
 	function imageExists($imgname){
-		global $IFS;
-		return $IFS->beRecord($imgname);
+		return $this->IFS->beRecord($imgname);
 	}
 
 	function deleteImage($imgname){
-		global $IFS;
 		if(!$this->_ftp_login()) return false;
 		if(is_array($imgname)){
 			foreach($imgname as $i){
 				if(!ftp_delete($this->conn, $i)) return false;
-				$IFS->delRecord($i); // 自索引中刪除
+				$this->IFS->delRecord($i); // 自索引中刪除
 			}
 			return true;
 		}
 		else{
-			if($result = ftp_delete($this->conn, $imgname)) $IFS->delRecord($imgname);
+			if($result = ftp_delete($this->conn, $imgname)) $this->IFS->delRecord($imgname);
 			return $result;
 		}
 	}
 
 	function uploadImage($imgname='', $imgpath='', $imgsize=0){
-		global $IFS;
 		if($imgname=='') return true; // 支援上傳方法
 		if(!$this->_ftp_login()) return false;
 		$result = ftp_put($this->conn, $imgname, $imgpath, FTP_BINARY);
 		if($result){
-			$IFS->addRecord($imgname, $imgsize, ''); // 加入索引之中
+			$this->IFS->addRecord($imgname, $imgsize, ''); // 加入索引之中
 			unlink($imgpath); // 確實上傳後刪除本機暫存
 		}
 		return $result;
 	}
 
 	function getImageFilesize($imgname){
-		global $IFS;
-		if($rc = $IFS->getRecord($imgname)) return $rc['imgSize'];
+		if($rc = $this->IFS->getRecord($imgname)) return $rc['imgSize'];
 		return false;
 	}
 
 	function getImageURL($imgname){
-		global $IFS;
-		return $IFS->beRecord($imgname) ? $this->parameter[6].$imgname : false;
+		return $this->IFS->beRecord($imgname) ? $this->parameter[6].$imgname : false;
 	}
 }
 ?>

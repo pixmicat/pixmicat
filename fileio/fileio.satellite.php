@@ -1,11 +1,17 @@
 <?php
-/*
-FileIO - Satellite 衛星計畫
-@Version : 0.2 20061212
-*/
+/**
+ * FileIO Satellite 衛星計畫後端
+ *
+ * 搭配 satellite.php/pl 利用遠端空間管理圖檔
+ *
+ * @package PMCLibrary
+ * @version $Id: fileio.satellite.php 379 2007-03-31 15:51:40Z scribe $
+ * @date $Date: 2007-03-31 23:51:40 +0800 (星期六, 31 三月 2007) $
+ */
 
 class FileIO{
 	var $userAgent, $parameter;
+	var $IFS;
 
 	/* private 測試連線並且初始化遠端衛星主機 */
 	function _initSatellite(){
@@ -100,17 +106,17 @@ class FileIO{
 
 	/* private 儲存索引檔 */
 	function _setIndex(){
-		global $IFS;
-		$IFS->saveIndex(); // 索引表更新
+		$this->IFS->saveIndex(); // 索引表更新
 	}
 
-	function FileIO($parameter){
-		global $IFS;
-		$IFS->openIndex();
+	function FileIO($parameter, $ENV){
+		require($ENV['IFS.PATH']);
+		$this->IFS = new IndexFS($ENV['IFS.LOG']); // IndexFS 物件
+		$this->IFS->openIndex();
 		register_shutdown_function(array($this, '_setIndex')); // 設定解構元 (PHP 結束前執行)
 		set_time_limit(120); // 執行時間 120 秒 (傳輸過程可能很長)
 		$this->userAgent = 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)'; // Just for fun ;-)
-		$this->parameter = unserialize($parameter); // 將參數重新解析
+		$this->parameter = $parameter; // 將參數重新解析
 		$this->parameter[0] = parse_url($this->parameter[0]); // URL 位置拆解
 		/*
 			[0] : 衛星程式遠端 URL 位置
@@ -125,45 +131,40 @@ class FileIO{
 	}
 
 	function imageExists($imgname){
-		global $IFS;
-		return $IFS->beRecord($imgname);
+		return $this->IFS->beRecord($imgname);
 	}
 
 	function deleteImage($imgname){
-		global $IFS;
 		if(is_array($imgname)){
 			foreach($imgname as $i){
 				if(!$this->_deleteSatellite($i)) return false;
-				$IFS->delRecord($i); // 自索引中刪除
+				$this->IFS->delRecord($i); // 自索引中刪除
 			}
 			return true;
 		}
 		else{
-			if($result = $this->_deleteSatellite($imgname)) $IFS->delRecord($imgname);
+			if($result = $this->_deleteSatellite($imgname)) $this->IFS->delRecord($imgname);
 			return $result;
 		}
 	}
 
 	function uploadImage($imgname='', $imgpath='', $imgsize=0){
-		global $IFS;
 		if($imgname=='') return true; // 支援上傳方法
 		$result = $this->parameter[1] ? $this->_transloadSatellite($imgname) : $this->_uploadSatellite($imgname, $imgpath); // 選擇傳輸方法
 		if($result){
-			$IFS->addRecord($imgname, $imgsize, ''); // 加入索引之中
+			$this->IFS->addRecord($imgname, $imgsize, ''); // 加入索引之中
 			unlink($imgpath); // 確實上傳後刪除本機暫存
 		}
 		return $result;
 	}
 
 	function getImageFilesize($imgname){
-		global $IFS;
-		if($rc = $IFS->getRecord($imgname)) return $rc['imgSize'];
+		if($rc = $this->IFS->getRecord($imgname)) return $rc['imgSize'];
 		return false;
 	}
 
 	function getImageURL($imgname){
-		global $IFS;
-		return $IFS->beRecord($imgname) ? $this->parameter[3].$imgname : false;
+		return $this->IFS->beRecord($imgname) ? $this->parameter[3].$imgname : false;
 	}
 }
 ?>

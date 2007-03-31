@@ -1,23 +1,29 @@
 <?php
-/*
-FileIO - ImageShack
-@Version : 0.2 20070130
-
-使用此功能請遵守 ImageShack 網站的 Terms of Service，並注意以下條約:
-Terms specific to the XML API:
-
-    * Website or software must already be developed or have a strategic plan to be developed in the near future.
-    * Website or software users must be informed that ImageShack is providing free image hosting.
-
-Free implimentation support is offered to websites that have at least 500 unique visitors per day (users)
-or expect to achieve 500 users in the near future. Otherwise, the XML API is offered as is.
-
-使用時請自律將 ImageShack 網站連結置於明顯處，並說明正使用其提供之免費圖檔存放功能。
-(http://reg.imageshack.us/content.php?page=linkto 可選擇喜歡方式使用)
-*/
+/**
+ * FileIO ImageShack 遠端儲存 API
+ *
+ * 以 ImageShack 存圖網站作為圖檔儲存的方式，並提供一套方法供程式管理圖片
+ *
+ * 使用此功能請遵守 ImageShack 網站的 Terms of Service，並注意以下條約:
+ * Terms specific to the XML API:
+ *
+ *  - Website or software must already be developed or have a strategic plan to be developed in the near future.
+ *  - Website or software users must be informed that ImageShack is providing free image hosting.
+ *
+ * Free implimentation support is offered to websites that have at least 500 unique visitors per day (users)
+ * or expect to achieve 500 users in the near future. Otherwise, the XML API is offered as is.
+ *
+ * 使用時請自律將 ImageShack 網站連結置於明顯處，並說明正使用其提供之免費圖檔存放功能。
+ * (http://reg.imageshack.us/content.php?page=linkto 可選擇喜歡方式使用)
+ *
+ * @package PMCLibrary
+ * @version $Id: fileio.imageshack.php 379 2007-03-31 15:51:40Z scribe $
+ * @date $Date: 2007-03-31 23:51:40 +0800 (星期六, 31 三月 2007) $
+ */
 
 class FileIO{
 	var $userAgent, $parameter;
+	var $IFS;
 
 	/* private 傳檔案到 ImageShack 上面 (發送抓取請求) */
 	function _transloadImageShack($imgname){
@@ -80,17 +86,17 @@ class FileIO{
 
 	/* private 儲存索引檔 */
 	function _setIndex(){
-		global $IFS;
-		$IFS->saveIndex(); // 索引表更新
+		$this->IFS->saveIndex(); // 索引表更新
 	}
 
-	function FileIO($parameter){
-		global $IFS;
-		$IFS->openIndex();
+	function FileIO($parameter, $ENV){
+		require($ENV['IFS.PATH']);
+		$this->IFS = new IndexFS($ENV['IFS.LOG']); // IndexFS 物件
+		$this->IFS->openIndex();
 		register_shutdown_function(array($this, '_setIndex')); // 設定解構元 (PHP 結束前執行)
 		set_time_limit(120); // 執行時間 120 秒 (傳輸過程可能很長)
 		$this->userAgent = 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)'; // Just for fun ;-)
-		$this->parameter = unserialize($parameter); // 將參數重新解析
+		$this->parameter = $parameter; // 將參數重新解析
 		/*
 			[0] : ImageShack 註冊金鑰 (即登入頁面 setlogin.php 網址後面附帶一串編碼) * 可不填，但功能會少
 			登入後亦可在 http://reg.imageshack.us/content.php?page=register 找到 Your Registration Code
@@ -102,49 +108,44 @@ class FileIO{
 	}
 
 	function imageExists($imgname){
-		global $IFS;
-		return $IFS->beRecord($imgname);
+		return $this->IFS->beRecord($imgname);
 	}
 
 	function deleteImage($imgname){
-		global $IFS;
 		if(is_array($imgname)){
 			foreach($imgname as $i){
-				if(($rc = $IFS->getRecord($i)) && $this->_deleteImageShack($rc['imgURL'])) $IFS->delRecord($i); // 自索引中刪除
+				if(($rc = $this->IFS->getRecord($i)) && $this->_deleteImageShack($rc['imgURL'])) $this->IFS->delRecord($i); // 自索引中刪除
 				else return false; // 送出刪除要求失敗
 			}
 			return true;
 		}
 		else{
-			if(($rc = $IFS->getRecord($imgname)) && $this->_deleteImageShack($rc['imgURL'])){ $IFS->delRecord($imgname); return true; }
+			if(($rc = $this->IFS->getRecord($imgname)) && $this->_deleteImageShack($rc['imgURL'])){ $this->IFS->delRecord($imgname); return true; }
 			return false;
 		}
 	}
 
 	function uploadImage($imgname='', $imgpath='', $imgsize=0){
-		global $IFS;
 		if($imgname=='') return true; // 支援上傳方法
 		if(substr($imgname, -5)=='s.jpg'){ unlink($imgpath); return true; } // 預覽圖不用上傳，直接刪除
 		$result = $this->_transloadImageShack($imgname);
 		if($result){
-			$IFS->addRecord($imgname, $imgsize, $result['image_link']); // 加入索引之中
+			$this->IFS->addRecord($imgname, $imgsize, $result['image_link']); // 加入索引之中
 			list($w, $h) = explode('x', $result['resolution']); // 原圖解析度
 			// 判斷是否自動生成預覽圖 (長寬任一大於200像素) 並儲存預覽圖位置
-			$IFS->addRecord(substr($imgname, 0, 13).'s.jpg', ceil($imgsize / 4), (($w > 200 || $h > 200) ?  $result['thumb_link'] : $result['image_link']));
+			$this->IFS->addRecord(substr($imgname, 0, 13).'s.jpg', ceil($imgsize / 4), (($w > 200 || $h > 200) ?  $result['thumb_link'] : $result['image_link']));
 			unlink($imgpath); // 確實上傳後刪除本機暫存
 		}
 		return $result;
 	}
 
 	function getImageFilesize($imgname){
-		global $IFS;
-		if($rc = $IFS->getRecord($imgname)) return $rc['imgSize'];
+		if($rc = $this->IFS->getRecord($imgname)) return $rc['imgSize'];
 		return false;
 	}
 
 	function getImageURL($imgname, $ishotlink = false){ // 是否使用熱連結直連圖檔位置 (極有可能被 Ban 網域！請慎用)
-		global $IFS;
-		return ($rc = $IFS->getRecord($imgname)) ? (substr($imgname, -5)=='s.jpg' ? $rc['imgURL'] : $this->_myphpImageShack($rc['imgURL'], $ishotlink)) : false;
+		return ($rc = $this->IFS->getRecord($imgname)) ? (substr($imgname, -5)=='s.jpg' ? $rc['imgURL'] : $this->_myphpImageShack($rc['imgURL'], $ishotlink)) : false;
 	}
 }
 ?>

@@ -4,6 +4,7 @@
 -[pixmicat] 修改 Trip, Cap 生成函式 (ereg 在 PHP6 即將廢止，以 PCRE 函式取代)
 -[pixmicat] 修正 "管理"、"刪除" 在使用 Admin Cap 後仍然不能作為名稱的問題
 -[PIO] PIO 0.4gamma (與 Pixmicat!2 共用相同的函式庫)
+-[FileIO] FileIO 更新 (與 Pixmicat!2 共用相同的函式庫)
 
 2007/03/12
 01.[pixmicat] 修正翻譯索引錯誤 useage => usage
