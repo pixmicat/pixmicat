@@ -1,14 +1,20 @@
 <?php
-/*
-PIO - Pixmicat! data source I/O
-PostgreSQL API
-*/
+/**
+ * PIO PostgreSQL API
+ *
+ * 提供存取以 PostgreSQL 資料庫構成的資料結構後端的物件
+ *
+ * @package PMCLibrary
+ * @version $Id: pio.pgsql.php 362 2007-03-08 14:58:25Z scribe $
+ * @date $Date: 2007-03-08 22:58:25 +0800 (星期四, 08 三月 2007) $
+ */
 
 class PIOpgsql{
-	var $username, $password, $server, $port, $dbname, $tablename; // Local Constant
+	var $ENV, $username, $password, $server, $port, $dbname, $tablename; // Local Constant
 	var $con, $prepared; // Local Global
 
-	function PIOpgsql($connstr=''){
+	function PIOpgsql($connstr='', $ENV){
+		$this->ENV = $ENV;
 		$this->prepared = 0;
 		if($connstr) $this->dbConnect($connstr);
 	}
@@ -16,16 +22,12 @@ class PIOpgsql{
 	/* private 攔截SQL錯誤 */
 	function _error_handler($errtext, $errline){
 		$err = "Pixmicat! SQL Error: $errtext, debug info: at line $errline";
-		exit($err);
+		trigger_error($err, E_USER_ERROR);
 	}
 
 	/* private 使用SQL字串和PostgreSQL伺服器要求 */
 	function _pgsql_call($query){
-		$debug_mode = false; // 除錯模式：顯示SQL錯誤訊息
-
-		$ret = @pg_query($this->con, $query);
-		if(!$ret && $debug_mode) error('PostgreSQL SQL指令錯誤：<p />指令: '.$query.'<br/>錯誤訊息: '.pg_last_error($this->con));
-		return $ret;
+		return pg_query($this->con, $query);
 	}
 
 	/* private 由資源輸出陣列 */
@@ -38,7 +40,7 @@ class PIOpgsql{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.4beta (b20070214)';
+		return '0.4gamma (b20070331)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -82,20 +84,19 @@ class PIOpgsql{
 	\"com\" text NOT NULL,
 	\"host\" varchar(255) NOT NULL,
 	\"status\" varchar(4) NOT NULL,
-	PRIMARY KEY (\"no\"));"; // For Pixmicat!-PIO [Structure V2]
+	PRIMARY KEY (\"no\"));"; // PIO Structure V2
 			$idxs = array('resto', 'root', 'time');
 			foreach($idxs as $idx) $result .= 'CREATE INDEX '.$this->tablename.'_'.$idx.'_index ON '.$this->tablename.' ('.$idx.');';
 			pg_query($this->con, $result); // 正式新增資料表
-			if($isAddInitData) $this->addPost(1, 0, '', '', 0, '', 0, 0, '', 0, 0, '', '05/01/01(六)00:00', '無名氏', '', '無標題', '無內文', ''); // 追加一筆新資料
+			if($isAddInitData) $this->addPost(1, 0, '', '', 0, '', 0, 0, '', 0, 0, '', '05/01/01(六)00:00', $this->ENV['NONAME'], '', $this->ENV['NOTITLE'], $this->ENV['NOCOMMENT'], ''); // 追加一筆新資料
 			$this->dbCommit();
 		}
 	}
 
 	/* 準備/讀入 */
-	function dbPrepare($reload=false, $transaction=true){
-		if($this->prepared && !$reload) return true;
+	function dbPrepare($transaction=true){
+		if($this->prepared) return true;
 
-		if($reload && $this->con) pg_close($this->con);
 		if(@!$this->con=pg_pconnect('host='.$this->server.' port='.$this->port.' dbname='.$this->dbname.' user='.$this->username.' password='.$this->password)) $this->_error_handler('Open database failed', __LINE__);
 		if($transaction) @pg_query($this->con, 'START TRANSACTION;'); // 啟動交易性能模式 (據說會降低效能，但可防止資料寫入不一致)
 
@@ -112,7 +113,7 @@ class PIOpgsql{
 	/* 優化資料表 */
 	function dbOptimize($doit=false){
 		if($doit){
-			$this->dbPrepare(true, false);
+			$this->dbPrepare(false);
 			if($this->_pgsql_call('VACUUM '.$this->tablename)) return true;
 			else return false;
 		}else return true; // 支援最佳化資料表
@@ -256,7 +257,7 @@ class PIOpgsql{
 
 		$oldAttachments = array(); // 舊文的附加檔案清單
 		$countline = $this->postCount(); // 文章數目
-		$cutIndex = $countline - LOG_MAX + 1; // LIMIT用，取出最舊的幾篇
+		$cutIndex = $countline - $this->ENV['LOG_MAX'] + 1; // LIMIT用，取出最舊的幾篇
 		if(!$result=$this->_pgsql_call('SELECT no,ext,tim FROM '.$this->tablename.' ORDER BY no LIMIT '.$cutIndex)) $this->_error_handler('Get the old post failed', __LINE__);
 		else{
 			while(list($dno, $dext, $dtim)=pg_fetch_array($result)){ // 個別跑舊文迴圈
@@ -372,9 +373,9 @@ class PIOpgsql{
 		global $FileIO;
 		if(!$this->prepared) $this->dbPrepare();
 
-		if(!RENZOKU) return false; // 關閉連續投稿檢查
-		$tmpSQL = 'SELECT pwd,host FROM '.$this->tablename.' WHERE time > '.($timestamp - RENZOKU); // 一般投稿時間檢查
-		if($isupload) $tmpSQL .= ' OR time > '.($timestamp - RENZOKU2); // 附加圖檔的投稿時間檢查 (與下者兩者擇一)
+		if(!$this->ENV['PERIOD.POST']) return false; // 關閉連續投稿檢查
+		$tmpSQL = 'SELECT pwd,host FROM '.$this->tablename.' WHERE time > '.($timestamp - $this->ENV['PERIOD.POST']); // 一般投稿時間檢查
+		if($isupload) $tmpSQL .= ' OR time > '.($timestamp - $this->ENV['PERIOD.IMAGEPOST']); // 附加圖檔的投稿時間檢查 (與下者兩者擇一)
 		else $tmpSQL .= " OR md5(com) = '".md5($com)."'"; // 內文一樣的檢查 (與上者兩者擇一)
 		if(!$result=$this->_pgsql_call($tmpSQL)) $this->_error_handler('Get the post to check the succession failed', __LINE__);
 		else{

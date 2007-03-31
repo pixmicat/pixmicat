@@ -1,24 +1,30 @@
 <?php
-/*
-PIO - Pixmicat! data source I/O
-Log API
-*/
+/**
+ * PIO Log API
+ *
+ * 提供存取以 Log 檔案構成的資料結構後端的物件
+ *
+ * @package PMCLibrary
+ * @version $Id: pio.log.php 362 2007-03-08 14:58:25Z scribe $
+ * @date $Date: 2007-03-08 22:58:25 +0800 (星期四, 08 三月 2007) $
+ */
 
 class PIOlog{
-	var $logfile, $treefile, $porderfile; // Local Constant
+	var $ENV, $logfile, $treefile, $porderfile; // Local Constant
 	var $logs, $trees, $LUT, $porder, $torder, $prepared; // Local Global
-	var $memcached, $mid;
+	//var $memcached, $mid;
 
-	function PIOlog($connstr=''){
+	function PIOlog($connstr='', $ENV){
+		$this->ENV = $ENV;
 		$this->logs = $this->trees = $this->LUT = $this->porder = $this->torder = array();
 		$this->prepared = 0;
-		$this->mid = md5($_SERVER['SCRIPT_FILENAME']); // Unique ID
-		$this->memcached = false; // memcached object (null: use, false: don't use)
+		//$this->mid = md5($_SERVER['SCRIPT_FILENAME']); // Unique ID
+		//$this->memcached = false; // memcached object (null: use, false: don't use)
 
 		if($connstr) $this->dbConnect($connstr);
 	}
 
-	/* private 設定 memcached 資料 */
+	/* private 設定 memcached 資料
 	function _memcacheSet($isAnalysis=true){
 		if(!$this->_memcachedEstablish()) return false;
 		$this->memcached->set('pmc'.$this->mid.'_isset', true);
@@ -30,7 +36,7 @@ class PIOlog{
 		$this->memcached->set('pmc'.$this->mid.'_torder', $this->torder);
 	}
 
-	/* private 取得 memcached 資料 */
+	/* private 取得 memcached 資料
 	function _memcacheGet(){
 		if(!$this->_memcachedEstablish()) return false;
 		if($this->memcached->get('pmc'.$this->mid.'_isset')){ // 有資料
@@ -41,7 +47,7 @@ class PIOlog{
 			$this->torder = $this->memcached->get('pmc'.$this->mid.'_torder');
 			return true;
 		}else return false;
-	}
+	}*/
 
 	/* private 把每一行 Log 解析轉換成陣列資料 */
 	function _AnalysisLogs($line){
@@ -50,7 +56,7 @@ class PIOlog{
 		return array_reverse($tline);
 	}
 
-	/* private 建立 memcached 實體 */
+	/* private 建立 memcached 實體
 	function _memcachedEstablish(){
 		if(!extension_loaded('memcache')) return ($this->memcached = false);
 		if(is_null($this->memcached)){
@@ -59,7 +65,7 @@ class PIOlog{
 			return true;
 		}
 		return ($this->memcached===false) ? false : true;
-	}
+	}*/
 
 	/* private 將回文放進陣列 */
 	function _includeReplies($posts){
@@ -96,15 +102,15 @@ class PIOlog{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.4beta with memcached (b20070214)';
+		return '0.4gamma (b20070331)';
 	}
 
 	/* 處理連線字串/連接 */
 	function dbConnect($connStr){
 		if(preg_match('/^log:\/\/(.*)\:(.*)\/$/i', $connStr, $linkinfos)){
-			$this->logfile = $linkinfos[1]; // 投稿文字記錄檔檔名
-			$this->treefile = $linkinfos[2]; // 樹狀結構記錄檔檔名
-			$this->porderfile = 'lutcache.dat'; // LUT索引查找表檔案
+			$this->logfile = $this->ENV['BOARD'].'/'.$linkinfos[1]; // 投稿文字記錄檔檔名
+			$this->treefile = $this->ENV['BOARD'].'/'.$linkinfos[2]; // 樹狀結構記錄檔檔名
+			$this->porderfile = $this->ENV['LUTCACHE']; // LUT索引查找表暫存檔案
 		}
 	}
 
@@ -116,7 +122,7 @@ class PIOlog{
 			if(!is_file($value)){ // 檔案不存在
 				$fp = fopen($value, 'w');
 				stream_set_write_buffer($fp, 0);
-				if($value==$this->logfile) fwrite($fp, '1,0,,,0,,0,0,,0,0,,05/01/01(六)00:00,無名氏,,無標題,無內文,,,');  // For Pixmicat!-PIO [Structure V2]
+				if($value==$this->logfile) fwrite($fp, '1,0,,,0,,0,0,,0,0,,05/01/01(六)00:00,'.$this->ENV['NONAME'].',,'.$this->ENV['NOTITLE'].','.$this->ENV['NOCOMMENT'].',,,'); // PIO Structure V2
 				if($value==$this->treefile) fwrite($fp, '1');
 				if($value==$this->porderfile) fwrite($fp, '1');
 				fclose($fp);
@@ -131,7 +137,7 @@ class PIOlog{
 	function dbPrepare($reload=false, $transaction=true){
 		if($this->prepared && !$reload) return true;
 		if($reload && $this->prepared) $this->porder = $this->torder = $this->LUT = $this->logs = $this->trees = array();
-		if($this->_memcacheGet()){ $this->prepared = 1; return true; } // 如果 memcache 有快取則直接使用
+		//if($this->_memcacheGet()){ $this->prepared = 1; return true; } // 如果 memcache 有快取則直接使用
 
 		$this->logs = file($this->logfile); // Log每行原始資料
 		if(!file_exists($this->porderfile)){ // LUT不在，重生成
@@ -157,7 +163,7 @@ class PIOlog{
 			$this->torder[] = $tline[0]; // 討論串首篇編號陣列
 			$this->trees[$tline[0]] = $tline; // 特定編號討論串完整結構陣列
 		}
-		$this->_memcacheSet(); // 把目前資料設定到 memcached 內
+		//$this->_memcacheSet(); // 把目前資料設定到 memcached 內
 		$this->prepared = 1;
 	}
 
@@ -185,7 +191,7 @@ class PIOlog{
 		for($tline = 0; $tline < $tcount; $tline++){
 			$tree .= $this->isThread($this->torder[$tline]) ? implode(',', $this->trees[$this->torder[$tline]])."\r\n" : '';
 		}
-		$this->_memcacheSet(false); // 更新快取 (不需要再分析)
+		//$this->_memcacheSet(false); // 更新快取 (不需要再分析)
 
 		$fp = fopen($this->logfile, 'w'); // Log
 		stream_set_write_buffer($fp, 0);
@@ -331,7 +337,7 @@ class PIOlog{
 	function delOldPostes(){
 		if(!$this->prepared) $this->dbPrepare();
 
-		$delPosts = @array_slice($this->porder, LOG_MAX - 1); // 截出舊文編號陣列
+		$delPosts = @array_slice($this->porder, $this->ENV['LOG_MAX'] - 1); // 截出舊文編號陣列
 		if(count($delPosts)) return $this->removePosts($delPosts);
 		else return false;
 	}
@@ -432,9 +438,9 @@ class PIOlog{
 			list($lcom, $lhost, $lpwd, $ltime) = array($logsarray[0]['com'], $logsarray[0]['host'], $logsarray[0]['pwd'], substr($logsarray[0]['tim'],0,-3));
 			if($host==$lhost || $pass==$lpwd || $passcookie==$lpwd) $pchk = 1;
 			else $pchk = 0;
-			if(RENZOKU && $pchk){ // 密碼比對符合且開啟連續投稿時間限制
-				if($timestamp - $ltime < RENZOKU) return true; // 投稿時間相距太短
-				if($timestamp - $ltime < RENZOKU2 && $isupload) return true; // 附加圖檔的投稿時間相距太短
+			if($this->ENV['PERIOD.POST'] && $pchk){ // 密碼比對符合且開啟連續投稿時間限制
+				if($timestamp - $ltime < $this->ENV['PERIOD.POST']) return true; // 投稿時間相距太短
+				if($timestamp - $ltime < $this->ENV['PERIOD.IMAGEPOST'] && $isupload) return true; // 附加圖檔的投稿時間相距太短
 				if($com == $lcom && !$isupload) return true; // 內文一樣
 			}
 		}

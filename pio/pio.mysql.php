@@ -1,14 +1,20 @@
 <?php
-/*
-PIO - Pixmicat! data source I/O
-MySQL API
-*/
+/**
+ * PIO MySQL API
+ *
+ * 提供存取以 MySQL 資料庫構成的資料結構後端的物件
+ *
+ * @package PMCLibrary
+ * @version $Id: pio.mysql.php 362 2007-03-08 14:58:25Z scribe $
+ * @date $Date: 2007-03-08 22:58:25 +0800 (星期四, 08 三月 2007) $
+ */
 
 class PIOmysql{
-	var $username, $password, $server, $dbname, $tablename; // Local Constant
+	var $ENV, $username, $password, $server, $dbname, $tablename; // Local Constant
 	var $con, $prepared; // Local Global
 
-	function PIOmysql($connstr=''){
+	function PIOmysql($connstr='', $ENV){
+		$this->ENV = $ENV;
 		$this->prepared = 0;
 		if($connstr) $this->dbConnect($connstr);
 	}
@@ -16,16 +22,12 @@ class PIOmysql{
 	/* private 攔截SQL錯誤 */
 	function _error_handler($errtext, $errline){
 		$err = "Pixmicat! SQL Error: $errtext, debug info: at line $errline";
-		exit($err);
+		trigger_error($err, E_USER_ERROR);
 	}
 
 	/* private 使用SQL字串和MySQL伺服器要求 */
 	function _mysql_call($query){
-		$debug_mode = false; // 除錯模式：顯示SQL錯誤訊息
-
-		$ret = mysql_query($query);
-		if(!$ret && $debug_mode) error('MySQL SQL指令錯誤：<p />指令: '.$query.'<br />錯誤訊息: (#'.mysql_errno().') '.mysql_error());
-		return $ret;
+		return mysql_query($query);
 	}
 
 	/* private 由資源輸出陣列 */
@@ -38,7 +40,7 @@ class PIOmysql{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.4beta (b20070214)';
+		return '0.4gamma (b20070331)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -82,23 +84,22 @@ class PIOmysql{
 	host varchar(255) not null,
 	status varchar(4) not null)
 	TYPE = MYISAM
-	COMMENT = 'For Pixmicat!-PIO [Structure V2]'";
+	COMMENT = 'PIO Structure V2'";
 			$result2 = @mysql_query("SHOW CHARACTER SET like 'utf8'"); // 是否支援UTF-8 (MySQL 4.1.1開始支援)
 			if($result2 && mysql_num_rows($result2)){
 				$result .= ' CHARACTER SET utf8 COLLATE utf8_general_ci'; // 資料表追加UTF-8編碼
 				mysql_free_result($result2);
 			}
 			mysql_query($result); // 正式新增資料表
-			if($isAddInitData) $this->addPost(1, 0, '', '', 0, '', 0, 0, '', 0, 0, '', '05/01/01(六)00:00', '無名氏', '', '無標題', '無內文', ''); // 追加一筆新資料
+			if($isAddInitData) $this->addPost(1, 0, '', '', 0, '', 0, 0, '', 0, 0, '', '05/01/01(六)00:00', $this->ENV['NONAME'], '', $this->ENV['NOTITLE'], $this->ENV['NOCOMMENT'], ''); // 追加一筆新資料
 			$this->dbCommit();
 		}
 	}
 
 	/* 準備/讀入 */
-	function dbPrepare($reload=false, $transaction=false){
-		if($this->prepared && !$reload) return true;
+	function dbPrepare($transaction=false){
+		if($this->prepared) return true;
 
-		if($reload && $this->con) mysql_close($this->con);
 		if(@!$this->con=mysql_pconnect($this->server, $this->username, $this->password)) $this->_error_handler('Open database failed', __LINE__);
 		@mysql_select_db($this->dbname, $this->con);
 		@mysql_query("SET NAMES 'utf8'"); // MySQL資料以UTF-8模式傳送
@@ -117,7 +118,7 @@ class PIOmysql{
 	/* 優化資料表 */
 	function dbOptimize($doit=false){
 		if($doit){
-			$this->dbPrepare(true, false);
+			$this->dbPrepare(false);
 			if($this->_mysql_call('OPTIMIZE TABLES '.$this->tablename)) return true;
 			else return false;
 		}else return true; // 支援最佳化資料表
@@ -258,7 +259,7 @@ class PIOmysql{
 
 		$oldAttachments = array(); // 舊文的附加檔案清單
 		$countline = $this->postCount(); // 文章數目
-		$cutIndex = $countline - LOG_MAX + 1; // LIMIT用，取出最舊的幾篇
+		$cutIndex = $countline - $this->ENV['LOG_MAX'] + 1; // LIMIT用，取出最舊的幾篇
 		if(!$result=$this->_mysql_call('SELECT no,ext,tim FROM '.$this->tablename.' ORDER BY no LIMIT 0, '.$cutIndex)) $this->_error_handler('Get the old post failed', __LINE__);
 		else{
 			while(list($dno, $dext, $dtim)=mysql_fetch_row($result)){ // 個別跑舊文迴圈
@@ -374,9 +375,9 @@ class PIOmysql{
 		global $FileIO;
 		if(!$this->prepared) $this->dbPrepare();
 
-		if(!RENZOKU) return false; // 關閉連續投稿檢查
-		$tmpSQL = 'SELECT pwd,host FROM '.$this->tablename.' WHERE time > '.($timestamp - RENZOKU); // 一般投稿時間檢查
-		if($isupload) $tmpSQL .= ' OR time > '.($timestamp - RENZOKU2); // 附加圖檔的投稿時間檢查 (與下者兩者擇一)
+		if(!$this->ENV['PERIOD.POST']) return false; // 關閉連續投稿檢查
+		$tmpSQL = 'SELECT pwd,host FROM '.$this->tablename.' WHERE time > '.($timestamp - $this->ENV['PERIOD.POST']); // 一般投稿時間檢查
+		if($isupload) $tmpSQL .= ' OR time > '.($timestamp - $this->ENV['PERIOD.IMAGEPOST']); // 附加圖檔的投稿時間檢查 (與下者兩者擇一)
 		else $tmpSQL .= ' OR md5(com) = "'.md5($com).'"'; // 內文一樣的檢查 (與上者兩者擇一)
 		if(!$result=$this->_mysql_call($tmpSQL)) $this->_error_handler('Get the post to check the succession failed', __LINE__);
 		else{

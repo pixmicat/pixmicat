@@ -1,5 +1,5 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release-dev b070312'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release-dev b070331'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -495,32 +495,27 @@ function regist(){
 	$resto = CleanStr($resto); $resto = str_replace("\r\n", '', $resto);
 	// 名稱修整
 	$name = CleanStr($name);
-	$name = str_replace(_T('admin'), '"'._T('admin').'"', $name);
-	$name = str_replace(_T('deletor'), '"'._T('deletor').'"', $name);
-	$name = str_replace(_T('trip_pre'),_T('trip_pre_fake'), $name); // 防止トリップ偽造
-	$name = str_replace(_T('cap_char'),_T('cap_char_fake'), $name); // 防止管理員キャップ偽造
+	$name = str_replace(_T('trip_pre'), _T('trip_pre_fake'), $name); // 防止トリップ偽造
+	$name = str_replace(CAP_SUFFIX, _T('cap_char_fake'), $name); // 防止管理員キャップ偽造
 	$name = str_replace("\r\n", '', $name);
-	$is_tripped = false; // 名稱一欄是否經過Trip
-	if(ereg("(#|＃)(.*)", $name, $regs)){ // 使用トリップ(Trip)機能 (ex：無名#abcd)
-		$cap = $regs[2];
-		$cap = strtr($cap, array("&amp;"=>"&","&#44;"=>","));
-		$name = ereg_replace("(#|＃)(.*)",'', $name);
-		$salt = substr($cap.'H.',1,2);
-		$salt = ereg_replace("[^\.-z]",'.',$salt);
-		$salt = strtr($salt,":;<=>?@[\\]^_`","ABCDEFGabcdef");
-		$name = $name._T('trip_pre').substr(crypt($cap,$salt),-10);
-		$is_tripped = true; // 有Trip過。如果進入下面的Cap則要先去掉Trip留下主名稱
+	$nameOri = $name; // 名稱
+	if(preg_match('/(.*?)[#＃](.*)/u', $name, $regs)){ // トリップ(Trip)機能
+		$name = $nameOri = $regs[1]; $cap = strtr($regs[2], array('&amp;'=>'&'));
+		$salt = preg_replace('/[^\.-z]/', '.', substr($cap.'H.', 1, 2));
+		$salt = strtr($salt, ':;<=>?@[\\]^_`', 'ABCDEFGabcdef');
+		$name = $name._T('trip_pre').substr(crypt($cap, $salt), -10);
 	}
-	if(ereg("(.*)(#|＃)(.*)",$email,$aregs) && CAP_ENABLE){ // 使用管理員キャップ(Cap)機能
-		$acap_name = $is_tripped ? preg_replace('/\\'._T('trip_pre').'.{10}/', '', $name) : $name; // 識別名稱 (如果有Trip則要先拿掉)
-		$acap_pwd = $aregs[3];
-		$acap_pwd = strtr($acap_pwd, array("&amp;"=>"&","&#44;"=>","));
+	if(CAP_ENABLE && preg_match('/(.*?)[#＃](.*)/', $email, $aregs)){ // 管理員キャップ(Cap)機能
+		$acap_name = $nameOri; $acap_pwd = strtr($aregs[2], array('&amp;'=>'&'));
 		if($acap_name==CAP_NAME && $acap_pwd==CAP_PASS){
 			$name = '<span class="admin_cap">'.$name.CAP_SUFFIX.'</span>';
-			$is_admin = true; // 判定為管理員
-			if(stristr($aregs[1], 'sage')) $email = $aregs[1]; // 保留sage機能
-			else $email = ''; // 清空E-mail一欄
+			$is_admin = true;
+			$email = $aregs[1]; // 去除 #xx 密碼
 		}
+	}
+	if(!$is_admin){ // 非管理員
+		$name = str_replace(_T('admin'), '"'._T('admin').'"', $name);
+		$name = str_replace(_T('deletor'), '"'._T('deletor').'"', $name);
 	}
 	// 內文修整
 	if((strlen($com) > COMM_MAX) && !$is_admin) error(_T('regist_commenttoolong'), $dest);

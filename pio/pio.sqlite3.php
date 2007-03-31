@@ -1,27 +1,33 @@
 <?php
-/*
-PIO - Pixmicat! data source I/O
-SQLite3 (PDO) API (Note: Need PHP 5.1.0 or above)
-*/
+/**
+ * PIO SQLite3 (PDO) API
+ *
+ * 提供存取以 SQLite3 資料庫構成的資料結構後端的物件 (需要 PHP 5.1.0 以上並開啟 PDO 功能)
+ *
+ * @package PMCLibrary
+ * @version $Id: pio.sqlite3.php 362 2007-03-08 14:58:25Z scribe $
+ * @date $Date: 2007-03-08 22:58:25 +0800 (星期四, 08 三月 2007) $
+ */
 
 class PIOsqlite3{
-	private $DSN, $tablename; // Local Constant
+	private $ENV, $DSN, $tablename; // Local Constant
 	private $con, $prepared; // Local Global
 
-	public function __construct($connstr=''){
+	public function __construct($connstr='', $ENV){
+		$this->ENV = $ENV;
 		$this->prepared = false;
 		if($connstr) $this->dbConnect($connstr);
 	}
 
 	/* private 攔截SQL錯誤 */
 	private function _error_handler($errtext, $errline){
-		$err = "Pixmicat! SQL Error: $errtext (".print_r($this->con->errorInfo(), true)."), debug info: at line $errline";
-		exit($err);
+		$err = "Pixmicat! SQL Error: $errtext, debug info: at line $errline";
+		trigger_error($err, E_USER_ERROR);
 	}
 
 	/* PIO模組版本 */
 	public function pioVersion() {
-		return '0.4beta (b20070221)';
+		return '0.4gamma (b20070331)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -62,21 +68,20 @@ class PIOsqlite3{
 	"com" TEXT  NOT NULL,
 	"host" VARCHAR(255)  NOT NULL,
 	"status" VARCHAR(4)  NOT NULL
-	);'; // For Pixmicat!-PIO [Structure V2]
+	);'; // PIO Structure V2
 			$idx = array('resto', 'root', 'time');
 			foreach($idx as $x) $result .= 'CREATE INDEX IDX_'.$this->tablename.'_'.$x.' ON '.$this->tablename.'('.$x.');';
 			$result .= 'CREATE INDEX IDX_'.$this->tablename.'_resto_no ON '.$this->tablename.'(resto,no);';
-			if($isAddInitData) $result .= 'INSERT INTO '.$this->tablename.' (resto,root,time,md5chksum,category,tim,ext,imgw,imgh,imgsize,tw,th,pwd,now,name,email,sub,com,host,status) VALUES (0, datetime("now"), 1111111111, "", "", 1111111111111, "", 0, 0, "", 0, 0, "", "05/01/01(六)00:00", "無名氏", "", "無標題", "無內文", "", "");';
+			if($isAddInitData) $result .= 'INSERT INTO '.$this->tablename.' (resto,root,time,md5chksum,category,tim,ext,imgw,imgh,imgsize,tw,th,pwd,now,name,email,sub,com,host,status) VALUES (0, datetime("now"), 1111111111, "", "", 1111111111111, "", 0, 0, "", 0, 0, "", "05/01/01(六)00:00", "'.$this->ENV['NONAME'].'", "", "'.$this->ENV['NOTITLE'].'", "'.$this->ENV['NOCOMMENT'].'", "", "");';
 			$this->con->exec($result);
 			$this->dbCommit();
 		}
 	}
 
 	/* 準備/讀入 */
-	public function dbPrepare($reload=false, $transaction=true){
-		if($this->prepared && !$reload) return true;
+	public function dbPrepare($transaction=true){
+		if($this->prepared) return true;
 
-		if($reload && $this->con) $this->con = null;
 		($this->con = new PDO($this->DSN, '', '', array(PDO::ATTR_PERSISTENT => true))) or $this->_error_handler('Open database failed', __LINE__);
 		if($transaction) $this->con->beginTransaction(); // 啟動交易性能模式
 
@@ -93,7 +98,7 @@ class PIOsqlite3{
 	/* 優化資料表 */
 	public function dbOptimize($doit=false){
 		if($doit){
-			$this->dbPrepare(true, false);
+			$this->dbPrepare(false);
 			if($this->con->exec('VACUUM '.$this->tablename)) return true;
 			else return false;
 		}else return true; // 支援最佳化資料表
@@ -219,7 +224,7 @@ class PIOsqlite3{
 		$oldAttachments = array();
 		$delStack = array(); // Records needed to be deleted
 		$countline = $this->postCount();
-		$cutIndex = $countline - LOG_MAX + 1;
+		$cutIndex = $countline - $this->ENV['LOG_MAX'] + 1;
 		$result = $this->con->prepare('SELECT no,ext,tim FROM '.$this->tablename.' ORDER BY no LIMIT 0, :cutindex');
 		$result->execute(array(':cutindex' => $cutIndex)) or $this->_error_handler('Get the old post failed', __LINE__);
 		while(list($dno, $dext, $dtim) = $result->fetch(PDO::FETCH_NUM)){
@@ -327,9 +332,9 @@ class PIOsqlite3{
 		global $FileIO;
 		if(!$this->prepared) $this->dbPrepare();
 
-		if(!RENZOKU) return false; // 關閉連續投稿檢查
-		$tmpSQL = 'SELECT pwd,host FROM '.$this->tablename.' WHERE time > '.($timestamp - RENZOKU); // 一般投稿時間檢查
-		if($isupload) $tmpSQL .= ' OR time > '.($timestamp - RENZOKU2); // 附加圖檔的投稿時間檢查 (與下者兩者擇一)
+		if(!$this->ENV['PERIOD.POST']) return false; // 關閉連續投稿檢查
+		$tmpSQL = 'SELECT pwd,host FROM '.$this->tablename.' WHERE time > '.($timestamp - $this->ENV['PERIOD.POST']); // 一般投稿時間檢查
+		if($isupload) $tmpSQL .= ' OR time > '.($timestamp - $this->ENV['PERIOD.IMAGEPOST']); // 附加圖檔的投稿時間檢查 (與下者兩者擇一)
 		else $tmpSQL .= " OR md5(com) = '".md5($com)."'"; // 內文一樣的檢查 (與上者兩者擇一)
 		$this->con->sqliteCreateFunction('md5', 'md5', 1); // Register MD5 function
 		($result = $this->con->query($tmpSQL)) or $this->_error_handler('Get the post to check the succession failed', __LINE__);
