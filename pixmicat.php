@@ -1001,7 +1001,7 @@ function listModules(){
 	/* Module Infomation */
 	$dat .= _T('module_info').'<ul>'."\n";
 	foreach($PMS->moduleInstance as $m){
-		$dat .= '<li>'.$m->getModuleVersionInfo()."</li>\n";
+		$dat .= '<li><dl><dt>'.$m->getModuleName().'</dt><dd>'.$m->getModuleVersionInfo()."</dd></dl></li>\n";
 	}
 	$dat .= '</ul><hr />
 </div>
@@ -1047,6 +1047,7 @@ function showstatus(){
 	head($dat);
 	$dat .= '<div id="banner">
 [<a href="'.PHP_SELF2.'?'.time().'">'._T('return').'</a>]
+[<a href="'.PHP_SELF.'?mode=moduleloaded">'._T('module_info_top').'</a>]
 <div class="bar_admin">'._T('info_top').'</div>
 </div>
 ';
