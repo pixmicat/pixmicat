@@ -1,78 +1,20 @@
 <?php
-/*
-Pixmicat! Module System
-@Date : 2007/1/30 22:55
-*/
+/**
+ * Pixmicat! Module System Dispatcher
+ *
+ * 設定環境變數並初始化物件以供使用
+ * 
+ * @package PMCLibrary
+ * @version $Id: lib_pms.php 389 2007-04-15 13:48:08Z scribe $
+ * @date $Date: 2007-04-15 21:48:08 +0800 (星期日, 15 四月 2007) $
+ */
 
-class PMS{
-	var $moduleInstance, $moduleLists;
-	var $hookPoints;
-
-	/* Constructor */
-	function PMS(){
-		// 掛載點
-		$this->hookPoints = array(
-			'Head'=>array(), 'Toplink'=>array(), 'PostInfo'=>array(),
-			'ThreadFront'=>array(), 'ThreadRear'=>array(),
-			'ThreadPost'=>array(), 'ThreadReply'=>array(),
-			'Foot'=>array(), 'ModulePage'=>array()
-		);
-		$this->moduleInstance = array(); // 存放各模組實體
-		$this->moduleLists = array(); // 存放各模組類別名稱
-	}
-
-	// 模組載入相關
-	/* 載入擴充模組 */
-	function loadModules($moduleList){
-		foreach($moduleList as $f){
-			if(is_file('./modules/'.$f.'.php')){
-				include('./modules/'.$f.'.php');
-				$this->moduleInstance[$f] = new $f();
-				$this->moduleLists[] = $f;
-			}
-		}
-	}
-
-	/* 取得載入模組列表 */
-	function getLoadedModules(){
-		return $this->moduleLists;
-	}
-
-	/* 取得特定模組方法列表 */
-	function getModuleMethods($module){
-		return array_search($module, $this->moduleLists)!==false ? get_class_methods($module) : array();
-	}
-
-	//提供給模組的取用資訊
-	/* 取得模組註冊獨立頁面之網址 */
-	function getModulePageURL($name){
-		return PHP_SELF.'?mode=module&amp;load='.$name;
-	}
-
-	// 模組掛載與使用相關
-	/* 自動掛載相關模組方法於掛載點 */
-	function autoHookMethods(){
-		foreach(array_keys($this->hookPoints) as $h){
-			foreach($this->moduleLists as $m)
-				if(method_exists($this->moduleInstance[$m], 'autoHook'.$h)){
-					$this->hookModuleMethod($h, array(&$this->moduleInstance[$m], 'autoHook'.$h));
-				}
-		}
-	}
-
-	/* 將模組方法掛載於特定掛載點 */
-	function hookModuleMethod($hookPoint, $methodObject){
-		if(isset($this->hookPoints[$hookPoint])) $this->hookPoints[$hookPoint][] = $methodObject;
-	}
-
-	/* 使用模組方法 */
-	function useModuleMethods($hookPoint, $parameter){
-		$imax = count($this->hookPoints[$hookPoint]);
-		for($i = 0; $i < $imax; $i++){
-			call_user_func_array($this->hookPoints[$hookPoint][$i], $parameter);
-		}
-	}
-}
-$PMS = new PMS();
-$PMS->loadModules($ModuleList); $PMS->autoHookMethods();
+$PMSEnv = array( // PMS 環境常數
+	'MODULE.PATH' => './modules/',
+	'MODULE.PAGE' => PHP_SELF.'?mode=module&amp;load=',
+	'MODULE.LOADLIST' => $ModuleList
+);
+require('./pms.php');
+$PMS = new PMS($PMSEnv);
+$PMS->init();
 ?>
