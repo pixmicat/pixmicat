@@ -1,5 +1,5 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release-dev b070331'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release-dev b070430'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -721,13 +721,12 @@ function valid(){
 
 /* 管理文章模式 */
 function admindel(){
-	global $PIO, $FileIO, $language;
+	global $PIO, $FileIO, $PMS, $language;
 
 	$pass = isset($_POST['pass']) ? $_POST['pass'] : ''; // 管理者密碼
 	$page = isset($_POST['page']) ? $_POST['page'] : 0; // 切換頁數
 	$onlyimgdel = isset($_POST['onlyimgdel']) ? $_POST['onlyimgdel'] : ''; // 只刪圖
-	$mod_archiver = file_exists('./mod_archiver.php'); // 與mod_archiver連動
-	$make_archive = $mod_archiver ? _T('admin_archive') : ''; // 生成庫存功能
+	$modFunc = '';
 	$delno = $thsno = array();
 	$delflag = isset($_POST['delete']); // 是否有「刪除」勾選
 	$thsflag = isset($_POST['stop']); // 是否有「停止」勾選
@@ -776,7 +775,7 @@ function ChangePage(page){
 <div style="text-align: left;">'._T('admin_notices').'</div>
 <p><input type="submit" value="'._T('admin_submit_btn').'" /> <input type="reset" value="'._T('admin_reset_btn').'" /> [<input type="checkbox" name="onlyimgdel" id="onlyimgdel" value="on" /><label for="onlyimgdel">'._T('del_img_only').'</label>]</p>
 <table border="1" cellspacing="0" style="margin: 0px auto;">
-<tr style="background-color: #6080f6;">'._T('admin_list_header',$make_archive).'</tr>
+<tr style="background-color: #6080f6;">'._T('admin_list_header').'</tr>
 ';
 
 	for($j = 0; $j < $posts_count; $j++){
@@ -791,14 +790,11 @@ function ChangePage(page){
 		$com = str_replace('<br />',' ',$com);
 		$com = htmlspecialchars(str_cut(html_entity_decode($com), 20));
 
-		// 討論串首篇停止勾選框 及 庫存功能
-		$make_archive_link = '';
+		// 討論串首篇停止勾選框 及 模組功能
+		$modFunc = $THstop = ' ';
+		$PMS->useModuleMethods('AdminList', array(&$modFunc, $posts[$j], $resto)); // "AdminList" Hook Point
 		if($resto==0){ // $resto = 0 (即討論串首篇)
-			if($mod_archiver) $make_archive_link = '<th align="center"><a href="mod_archiver.php?res='.$no.'" rel="_blank">'._T('admin_archive_btn').'</a></th>';
 			$THstop = '<input type="checkbox" name="stop[]" value="'.$no.'" />'.(($PIO->getPostStatus($status, 'TS')==1)?_T('admin_stop_btn'):'');
-		}else{
-			if($mod_archiver) $make_archive_link = '<th align="center">--</th>';
-			$THstop = '--';
 		}
 
 		// 從記錄抽出附加圖檔使用量並生成連結
@@ -814,7 +810,7 @@ function ChangePage(page){
 		// 印出介面
 		echo <<< _ADMINEOF_
 <tr class="$bg" align="left">
-$make_archive_link<th align="center">$THstop</th><th><input type="checkbox" name="delete[]" value="$no" />$no</th><td><small>$now</small></td><td>$sub</td><td><b>$name</b></td><td><small>$com</small></td><td>$host</td><td align="center">$clip ($size)<br />$md5chksum</td>
+<th align="center">$modFunc</th><th align="center">$THstop</th><th><input type="checkbox" name="delete[]" value="$no" />$no</th><td><small>$now</small></td><td>$sub</td><td><b>$name</b></td><td><small>$com</small></td><td>$host</td><td align="center">$clip ($size)<br />$md5chksum</td>
 </tr>
 
 _ADMINEOF_;
