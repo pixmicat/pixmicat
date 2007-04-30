@@ -5,8 +5,8 @@
  * 提供存取以 SQLite3 資料庫構成的資料結構後端的物件 (需要 PHP 5.1.0 以上並開啟 PDO 功能)
  *
  * @package PMCLibrary
- * @version $Id: pio.sqlite3.php 362 2007-03-08 14:58:25Z scribe $
- * @date $Date: 2007-03-08 22:58:25 +0800 (星期四, 08 三月 2007) $
+ * @version $Id$
+ * @date $Date$
  */
 
 class PIOsqlite3{

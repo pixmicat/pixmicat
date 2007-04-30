@@ -17,10 +17,10 @@ function _T(/*$arg1, $arg2...$argN*/) {
 function LoadLanguage($locale = 'en_US') {
 	global $language;
 	if(!defined('PIXMICAT_LANGUAGE') || defined('PIXMICAT_LANGUAGE_OVERLOADING')) // language overloading
-		include_once("./languages/en_US.php");
-	if (file_exists("./languages/$locale.php"))
-		include_once("./languages/$locale.php");
+		include_once("./lib/lang/en_US.php");
+	if (file_exists("./lib/lang/$locale.php"))
+		include_once("./lib/lang/$locale.php");
 	else
-		include_once("./languages/en_US.php");
+		include_once("./lib/lang/en_US.php");
 }
 ?>

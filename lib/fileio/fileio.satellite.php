@@ -5,8 +5,8 @@
  * 搭配 satellite.php/pl 利用遠端空間管理圖檔
  *
  * @package PMCLibrary
- * @version $Id: fileio.satellite.php 379 2007-03-31 15:51:40Z scribe $
- * @date $Date: 2007-03-31 23:51:40 +0800 (星期六, 31 三月 2007) $
+ * @version $Id$
+ * @date $Date$
  */
 
 class FileIO{

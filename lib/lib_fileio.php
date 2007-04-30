@@ -5,7 +5,7 @@ FileIO Kernel Switcher
 */
 
 // 引入必要函式庫
-$fileio_file = './fileio/fileio.'.FILEIO_BACKEND.'.php'; // FileIO Backend
+$fileio_file = './lib/fileio/fileio.'.FILEIO_BACKEND.'.php'; // FileIO Backend
 if(is_file($fileio_file)) include_once($fileio_file);
 
 // 擴充物件
@@ -22,7 +22,7 @@ class FileIOWrapper extends FileIO{
 }
 
 $FileIOEnv = array( // FileIO 環境常數
-	'IFS.PATH' => './fileio/ifs.php',
+	'IFS.PATH' => './lib/fileio/ifs.php',
 	'IFS.LOG' => FILEIO_INDEXLOG,
 	'PATH' => realpath('.').DIRECTORY_SEPARATOR,
 	'IMG' => IMG_DIR,

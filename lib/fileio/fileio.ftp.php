@@ -5,8 +5,8 @@
  * 以遠端硬碟空間作為圖檔儲存的方式 (以 FTP 存取)，並提供一套方法供程式管理圖片
  *
  * @package PMCLibrary
- * @version $Id: fileio.ftp.php 379 2007-03-31 15:51:40Z scribe $
- * @date $Date: 2007-03-31 23:51:40 +0800 (星期六, 31 三月 2007) $
+ * @version $Id$
+ * @date $Date$
  */
 
 class FileIO{

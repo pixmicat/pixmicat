@@ -5,8 +5,8 @@
  * 把遠端圖檔的各種屬性作本機快取及記錄，方便程式取用
  *
  * @package PMCLibrary
- * @version $Id: ifs.php 379 2007-03-31 15:51:40Z scribe $
- * @date $Date: 2007-03-31 23:51:40 +0800 (星期六, 31 三月 2007) $
+ * @version $Id$
+ * @date $Date$
  */
 
 class IndexFS{

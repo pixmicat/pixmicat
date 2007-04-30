@@ -36,12 +36,12 @@ PHP 5.1.x 或更高版本並開啟GD和zlib支援
 */
 
 include_once('./config.php'); // 引入設定檔
-include_once('./lib_language.php'); // 引入語系
-include_once('./lib_common.php'); // 引入共通函式檔案
-include_once('./lib_fileio.php'); // 引入FileIO
-include_once('./lib_pio.php'); // 引入PIO
-include_once('./lib_pms.php'); // 引入PMS
-if(USE_TEMPLATE) include_once('./lib_pte.php'); // 引入PTE外部函式庫
+include_once('./lib/lib_language.php'); // 引入語系
+include_once('./lib/lib_common.php'); // 引入共通函式檔案
+include_once('./lib/lib_fileio.php'); // 引入FileIO
+include_once('./lib/lib_pio.php'); // 引入PIO
+include_once('./lib/lib_pms.php'); // 引入PMS
+if(USE_TEMPLATE) include_once('./lib/lib_pte.php'); // 引入PTE外部函式庫
 
 /* 更新記錄檔檔案／輸出討論串 */
 function updatelog($resno=0,$page_num=0){

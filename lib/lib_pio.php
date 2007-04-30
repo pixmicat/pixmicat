@@ -8,7 +8,7 @@ PIO Kernel Switcher
 if(preg_match('/^(.*):\/\//i', CONNECTION_STRING, $backend)) define('PIXMICAT_BACKEND', $backend[1]);
 
 // 引入必要函式庫
-$pio_file = './pio/pio.'.PIXMICAT_BACKEND.'.php';
+$pio_file = './lib/pio/pio.'.PIXMICAT_BACKEND.'.php';
 $PIOEnv = array( // PIO 環境常數
 	'BOARD' => '.',
 	'LUTCACHE' => './lutcache.dat',

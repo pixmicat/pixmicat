@@ -17,8 +17,8 @@
  * (http://reg.imageshack.us/content.php?page=linkto 可選擇喜歡方式使用)
  *
  * @package PMCLibrary
- * @version $Id: fileio.imageshack.php 379 2007-03-31 15:51:40Z scribe $
- * @date $Date: 2007-03-31 23:51:40 +0800 (星期六, 31 三月 2007) $
+ * @version $Id$
+ * @date $Date$
  */
 
 class FileIO{

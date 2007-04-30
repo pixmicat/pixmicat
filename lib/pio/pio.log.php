@@ -5,8 +5,8 @@
  * 提供存取以 Log 檔案構成的資料結構後端的物件
  *
  * @package PMCLibrary
- * @version $Id: pio.log.php 362 2007-03-08 14:58:25Z scribe $
- * @date $Date: 2007-03-08 22:58:25 +0800 (星期四, 08 三月 2007) $
+ * @version $Id$
+ * @date $Date$
  */
 
 class PIOlog{
