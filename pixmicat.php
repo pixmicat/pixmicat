@@ -1,5 +1,5 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release-dev b070430'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release-dev b070504'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -240,6 +240,7 @@ function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $
 		extract($posts[$i]); // 取出討論串文章內容設定變數
 
 		// 設定欄位值
+		$name = str_replace('&'._T('trip_pre'), '&amp;'._T('trip_pre'), $name); // 避免 &#xxxx; 後面被視為 Trip 留下 & 造成解析錯誤
 		if(CLEAR_SAGE) $email = preg_replace('/^sage( *)/i', '', trim($email)); // 清除E-mail中的「sage」關鍵字
 		if(ALLOW_NONAME==2){ // 強制砍名
 			$name = preg_match('/(\\'._T('trip_pre').'.{10})/', $name, $matches) ? '<span class="nor">'.$matches[1].'</span>' : '';
@@ -517,6 +518,7 @@ function regist(){
 		$name = str_replace(_T('admin'), '"'._T('admin').'"', $name);
 		$name = str_replace(_T('deletor'), '"'._T('deletor').'"', $name);
 	}
+	$name = str_replace('&◆', '&amp;◆', $name); // 避免 &#xxxx; 後面被視為 Trip 留下 & 造成解析錯誤
 	// 內文修整
 	if((strlen($com) > COMM_MAX) && !$is_admin) error(_T('regist_commenttoolong'), $dest);
 	$com = CleanStr($com, $is_admin); // 引入$is_admin參數是因為當管理員キャップ啟動時，允許管理員依config設定是否使用HTML
