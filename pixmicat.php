@@ -1,5 +1,5 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release-dev b070504'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release-dev b070505'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -917,8 +917,8 @@ function search(){
 		foreach($hitPosts as $post){
 			extract($post);
 			$resultlist .= '<tr><td>
-<span class="title">$sub</span> '._T('post_name').'<span class="name">$name</span> [$now] No.{$no} <br />
-<div class="quote">$com</div><hr />
+<span class="title">'.$sub.'</span> '._T('post_name').'<span class="name">'.$name.'.</span> ['.$now.'] No.'.$no.' <br />
+<div class="quote">'.$com.'</div><hr />
 </td></tr>';
 		}
 		echo $resultlist ? $resultlist : '<tr align="center"><td>'._T('search_notfound').'</td></tr><tr align="center"><td><a href="?mode=search">'._T('search_back').'</a></td></tr>';
