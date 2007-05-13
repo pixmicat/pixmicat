@@ -1,5 +1,12 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2007/05/13
+-[mainscript] 改寫增加效率，以 /packer/ 壓縮得到更小檔案
+ - 新增 Preset() Hook 機能，能在頁面載入完執行特定掛載函式
+ - replace_sakura() 改寫，增加效率
+-[iedivfix] 改寫，使用 Hook 機能提前執行時機
+-[lib_common] 把 mainscript.js 和 iedivfix.js 順序對調，防止執行錯誤
+
 2007/05/04, 05, 06
 -[pixmicat] 修正名稱輸入特殊字元轉成 Unicode 參照碼後被視為 Trip 轉換留下 & 造成 XML 解析錯誤的問題 (儲存/顯示雙重檢查)
 -[pixmicat] 修正搜尋文章結果印出錯誤的問題 (Since rev.363)

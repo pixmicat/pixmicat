@@ -1,5 +1,5 @@
 <?php
-// Revision : 2007/02/24 19:09
+// Revision : 2007/5/13 18:43
 
 /* 輸出表頭 */
 function head(&$dat){
@@ -17,9 +17,9 @@ function head(&$dat){
 <link rel="stylesheet" type="text/css" href="mainstyle.css" />
 ';
 	$PMS->useModuleMethods('Head', array(&$dat)); // "Head" Hook Point
-$dat .= '<!--[if IE]><script type="text/javascript" src="iedivfix.js"></script><![endif]-->
-<script type="text/javascript" src="mainscript.lang.php"></script>
+$dat .= '<script type="text/javascript" src="mainscript.lang.php"></script>
 <script type="text/javascript" src="mainscript.js"></script>
+<!--[if IE]><script type="text/javascript" src="iedivfix.js"></script><![endif]-->
 <script type="text/javascript">
 // <![CDATA[
 var ext="'.ALLOW_UPLOAD_EXT.'".toUpperCase().split("|");
