@@ -313,24 +313,24 @@ function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $
 		}else $category = '';
 
 		// 最終輸出處
-		if(USE_TEMPLATE){ // 樣板輸出
-			if($i){ // 回應
-				$arrLabels = array('{$NO}'=>$no, '{$SUB}'=>$sub, '{$NAME}'=>$name, '{$NOW}'=>$now, '{$COM}'=>$com, '{$CATEGORY}'=>$category, '{$QUOTEBTN}'=>$QUOTEBTN, '{$IMG_BAR}'=>$IMG_BAR, '{$IMG_SRC}'=>$imgsrc, '{$WARN_BEKILL}'=>$WARN_BEKILL, '{$QUOTEBTN}'=>$QUOTEBTN);
-				$PMS->useModuleMethods('ThreadReply', array(&$arrLabels, $posts[$i], $resno)); // "ThreadReply" Hook Point
+		if($i){ // 回應
+			$arrLabels = array('{$NO}'=>&$no, '{$SUB}'=>&$sub, '{$NAME}'=>&$name, '{$NOW}'=>&$now, '{$COM}'=>&$com, '{$CATEGORY}'=>&$category, '{$QUOTEBTN}'=>&$QUOTEBTN, '{$IMG_BAR}'=>&$IMG_BAR, '{$IMG_SRC}'=>&$imgsrc, '{$WARN_BEKILL}'=>&$WARN_BEKILL, '{$QUOTEBTN}'=>&$QUOTEBTN);
+			$PMS->useModuleMethods('ThreadReply', array(&$arrLabels, $posts[$i], $resno)); // "ThreadReply" Hook Point
+			if(USE_TEMPLATE){ // 樣板輸出
 				$thdat .= $PTE->ReplaceStrings_Reply($arrLabels);
-			}else{ // 首篇
-				$arrLabels = array('{$NO}'=>$no, '{$SUB}'=>$sub, '{$NAME}'=>$name, '{$NOW}'=>$now, '{$COM}'=>$com, '{$CATEGORY}'=>$category, '{$QUOTEBTN}'=>$QUOTEBTN, '{$REPLYBTN}'=>$REPLYBTN, '{$IMG_BAR}'=>$IMG_BAR, '{$IMG_SRC}'=>$imgsrc, '{$WARN_OLD}'=>$WARN_OLD, '{$WARN_BEKILL}'=>$WARN_BEKILL, '{$WARN_ENDREPLY}'=>$WARN_ENDREPLY, '{$WARN_HIDEPOST}'=>$WARN_HIDEPOST);
-				$PMS->useModuleMethods('ThreadPost', array(&$arrLabels, $posts[$i], $resno)); // "ThreadPost" Hook Point
-				$thdat .= $PTE->ReplaceStrings_Main($arrLabels);
-			}
-		}else{ // 非樣板輸出
-			if($i){ // 回應
+			}else{ // 非樣板輸出
 				$thdat .= '<div class="reply" id="r'.$no.'">
 <input type="checkbox" name="'.$no.'" value="delete" /><span class="title">'.$sub.'</span> '._T('post_name').'<span class="name">'.$name.'</span> ['.$now.'] '.$QUOTEBTN.'&nbsp;'.$IMG_BAR.$imgsrc.'
 <div class="quote">'.$com.'</div>'."\n";
 				if($category) $thdat .= '<div class="category">'._T('post_category').$category.'</div>'."\n";
 				$thdat .= $WARN_BEKILL."</div>\n";
-			}else{ // 首篇
+			}
+		}else{ // 首篇
+			$arrLabels = array('{$NO}'=>&$no, '{$SUB}'=>&$sub, '{$NAME}'=>&$name, '{$NOW}'=>&$now, '{$COM}'=>&$com, '{$CATEGORY}'=>&$category, '{$QUOTEBTN}'=>&$QUOTEBTN, '{$REPLYBTN}'=>&$REPLYBTN, '{$IMG_BAR}'=>&$IMG_BAR, '{$IMG_SRC}'=>&$imgsrc, '{$WARN_OLD}'=>&$WARN_OLD, '{$WARN_BEKILL}'=>&$WARN_BEKILL, '{$WARN_ENDREPLY}'=>&$WARN_ENDREPLY, '{$WARN_HIDEPOST}'=>&$WARN_HIDEPOST);
+			$PMS->useModuleMethods('ThreadPost', array(&$arrLabels, $posts[$i], $resno)); // "ThreadPost" Hook Point
+			if(USE_TEMPLATE){ // 樣板輸出
+				$thdat .= $PTE->ReplaceStrings_Main($arrLabels);
+			}else{ // 非樣板輸出
 				$thdat .= '<div class="threadpost">
 '.$IMG_BAR.$imgsrc.'<input type="checkbox" name="'.$no.'" value="delete" /><span class="title">'.$sub.'</span> '._T('post_name').'<span class="name">'.$name.'</span> ['.$now.'] '.$QUOTEBTN.'&nbsp;'.$REPLYBTN.'
 <div class="quote">'.$com.'</div>'."\n";
