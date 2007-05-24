@@ -1,6 +1,6 @@
 <?php
 /*
-Pixmicat! language file - Japanese [ja_JA]
+Pixmicat! language file - Japanese [ja_JP]
 */
 if (!isset($language)) $language = Array();
 
