@@ -1,5 +1,9 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2007/05/27
+-[pixmicat][PMS] 新增 RegistBegin, RegistBeforeCommit 掛載點
+-[pixmicat] 修正模組資訊頁面的排版問題
+
 2007/05/13
 -[mainscript] 改寫增加效率，以 /packer/ 壓縮得到更小檔案
  - 新增 Preset() Hook 機能，能在頁面載入完執行特定掛載函式

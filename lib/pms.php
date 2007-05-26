@@ -23,7 +23,7 @@ class PMS{
 			'ThreadFront'=>array(), 'ThreadRear'=>array(),
 			'ThreadPost'=>array(), 'ThreadReply'=>array(),
 			'Foot'=>array(), 'ModulePage'=>array(),
-			'AdminList'=>array()
+			'AdminList'=>array(), 'RegistBegin'=>array(), 'RegistBeforeCommit'=>array()
 		);
 		$this->moduleInstance = array(); // 存放各模組實體
 		$this->moduleLists = array(); // 存放各模組類別名稱

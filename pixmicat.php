@@ -1,5 +1,5 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release-dev b070506'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release-dev b070527'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -345,7 +345,7 @@ function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $
 
 /* 寫入記錄檔 */
 function regist(){
-	global $path, $PIO, $FileIO, $language, $BAD_STRING, $BAD_FILEMD5, $BAD_IPADDR;
+	global $path, $PIO, $FileIO, $PMS, $language, $BAD_STRING, $BAD_FILEMD5, $BAD_IPADDR;
 	$dest = ''; $mes = ''; $up_incomplete = 0; $is_admin = false;
 
 	if($_SERVER['REQUEST_METHOD'] != 'POST') error(_T('regist_notpost')); // 非正規POST方式
@@ -373,13 +373,18 @@ function regist(){
 
 	// 封鎖：IP/Hostname/DNSBL 檢查機能
 	$ip = $_SERVER["REMOTE_ADDR"]; $host = gethostbyaddr($ip); $baninfo = '';
-	if(BanIPHostDNSBLCheck($ip, $host, $baninfo)) error(_T('regist_ipfiltered',$baninfo));
+	if(BanIPHostDNSBLCheck($ip, $host, $baninfo)) error(_T('regist_ipfiltered', $baninfo));
 	// 封鎖：限制出現之文字
 	foreach($BAD_STRING as $value){
 		if(strpos($com, $value)!==false || strpos($sub, $value)!==false || strpos($name, $value)!==false || strpos($email, $value)!==false){
 			error(_T('regist_wordfiltered'));
 		}
 	}
+	$PMS->useModuleMethods('RegistBegin', array(&$name, &$email, &$sub, &$com, (isset($_FILES['upfile']) ? $_FILES['upfile'] : array()), array($ip, $host), $_POST)); // "RegistBegin" Hook Point
+
+	// 檢查是否輸入櫻花日文假名
+	$chkanti = array($name, $email, $sub, $com);
+	foreach($chkanti as $anti) if(anti_sakura($anti)) error(_T('regist_sakuradetected'));
 
 	// 時間
 	$time = time();
@@ -474,10 +479,6 @@ function regist(){
 		$mes = _T('regist_uploaded',CleanStr($upfile_name));
 	}
 
-	// 檢查是否輸入櫻花日文假名
-	$chkanti = array($name, $email, $sub, $com);
-	foreach($chkanti as $anti) if(anti_sakura($anti)) error(_T('regist_sakuradetected'), $dest);
-
 	// 檢查表單欄位內容並修整
 	if(!$name || ereg("^[ |　|]*$", $name)){
 		if(ALLOW_NONAME) $name = DEFAULT_NONAME;
@@ -527,10 +528,10 @@ function regist(){
 	$com = ereg_replace("\n((　| )*\n){3,}", "\n", $com);
 	if(!BR_CHECK || substr_count($com,"\n") < BR_CHECK) $com = nl2br($com); // 換行字元用<br />代替
 	$com = str_replace("\n",'', $com); // 若還有\n換行字元則取消換行
-	if($category){ // 修整標籤樣式
+	if($category && USE_CATEGORY){ // 修整標籤樣式
 		$category = explode(',', $category); // 把標籤拆成陣列
 		$category = ','.implode(',', array_map('trim', $category)).','; // 去空白再合併為單一字串 (左右含,便可以直接以,XX,形式搜尋)
-	}
+	}else{ $category = ''; }
 	if($up_incomplete) $com .= '<br /><br /><span class="warn_txt">'._T('notice_incompletefile').'</span>'; // 上傳附加圖檔不完全的提示
 
 	// 密碼和時間的樣式
@@ -592,13 +593,13 @@ function regist(){
 	isset($W) ? 0 : $W = 0;
 	isset($H) ? 0 : $H = 0;
 	isset($md5chksum) ? 0 : $md5chksum = '';
-	USE_CATEGORY ? 0 : $category = '';
 	$age = false;
 	if($resto){
 		if(!stristr($email, 'sage') && ($PIO->postCount($resto) <= MAX_RES || MAX_RES==0)){
 			if(!MAX_AGE_TIME || (($time - $chktime) < (MAX_AGE_TIME * 60 * 60))) $age = true; // 討論串並無過期，推文
 		}
 	}
+	$PMS->useModuleMethods('RegistBeforeCommit', array(&$name, &$email, &$sub, &$com, &$category, &$age, $dest, array($W, $H, $imgW, $imgH))); // "RegistBeforeCommit" Hook Point
 
 	// 正式寫入儲存
 	$PIO->addPost($no,$resto,$md5chksum,$category,$tim,$ext,$imgW,$imgH,$imgsize,$W,$H,$pass,$now,$name,$email,$sub,$com,$host,$age);
@@ -999,7 +1000,7 @@ function listModules(){
 	/* Module Infomation */
 	$dat .= _T('module_info').'<ul>'."\n";
 	foreach($PMS->moduleInstance as $m){
-		$dat .= '<li><dl><dt>'.$m->getModuleName().'</dt><dd>'.$m->getModuleVersionInfo()."</dd></dl></li>\n";
+		$dat .= '<li>'.$m->getModuleName().'<div style="padding-left:2em;">'.$m->getModuleVersionInfo()."</div></li>\n";
 	}
 	$dat .= '</ul><hr />
 </div>
