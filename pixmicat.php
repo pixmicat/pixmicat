@@ -41,16 +41,19 @@ include_once('./lib/lib_common.php'); // 引入共通函式檔案
 include_once('./lib/lib_fileio.php'); // 引入FileIO
 include_once('./lib/lib_pio.php'); // 引入PIO
 include_once('./lib/lib_pms.php'); // 引入PMS
-if(USE_TEMPLATE) include_once('./lib/lib_pte.php'); // 引入PTE外部函式庫
+include_once('./lib/lib_pte.php'); // 引入PTE外部函式庫
+
+$PTE = new PTELibrary(TEMPLATE_FILE); // PTE Library
 
 /* 更新記錄檔檔案／輸出討論串 */
 function updatelog($resno=0,$page_num=0){
-	global $PIO, $FileIO, $PMS, $language;
+	global $PIO, $FileIO, $PTE, $PMS, $language;
 
 	$page_start = $page_end = 0; // 靜態頁面編號
 	$inner_for_count = 1; // 內部迴圈執行次數
 	$kill_sensor = $old_sensor = false; // 預測系統啟動旗標
 	$arr_kill = $arr_old = array(); // 過舊編號陣列
+	$pte_vals = array('{$THREADFRONT}'=>'','{$THREADS}'=>'','{$THREADREAR}'=>'');
 
 	if(!$resno){
 		if($page_num==0){ // remake模式 (PHP動態輸出多頁份)
@@ -78,20 +81,13 @@ function updatelog($resno=0,$page_num=0){
 		$kill_sensor = true; // 標記打開
 		$arr_kill = $PIO->delOldAttachments($tmp_total_size, $tmp_STORAGE_MAX); // 過舊附檔陣列
 	}
-	$PTE = USE_TEMPLATE ? new PTELibrary(TEMPLATE_FILE) : 0; // PTE Library
 
 	// 生成靜態頁面一頁份內容
 	for($page = $page_start; $page <= $page_end; $page++){
 		$dat = '';
 		head($dat);
 		form($dat, $resno);
-		$dat .= '<div id="contents">
-
-<form action="'.PHP_SELF.'" method="post">
-<div id="threads">
-
-';
-		$PMS->useModuleMethods('ThreadFront', array(&$dat)); // "ThreadFront" Hook Point
+		$PMS->useModuleMethods('ThreadFront', array(&$pte_vals['{$THREADFRONT}'])); // "ThreadFront" Hook Point
 		// 輸出討論串內容
 		for($i = 0; $i < $inner_for_count; $i++){
 			// 取出討論串編號
@@ -129,26 +125,17 @@ function updatelog($resno=0,$page_num=0){
 			// $RES_start, $RES_amount 拿去算新討論串結構 (分頁後, 部分回應隱藏)
 			$tree_cut = array_slice($tree, $RES_start, $RES_amount); array_unshift($tree_cut, $tID); // 取出特定範圍回應
 			$posts = $PIO->fetchPosts($tree_cut); // 取得文章架構內容
-			$dat .= arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno, $arr_kill, $arr_old, $kill_sensor, $old_sensor); // 交給這個函式去搞討論串印出
+			$pte_vals['{$THREADS}'] = arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno, $arr_kill, $arr_old, $kill_sensor, $old_sensor); // 交給這個函式去搞討論串印出
 		}
-		$PMS->useModuleMethods('ThreadRear', array(&$dat)); // "ThreadRear" Hook Point
-		$dat .= '</div>
+		$PMS->useModuleMethods('ThreadRear', array(&$pte_vals['{$THREADREAR}'])); // "ThreadRear" Hook Point
+		$pte_vals += array('{$DEL_HEAD_TEXT}' => '<input type="hidden" name="mode" value="usrdel" />'._T('del_head'),
+			'{$DEL_IMG_ONLY_FIELD}' => '<input type="checkbox" name="onlyimgdel" id="onlyimgdel" value="on" />',
+			'{$DEL_IMG_ONLY_TEXT}' => _T('del_img_only'),
+			'{$DEL_PASS_TEXT}' => _T('del_pass'),
+			'{$DEL_PASS_FIELD}' => '<input type="password" name="pwd" size="8" maxlength="8" value="" />',
+			'{$DEL_SUBMIT_BTN}' => '<input type="submit" value="'._T('del_btn').'" />');
 
-<div id="del">
-<table style="float: right;">
-<tr><td align="center" style="white-space: nowrap;">
-<input type="hidden" name="mode" value="usrdel" />
-'._T('del_head').'[<input type="checkbox" name="onlyimgdel" id="onlyimgdel" value="on" /><label for="onlyimgdel">'._T('del_img_only').'</label>]<br />
-'._T('del_pass').'<input type="password" name="pwd" size="8" maxlength="8" value="" />
-<input type="submit" value="'._T('del_btn').'" />
-<script type="text/javascript">l2();</script>
-</td></tr>
-</table>
-</div>
-</form>
-
-<div id="page_switch">
-';
+		$pte_vals['{$PAGENAV}'] = '<div id="page_switch">';
 
 		// 換頁判斷
 		$prev = ($resno ? $page_num : $page) - 1;
@@ -156,57 +143,53 @@ function updatelog($resno=0,$page_num=0){
 		if($resno){ // 回應分頁
 			if(RE_PAGE_DEF > 0){ // 回應分頁開啟
 				$AllRes = isset($_GET['page_num']) && $_GET['page_num']=='all'; // 是否使用 ALL 全部輸出
-				$dat .= '<table border="1"><tr>';
-				if($prev >= 0) $dat .= '<td><form action="'.PHP_SELF.'?res='.$resno.'&amp;page_num='.$prev.'" method="post"><div><input type="submit" value="'._T('prev_page').'" /></div></form></td>';
-				else $dat .= '<td style="white-space: nowrap;">'._T('first_page').'</td>';
-				$dat .= "<td>";
-				if($tree_count==0) $dat .= '[<b>0</b>] '; // 無回應
+				$pte_vals['{$PAGENAV}'] .= '<table border="1"><tr>';
+				if($prev >= 0) $pte_vals['{$PAGENAV}'] .= '<td><form action="'.PHP_SELF.'?res='.$resno.'&amp;page_num='.$prev.'" method="post"><div><input type="submit" value="'._T('prev_page').'" /></div></form></td>';
+				else $pte_vals['{$PAGENAV}'] .= '<td style="white-space: nowrap;">'._T('first_page').'</td>';
+				$pte_vals['{$PAGENAV}'] .= "<td>";
+				if($tree_count==0) $pte_vals['{$PAGENAV}'] .= '[<b>0</b>] '; // 無回應
 				else{
 					for($i = 0; $i < $tree_count ; $i += RE_PAGE_DEF){
-						if(!$AllRes && $page_num==$i/RE_PAGE_DEF) $dat .= '[<b>'.$i/RE_PAGE_DEF.'</b>] ';
-						else $dat .= '[<a href="'.PHP_SELF.'?res='.$resno.'&amp;page_num='.$i/RE_PAGE_DEF.'">'.$i/RE_PAGE_DEF.'</a>] ';
+						if(!$AllRes && $page_num==$i/RE_PAGE_DEF) $pte_vals['{$PAGENAV}'] .= '[<b>'.$i/RE_PAGE_DEF.'</b>] ';
+						else $pte_vals['{$PAGENAV}'] .= '[<a href="'.PHP_SELF.'?res='.$resno.'&amp;page_num='.$i/RE_PAGE_DEF.'">'.$i/RE_PAGE_DEF.'</a>] ';
 					}
-					$dat .= $AllRes ? '[<b>'._T('all_pages').'</b>] ' : ($tree_count > RE_PAGE_DEF ? '[<a href="'.PHP_SELF.'?res='.$resno.'&amp;page_num=all">'._T('all_pages').'</a>] ' : '');
+					$pte_vals['{$PAGENAV}'] .= $AllRes ? '[<b>'._T('all_pages').'</b>] ' : ($tree_count > RE_PAGE_DEF ? '[<a href="'.PHP_SELF.'?res='.$resno.'&amp;page_num=all">'._T('all_pages').'</a>] ' : '');
 				}
-				$dat .= '</td>';
-				if(!$AllRes && $tree_count > $next * RE_PAGE_DEF) $dat .= '<td><form action="'.PHP_SELF.'?res='.$resno.'&amp;page_num='.$next.'" method="post"><div><input type="submit" value="'._T('next_page').'" /></div></form></td>';
-				else $dat .= '<td style="white-space: nowrap;">'._T('last_page').'</td>';
-				$dat .= '</tr></table>'."\n";
+				$pte_vals['{$PAGENAV}'] .= '</td>';
+				if(!$AllRes && $tree_count > $next * RE_PAGE_DEF) $pte_vals['{$PAGENAV}'] .= '<td><form action="'.PHP_SELF.'?res='.$resno.'&amp;page_num='.$next.'" method="post"><div><input type="submit" value="'._T('next_page').'" /></div></form></td>';
+				else $pte_vals['{$PAGENAV}'] .= '<td style="white-space: nowrap;">'._T('last_page').'</td>';
+				$pte_vals['{$PAGENAV}'] .= '</tr></table>'."\n";
 			}
 		}else{ // 一般分頁
-			$dat .= '<table border="1"><tr>';
+			$pte_vals['{$PAGENAV}'] .= '<table border="1"><tr>';
 			if($prev >= 0){
-				if($prev==0) $dat .= '<td><form action="'.PHP_SELF2.'" method="get">';
+				if($prev==0) $pte_vals['{$PAGENAV}'] .= '<td><form action="'.PHP_SELF2.'" method="get">';
 				else{
-					if((STATIC_HTML_UNTIL != -1) && ($prev > STATIC_HTML_UNTIL)) $dat .= '<td><form action="'.PHP_SELF.'?page_num='.$prev.'" method="post">';
-					else $dat .= '<td><form action="'.$prev.PHP_EXT.'" method="get">';
+					if((STATIC_HTML_UNTIL != -1) && ($prev > STATIC_HTML_UNTIL)) $pte_vals['{$PAGENAV}'] .= '<td><form action="'.PHP_SELF.'?page_num='.$prev.'" method="post">';
+					else $pte_vals['{$PAGENAV}'] .= '<td><form action="'.$prev.PHP_EXT.'" method="get">';
 				}
-				$dat .= '<div><input type="submit" value="'._T('prev_page').'" /></div></form></td>';
-			}else $dat .= '<td style="white-space: nowrap;">'._T('first_page').'</td>';
-			$dat .= '<td>';
+				$pte_vals['{$PAGENAV}'] .= '<div><input type="submit" value="'._T('prev_page').'" /></div></form></td>';
+			}else $pte_vals['{$PAGENAV}'] .= '<td style="white-space: nowrap;">'._T('first_page').'</td>';
+			$pte_vals['{$PAGENAV}'] .= '<td>';
 			for($i = 0; $i < $threads_count ; $i += PAGE_DEF){
-				if($page==$i/PAGE_DEF) $dat .= "[<b>".$i/PAGE_DEF."</b>] ";
+				if($page==$i/PAGE_DEF) $pte_vals['{$PAGENAV}'] .= "[<b>".$i/PAGE_DEF."</b>] ";
 				else{
-					if($i==0) $dat .= '[<a href="'.PHP_SELF2.'?">0</a>] ';
-					elseif(STATIC_HTML_UNTIL != -1 && $i/PAGE_DEF > STATIC_HTML_UNTIL) $dat .= '[<a href="'.PHP_SELF.'?page_num='.$i/PAGE_DEF.'">'.$i/PAGE_DEF.'</a>] ';
-					else $dat .= '[<a href="'.$i/PAGE_DEF.PHP_EXT.'?">'.$i/PAGE_DEF.'</a>] ';
+					if($i==0) $pte_vals['{$PAGENAV}'] .= '[<a href="'.PHP_SELF2.'?">0</a>] ';
+					elseif(STATIC_HTML_UNTIL != -1 && $i/PAGE_DEF > STATIC_HTML_UNTIL) $pte_vals['{$PAGENAV}'] .= '[<a href="'.PHP_SELF.'?page_num='.$i/PAGE_DEF.'">'.$i/PAGE_DEF.'</a>] ';
+					else $pte_vals['{$PAGENAV}'] .= '[<a href="'.$i/PAGE_DEF.PHP_EXT.'?">'.$i/PAGE_DEF.'</a>] ';
 				}
 			}
-			$dat .= '</td>';
+			$pte_vals['{$PAGENAV}'] .= '</td>';
 			if($threads_count > $next * PAGE_DEF){
-				if((STATIC_HTML_UNTIL != -1) && ($next > STATIC_HTML_UNTIL)) $dat .= '<td><form action="'.PHP_SELF.'?page_num='.$next.'" method="post">';
-				else $dat .= '<td><form action="'.$next.PHP_EXT.'" method="get">';
-				$dat .= '<div><input type="submit" value="'._T('next_page').'" /></div></form></td>';
-			}else $dat .= '<td style="white-space: nowrap;">'._T('last_page').'</td>';
-			$dat .= '</tr></table>'."\n";
+				if((STATIC_HTML_UNTIL != -1) && ($next > STATIC_HTML_UNTIL)) $pte_vals['{$PAGENAV}'] .= '<td><form action="'.PHP_SELF.'?page_num='.$next.'" method="post">';
+				else $pte_vals['{$PAGENAV}'] .= '<td><form action="'.$next.PHP_EXT.'" method="get">';
+				$pte_vals['{$PAGENAV}'] .= '<div><input type="submit" value="'._T('next_page').'" /></div></form></td>';
+			}else $pte_vals['{$PAGENAV}'] .= '<td style="white-space: nowrap;">'._T('last_page').'</td>';
+			$pte_vals['{$PAGENAV}'] .= '</tr></table>'."\n";
 		}
-		$dat .= '<br style="clear: left;" />
-</div>
-
-</div>
-
-';
-
+		$pte_vals['{$PAGENAV}'] .= '<br style="clear: left;" />
+</div>';
+		$dat .= $PTE->ParseBlock('MAIN',$pte_vals);
 		foot($dat);
 
 		// 存檔 / 輸出
@@ -279,10 +262,6 @@ function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $
 			}
 			if(SHOW_IMGWH) $imgwh_bar = ', '.$imgw.'x'.$imgh; // 顯示附加圖檔之原檔長寬尺寸
 			$IMG_BAR = _T('img_filename').'<a href="'.$imageURL.'" rel="_blank">'.$tim.$ext.'</a>-('.$imgsize.$imgwh_bar.') '.$img_thumb;
-			if(!USE_TEMPLATE){
-				if($i) $IMG_BAR = '<br />&nbsp;'.$IMG_BAR; // 只有回應的IMG_BAR有資料時需要換行
-				$imgsrc = '<br />'.$imgsrc;
-			}
 		}
 
 		// 設定回應 / 引用連結
@@ -316,30 +295,14 @@ function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $
 		if($i){ // 回應
 			$arrLabels = array('{$NO}'=>&$no, '{$SUB}'=>&$sub, '{$NAME}'=>&$name, '{$NOW}'=>&$now, '{$COM}'=>&$com, '{$CATEGORY}'=>&$category, '{$QUOTEBTN}'=>&$QUOTEBTN, '{$IMG_BAR}'=>&$IMG_BAR, '{$IMG_SRC}'=>&$imgsrc, '{$WARN_BEKILL}'=>&$WARN_BEKILL, '{$QUOTEBTN}'=>&$QUOTEBTN);
 			$PMS->useModuleMethods('ThreadReply', array(&$arrLabels, $posts[$i], $resno)); // "ThreadReply" Hook Point
-			if(USE_TEMPLATE){ // 樣板輸出
-				$thdat .= $PTE->ReplaceStrings_Reply($arrLabels);
-			}else{ // 非樣板輸出
-				$thdat .= '<div class="reply" id="r'.$no.'">
-<input type="checkbox" name="'.$no.'" value="delete" /><span class="title">'.$sub.'</span> '._T('post_name').'<span class="name">'.$name.'</span> ['.$now.'] '.$QUOTEBTN.'&nbsp;'.$IMG_BAR.$imgsrc.'
-<div class="quote">'.$com.'</div>'."\n";
-				if($category) $thdat .= '<div class="category">'._T('post_category').$category.'</div>'."\n";
-				$thdat .= $WARN_BEKILL."</div>\n";
-			}
+			$thdat .= $PTE->ParseBlock('REPLY',$arrLabels);
 		}else{ // 首篇
 			$arrLabels = array('{$NO}'=>&$no, '{$SUB}'=>&$sub, '{$NAME}'=>&$name, '{$NOW}'=>&$now, '{$COM}'=>&$com, '{$CATEGORY}'=>&$category, '{$QUOTEBTN}'=>&$QUOTEBTN, '{$REPLYBTN}'=>&$REPLYBTN, '{$IMG_BAR}'=>&$IMG_BAR, '{$IMG_SRC}'=>&$imgsrc, '{$WARN_OLD}'=>&$WARN_OLD, '{$WARN_BEKILL}'=>&$WARN_BEKILL, '{$WARN_ENDREPLY}'=>&$WARN_ENDREPLY, '{$WARN_HIDEPOST}'=>&$WARN_HIDEPOST);
 			$PMS->useModuleMethods('ThreadPost', array(&$arrLabels, $posts[$i], $resno)); // "ThreadPost" Hook Point
-			if(USE_TEMPLATE){ // 樣板輸出
-				$thdat .= $PTE->ReplaceStrings_Main($arrLabels);
-			}else{ // 非樣板輸出
-				$thdat .= '<div class="threadpost">
-'.$IMG_BAR.$imgsrc.'<input type="checkbox" name="'.$no.'" value="delete" /><span class="title">'.$sub.'</span> '._T('post_name').'<span class="name">'.$name.'</span> ['.$now.'] '.$QUOTEBTN.'&nbsp;'.$REPLYBTN.'
-<div class="quote">'.$com.'</div>'."\n";
-				if($category) $thdat .= '<div class="category">'._T('post_category').$category.'</div>'."\n";
-				$thdat .= $WARN_OLD.$WARN_BEKILL.$WARN_ENDREPLY.$WARN_HIDEPOST."</div>\n";
-			}
+			$thdat .= $PTE->ParseBlock('THREAD',$arrLabels);
 		}
 	}
-	$thdat .= USE_TEMPLATE ? $PTE->ReplaceStrings_Separate() : "<hr />\n\n";
+	$thdat .= $PTE->ParseBlock('SEPARATE',array());
 	return $thdat;
 }
 
@@ -930,7 +893,7 @@ function search(){
 
 /* 利用類別標籤搜尋符合的文章 */
 function searchCategory(){
-	global $PIO, $FileIO, $language;
+	global $PTE, $PIO, $FileIO, $language;
 	$category = isset($_GET['c']) ? strtolower(strip_tags(trim($_GET['c']))) : ''; // 搜尋之類別標籤
 	$category_enc = urlencode($category); // URL 編碼後字串
 	$page = isset($_GET['p']) ? @intval($_GET['p']) : 1; // 目前瀏覽頁數
@@ -949,7 +912,6 @@ function searchCategory(){
 	$page_max = ceil($loglist_count / PAGE_DEF); if($page > $page_max) $page = $page_max; // 總頁數
 
 	// 分割陣列取出適當範圍作分頁之用
-	$PTE = USE_TEMPLATE ? new PTELibrary(TEMPLATE_FILE) : 0; // PTE Library
 	$loglist_cut = array_slice($loglist, PAGE_DEF * ($page - 1), PAGE_DEF); // 取出特定範圍文章
 	$loglist_cut_count = count($loglist_cut);
 

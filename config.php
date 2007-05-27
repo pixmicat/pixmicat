@@ -104,7 +104,6 @@ define("THUMB_Q", 75); // 預覽圖片之品質 (1-100, 建議預設75，越高�
 
 // 外觀設定
 $ADDITION_INFO = ""; // 可在表單下顯示額外文字
-define("USE_TEMPLATE", 0); // 是否使用樣板
 define("TEMPLATE_FILE", 'inc_pixmicat.tpl'); // 樣板位置
 define("LOG_MAX", 500); // 記錄檔保留之最大資料筆數
 define("PAGE_DEF", 15); // 一頁顯示幾篇討論串

@@ -2,115 +2,85 @@
 // Revision : 2007/5/13 18:43
 
 /* 輸出表頭 */
-function head(&$dat){
-	global $PMS, $language;
+function head(&$dat,$use_header2=true){
+	global $PTE, $PMS, $language;
 	header('Content-Type: '.((strpos($_SERVER['HTTP_ACCEPT'],'application/xhtml+xml')!==FALSE) ? 'application/xhtml+xml' : 'text/html').'; charset=utf-8'); // 如果瀏覽器支援XHTML標準MIME就輸出
-	$dat .= '<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="zh-tw">
-<head>
-<meta http-equiv="Pragma" content="no-cache" />
-<meta http-equiv="Expires" content="Sat, 1 Jan 2000 00:00:00 GMT" />
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<meta http-equiv="Content-Language" content="zh-tw" />
-<title>'.TITLE.'</title>
-<link rel="stylesheet" type="text/css" href="mainstyle.css" />
-';
+	$pte_vals = array('{$TITLE}'=>TITLE);
+	$dat .= $PTE->ParseBlock('HEADER1',$pte_vals);
 	$PMS->useModuleMethods('Head', array(&$dat)); // "Head" Hook Point
-$dat .= '<script type="text/javascript" src="mainscript.lang.php"></script>
-<script type="text/javascript" src="mainscript.js"></script>
-<!--[if IE]><script type="text/javascript" src="iedivfix.js"></script><![endif]-->
-<script type="text/javascript">
-// <![CDATA[
-var ext="'.ALLOW_UPLOAD_EXT.'".toUpperCase().split("|");
-// ]]>
-</script>
-</head>
-<body>
-
-<div id="header">
-<div id="toplink">
-[<a href="'.HOME.'" rel="_top">'._T('head_home').'</a>]
-';
-	if(USE_SEARCH) $dat .= '[<a href="'.PHP_SELF.'?mode=search">'._T('head_search').'</a>]'."\n";
-	$PMS->useModuleMethods('Toplink', array(&$dat)); // "Toplink" Hook Point
-	$dat .= TOP_LINKS.'
-[<a href="'.PHP_SELF.'?mode=status">'._T('head_info').'</a>]
-[<a href="'.PHP_SELF.'?mode=admin">'._T('head_admin').'</a>]
-[<a href="'.PHP_SELF2.'?">'._T('head_refresh').'</a>]
-</div>
-<br />
-<h1>'.TITLE.'</h1>
-<hr class="top" />
-</div>
-
-';
+	if($use_header2) {
+		$pte_vals['{$ALLOW_UPLOAD_EXT}'] = ALLOW_UPLOAD_EXT;
+		$dat .= $PTE->ParseBlock('HEADER2',$pte_vals);
+	}
+	$dat .= '</head>';
+	$pte_vals += array('{$TOP_LINKS}' => TOP_LINKS,
+		'{$HOME}' => '[<a href="'.HOME.'" rel="_top">'._T('head_home').'</a>]',
+		'{$STATUS}' => '[<a href="'.PHP_SELF.'?mode=status">'._T('head_info').'</a>]',
+		'{$ADMIN}' => '[<a href="'.PHP_SELF.'?mode=admin">'._T('head_admin').'</a>]',
+		'{$REFRESH}' => '[<a href="'.PHP_SELF2.'?">'._T('head_refresh').'</a>]',
+		'{$SEARCH}' => (USE_SEARCH) ? '[<a href="'.PHP_SELF.'?mode=search">'._T('head_search').'</a>]' : '',
+		'{$HOOKLINKS}' => '');
+	$PMS->useModuleMethods('Toplink', array(&$pte_vals['{$HOOKLINKS}'])); // "Toplink" Hook Point
+	$dat .= $PTE->ParseBlock('BODYHEAD',$pte_vals);
 }
 
 /* 發表用表單輸出 */
 function form(&$dat, $resno){
-	global $PMS, $ADDITION_INFO, $language;
-	$msg = '';
+	global $PTE, $PMS, $ADDITION_INFO, $language;
+	$pte_vals = array('{$SELF}'=>PHP_SELF, '{$FORMTOP}'=>'');
 	if($resno){
-		$msg .= '
-[<a href="'.PHP_SELF2.'?'.time().'">'._T('return').'</a>]
+		$pte_vals['{$FORMTOP}'] = '[<a href="'.PHP_SELF2.'?'.time().'">'._T('return').'</a>]
 <div class="bar_reply">'._T('form_top').'</div>';
 	}
-	if(USE_FLOATFORM && !$resno) $msg .= "\n".'[<span id="show" class="hide" onmouseover="showform();" onclick="showform();">'._T('form_showpostform').'</span><span id="hide" class="show" onmouseover="hideform();" onclick="hideform();">'._T('form_hidepostform').'</span>]';
-	$dat .= '<form action="'.PHP_SELF.'" method="post" enctype="multipart/form-data" onsubmit="return c();" id="postform_main">
-<div id="postform">'.$msg.'
-<input type="hidden" name="mode" value="regist" />
-<input type="hidden" name="MAX_FILE_SIZE" value="'.(MAX_KB * 1024).'" />
-<input type="hidden" name="upfile_path" value="" />
-';
-	if($resno) $dat .= '<input type="hidden" name="resto" value="'.$resno.'" />'."\n";
-	$dat .= '<div style="text-align: center;">
-<table cellpadding="1" cellspacing="1" id="postform_tbl" style="margin: 0px auto; text-align: left;">
-<tr><td class="Form_bg"><b>'._T('form_name').'</b></td><td><input class="hide" type="text" name="name" value="spammer" /><input type="text" name="'.FT_NAME.'" id="fname" size="28" /></td></tr>
-<tr><td class="Form_bg"><b>'._T('form_email').'</b></td><td><input type="text" name="'.FT_EMAIL.'" id="femail" size="28" /><input type="text" class="hide" name="email" value="foo@foo.bar" /></td></tr>
-<tr><td class="Form_bg"><b>'._T('form_topic').'</b></td><td><input class="hide" value="DO NOT FIX THIS" type="text" name="sub" /><input type="text" name="'.FT_SUBJECT.'" id="fsub" size="28" /><input type="submit" name="sendbtn" value="'._T('form_submit_btn').'" /></td></tr>
-<tr><td class="Form_bg"><b>'._T('form_comment').'</b></td><td><textarea name="'.FT_COMMENT.'" id="fcom" cols="48" rows="4" style="width: 400px; height: 80px;"></textarea><textarea name="com" class="hide" cols="48" rows="4">EID OG SMAPS</textarea></td></tr>
-';
+	if(USE_FLOATFORM && !$resno) $pte_vals['{$FORMTOP}'] .= "\n".'[<span id="show" class="hide" onmouseover="showform();" onclick="showform();">'._T('form_showpostform').'</span><span id="hide" class="show" onmouseover="hideform();" onclick="hideform();">'._T('form_hidepostform').'</span>]';
+	$pte_vals += array('{$MAX_FILE_SIZE}' => MAX_KB * 1024,
+		'{$RESTO}' => $resno ? '<input type="hidden" name="resto" value="'.$resno.'" />' : '',
+		'{$FORM_NAME_TEXT}' => _T('form_name'),
+		'{$FORM_NAME_FIELD}' => '<input class="hide" type="text" name="name" value="spammer" /><input type="text" name="'.FT_NAME.'" id="fname" size="28" />',
+		'{$FORM_EMAIL_TEXT}' => _T('form_email'),
+		'{$FORM_EMAIL_FIELD}' => '<input type="text" name="'.FT_EMAIL.'" id="femail" size="28" /><input type="text" class="hide" name="email" value="foo@foo.bar" />',
+		'{$FORM_TOPIC_TEXT}' => _T('form_topic'),
+		'{$FORM_TOPIC_FIELD}' => '<input class="hide" value="DO NOT FIX THIS" type="text" name="sub" /><input type="text" name="'.FT_SUBJECT.'" id="fsub" size="28" />',
+		'{$FORM_SUBMIT}' => '<input type="submit" name="sendbtn" value="'._T('form_submit_btn').'" />',
+		'{$FORM_COMMENT_TEXT}' => _T('form_comment'),
+		'{$FORM_COMMENT_FIELD}' => '<textarea name="'.FT_COMMENT.'" id="fcom" cols="48" rows="4" style="width: 400px; height: 80px;"></textarea><textarea name="com" class="hide" cols="48" rows="4">EID OG SMAPS</textarea>',
+		'{$FORM_DELETE_PASSWORD_FIELD}' => '<input type="password" name="pwd" size="8" maxlength="8" value="" />',
+		'{$FORM_DELETE_PASSWORD_TEXT}' => _T('form_delete_password'),
+		'{$FORM_DELETE_PASSWORD_NOTICE}' => _T('form_delete_password_notice'),
+
+		'{$FORM_NOTICE}' => _T('form_notice',MAX_KB,MAX_W,MAX_H),
+		'{$HOOKPOSTINFO}' => '',
+		'{$ADDITION_INFO}' => $ADDITION_INFO,
+		'{$FORM_NOTICE_NOSCRIPT}' => _T('form_notice_noscript'));
 	if(RESIMG || !$resno){
-		$dat .= '<tr><td class="Form_bg"><b>'._T('form_attechment').'</b></td><td><input type="file" name="upfile" id="fupfile" size="25" /> <input class="hide" type="checkbox" name="reply" value="yes" />[<input type="checkbox" name="noimg" id="noimg" value="on" /><label for="noimg">'._T('form_noattechment').'</label>]';
-		if(USE_UPSERIES) $dat .= ' [<input type="checkbox" name="up_series" id="up_series" value="on"'.((isset($_GET["upseries"]) && $resno)?' checked="checked"':'').' /><label for="up_series">'._T('form_contpost').'</label>]'; // 啟動連貼機能
-		$dat .= '</td></tr>'."\n";
+		$pte_vals += array('{$FORM_ATTECHMENT_TEXT}' => _T('form_attechment'),
+			'{$FORM_ATTECHMENT_FIELD}' => '<input type="file" name="upfile" id="fupfile" size="25" /><input class="hide" type="checkbox" name="reply" value="yes" />',
+			'{$FORM_NOATTECHMENT_TEXT}' => _T('form_noattechment'),
+			'{$FORM_NOATTECHMENT_FIELD}' => '<input type="checkbox" name="noimg" id="noimg" value="on" />');
+		if(USE_UPSERIES) { // 啟動連貼機能
+			$pte_vals['{$FORM_CONTPOST_FIELD}'] = '<input type="checkbox" name="up_series" id="up_series" value="on"'.((isset($_GET["upseries"]) && $resno)?' checked="checked"':'').' />';
+			$pte_vals['{$FORM_CONTPOST_TEXT}'] = _T('form_contpost');
+		}
 	}
-	if(USE_CATEGORY) $dat .= '<tr><td class="Form_bg"><b>'._T('form_category').'</b></td><td><input type="text" name="category" size="28" /><small>'._T('form_category_notice').'</small></td></tr>'."\n";
-	$dat .= '<tr><td class="Form_bg"><b>'._T('form_delete_password').'</b></td><td><input type="password" name="pwd" size="8" maxlength="8" value="" /><small>'._T('form_delete_password_notice').'</small></td></tr>
-<tr><td colspan="2">
-<div id="postinfo">
-<ul>'._T('form_notice',MAX_KB,MAX_W,MAX_H);
-	if(STORAGE_LIMIT) $dat .= _T('form_notice_storage_limit',total_size(),STORAGE_MAX);
-	$PMS->useModuleMethods('PostInfo', array(&$dat)); // "PostInfo" Hook Point
-	$dat .= $ADDITION_INFO.'
-</ul>
-<noscript><div>'._T('form_notice_noscript').'</div></noscript>
-</div>
-</td></tr>
-</table>
-</div>
-<script type="text/javascript">l1();</script>
-<hr />
-</div>
-</form>
-';
-	if(USE_FLOATFORM && !$resno) $dat .= '<script type="text/javascript">hideform();</script>'."\n\n";
+	if(USE_CATEGORY) {
+		$pte_vals += array('{$FORM_CATEGORY_FIELD}' => '<input type="text" name="category" size="28" />',
+			'{$FORM_CATEGORY_TEXT}' => _T('form_category'),
+			'{$FORM_CATEGORY_NOTICE}' => _T('form_category_notice'));
+	}
+	if(STORAGE_LIMIT) $pte_vals['{$FORM_NOTICE_STORAGE_LIMIT}'] = _T('form_notice_storage_limit',total_size(),STORAGE_MAX);
+	$PMS->useModuleMethods('PostInfo', array(&$pte_vals['{$HOOKPOSTINFO}'])); // "PostInfo" Hook Point
+
+	if(USE_FLOATFORM && !$resno) $pte_vals['{$FORMBOTTOM}'] = '<script type="text/javascript">hideform();</script>';
+	$dat .= $PTE->ParseBlock('POSTFORM',$pte_vals);
 }
 
 /* 輸出頁尾文字 */
 function foot(&$dat){
-	global $PMS, $language;
-	$dat .= '<div id="footer">
-<!-- GazouBBS v3.0 --><!-- ふたば改0.8 --><!-- Pixmicat! -->
-';
-	$PMS->useModuleMethods('Foot', array(&$dat)); // "Foot" Hook Point
-	$dat .= '<small>- <a href="http://php.s3.to" rel="_top">GazouBBS</a> + <a href="http://www.2chan.net/" rel="_top">futaba</a> + <a href="http://pixmicat.openfoundry.org/" rel="_blank">Pixmicat!</a> -</small>
-<script type="text/javascript">preset();</script>
-</div>
-
-</body>
-</html>';
+	global $PTE, $PMS, $language;
+	$pte_vals = array('{$FOOTER}'=>'<!-- GazouBBS v3.0 --><!-- ふたば改0.8 --><!-- Pixmicat! -->');
+	$PMS->useModuleMethods('Foot', array(&$pte_vals['{$FOOTER}'])); // "Foot" Hook Point
+	$pte_vals['{$FOOTER}'] .= '<small>- <a href="http://php.s3.to" rel="_top">GazouBBS</a> + <a href="http://www.2chan.net/" rel="_top">futaba</a> + <a href="http://pixmicat.openfoundry.org/" rel="_blank">Pixmicat!</a> -</small>';
+	$dat .= $PTE->ParseBlock('FOOTER',$pte_vals);
 }
 
 /* 網址自動連結 */
@@ -135,19 +105,14 @@ function anti_sakura($str){
 
 /* 輸出錯誤畫面 */
 function error($mes, $dest=''){
+	global $PTE;
 	if(is_file($dest)) unlink($dest);
+	$pte_vals = array('{$SELF2}'=>PHP_SELF2.'?'.time(), '{$MESG}'=>$mes, '{$RETURN_TEXT}'=>_T('return'), '{$BACK_TEXT}'=>_T('error_back'));
 	$dat = '';
 	head($dat);
+	$dat .= $PTE->ParseBlock('ERROR',$pte_vals);
+	foot($dat);
 	echo $dat;
-	echo '<div id="error">
-<div style="text-align: center; font-size: 1.5em; font-weight: bold;">
-<span style="color: red;">'.$mes.'</span><p />
-<a href="'.PHP_SELF2.'?'.time().'">'._T('return').'</a>　<a href="javascript:history.back();">'._T('error_back').'</a>
-</div>
-<hr />
-</div>
-';
-	die("</body>\n</html>");
 }
 
 /* 生成預覽圖：需要開啟GD模組 (GD 2.0.28以上) */
