@@ -3,6 +3,7 @@
 2007/05/27
 -[pixmicat][PMS] 新增 RegistBegin, RegistBeforeCommit 掛載點
 -[pixmicat] 修正模組資訊頁面的排版問題
+-[PTE] 強化並取代原內建輸出
 
 2007/05/13
 -[mainscript] 改寫增加效率，以 /packer/ 壓縮得到更小檔案

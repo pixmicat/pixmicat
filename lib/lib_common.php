@@ -1,5 +1,5 @@
 <?php
-// Revision : 2007/5/13 18:43
+// Revision : 2007/5/27 21:32
 
 /* 輸出表頭 */
 function head(&$dat,$use_header2=true){
@@ -112,7 +112,7 @@ function error($mes, $dest=''){
 	head($dat);
 	$dat .= $PTE->ParseBlock('ERROR',$pte_vals);
 	foot($dat);
-	echo $dat;
+	exit($dat);
 }
 
 /* 生成預覽圖：需要開啟GD模組 (GD 2.0.28以上) */
