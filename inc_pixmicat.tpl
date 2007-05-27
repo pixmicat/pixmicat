@@ -122,7 +122,7 @@ var ext="{$ALLOW_UPLOAD_EXT}".toUpperCase().split("|");
 <div id="del">
 <table style="float: right;">
 <tr><td align="center" style="white-space: nowrap;">
-{$DEL_HEAD_TEXT}[{$DEL_IMG_ONLY_FIELD}<label for="onlyimgdel">'{$DEL_IMG_ONLY_TEXT}</label>]<br />
+{$DEL_HEAD_TEXT}[{$DEL_IMG_ONLY_FIELD}<label for="onlyimgdel">{$DEL_IMG_ONLY_TEXT}</label>]<br />
 {$DEL_PASS_TEXT}{$DEL_PASS_FIELD}{$DEL_SUBMIT_BTN}
 </td></tr>
 </table>

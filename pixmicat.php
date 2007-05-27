@@ -53,7 +53,7 @@ function updatelog($resno=0,$page_num=0){
 	$inner_for_count = 1; // 內部迴圈執行次數
 	$kill_sensor = $old_sensor = false; // 預測系統啟動旗標
 	$arr_kill = $arr_old = array(); // 過舊編號陣列
-	$pte_vals = array('{$THREADFRONT}'=>'','{$THREADS}'=>'','{$THREADREAR}'=>'');
+	$pte_vals = array('{$THREADFRONT}'=>'','{$THREADREAR}'=>'');
 
 	if(!$resno){
 		if($page_num==0){ // remake模式 (PHP動態輸出多頁份)
@@ -87,6 +87,7 @@ function updatelog($resno=0,$page_num=0){
 		$dat = '';
 		head($dat);
 		form($dat, $resno);
+		$pte_vals['{$THREADS}'] = '';
 		$PMS->useModuleMethods('ThreadFront', array(&$pte_vals['{$THREADFRONT}'])); // "ThreadFront" Hook Point
 		// 輸出討論串內容
 		for($i = 0; $i < $inner_for_count; $i++){
@@ -125,7 +126,7 @@ function updatelog($resno=0,$page_num=0){
 			// $RES_start, $RES_amount 拿去算新討論串結構 (分頁後, 部分回應隱藏)
 			$tree_cut = array_slice($tree, $RES_start, $RES_amount); array_unshift($tree_cut, $tID); // 取出特定範圍回應
 			$posts = $PIO->fetchPosts($tree_cut); // 取得文章架構內容
-			$pte_vals['{$THREADS}'] = arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno, $arr_kill, $arr_old, $kill_sensor, $old_sensor); // 交給這個函式去搞討論串印出
+			$pte_vals['{$THREADS}'] .= arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno, $arr_kill, $arr_old, $kill_sensor, $old_sensor); // 交給這個函式去搞討論串印出
 		}
 		$PMS->useModuleMethods('ThreadRear', array(&$pte_vals['{$THREADREAR}'])); // "ThreadRear" Hook Point
 		$pte_vals += array('{$DEL_HEAD_TEXT}' => '<input type="hidden" name="mode" value="usrdel" />'._T('del_head'),
