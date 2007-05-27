@@ -844,7 +844,7 @@ function total_size($isupdate=false){
 
 /* 搜尋(全文檢索)功能 */
 function search(){
-	global $PIO, $FileIO, $language;
+	global $PTE, $PIO, $FileIO, $language;
 
 	if(!USE_SEARCH) error(_T('search_disabled'));
 	$searchKeyword = isset($_POST['keyword']) ? trim($_POST['keyword']) : ''; // 欲搜尋的文字
@@ -875,19 +875,16 @@ function search(){
 		$searchKeyword = preg_split('/(　| )+/', trim($searchKeyword)); // 搜尋文字用空格切割
 		$hitPosts = $PIO->searchPost($searchKeyword, $searchField, $searchMethod); // 直接傳回符合的文章內容陣列
 
-		echo '<div id="search_result" style="text-align: center;">
-<table border="0" style="margin: 0px auto; text-align: left; width: 100%;">
+		echo '<div id="search_result">
 ';
 		$resultlist = '';
 		foreach($hitPosts as $post){
 			extract($post);
-			$resultlist .= '<tr><td>
-<span class="title">'.$sub.'</span> '._T('post_name').'<span class="name">'.$name.'.</span> ['.$now.'] No.'.$no.' <br />
-<div class="quote">'.$com.'</div><hr />
-</td></tr>';
+			$arrLabels = array('{$NO}'=>$no, '{$SUB}'=>$sub, '{$NAME}'=>$name, '{$NOW}'=>$now, '{$COM}'=>$com, '{$CATEGORY}'=>$category, '{$NAME_TEXT}'=>_T('post_name'), '{$CATEGORY_TEXT}'=>_T('post_category'));
+			$resultlist .= $PTE->ParseBlock('SEARCHRESULT',$arrLabels);
 		}
-		echo $resultlist ? $resultlist : '<tr align="center"><td>'._T('search_notfound').'</td></tr><tr align="center"><td><a href="?mode=search">'._T('search_back').'</a></td></tr>';
-		echo "\n</table>\n</div>\n";
+		echo $resultlist ? $resultlist : '<div style="text-align: center">'._T('search_notfound').'<br/><a href="?mode=search">'._T('search_back').'</a></div>';
+		echo "</div>";
 	}
 	echo "</body>\n</html>";
 }

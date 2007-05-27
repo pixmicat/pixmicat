@@ -114,6 +114,17 @@ var ext="{$ALLOW_UPLOAD_EXT}".toUpperCase().split("|");
 {$WARN_BEKILL}</div>
 <!--/&REPLY-->
 
+<!--&SEARCHRESULT-->
+<div class="threadpost">
+<span class="title">{$SUB}</span>
+{$NAME_TEXT}<span class="name">{$NAME}</span> [{$NOW}] No.{$NO}
+<div class="quote">{$COM}</div>
+<!--&IF($CATEGORY,'<div class="category">{$CATEGORY_TEXT}{$CATEGORY}</div>','')-->
+</div>
+<!--&SEPARATE/-->
+<!--/&SEARCHRESULT-->
+
+
 <!--&SEPARATE-->
 <hr />
 <!--/&SEPARATE-->
