@@ -59,7 +59,7 @@ class PTELibrary{
 				$vari = $submatches[1]; $block = $submatches[2];
 				
 				$foreach_tmp = '';
-				if(isset($ary['{'.$vari.'}'])) {
+				if(isset($ary['{'.$vari.'}']) && is_array($ary['{'.$vari.'}'])) {
 					foreach($ary['{'.$vari.'}'] as $eachvar) {
 						$foreach_tmp .= $this->ParseBlock($block, $eachvar);
 					}
