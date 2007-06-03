@@ -1,9 +1,15 @@
 <?php
-/*
-Pixmicat!-Log -> Pixmciat-PIO (Log) 資料格式轉換器
-@Version : 0.1
-@Date : 2006/12/11 20:21
-*/
+/**
+ * Pixmicat! PIO 公用程式 - Pixmicat!-Log -> Pixmciat-PIO (Log) 資料格式轉換器
+ *
+ * 本程式可以自 Log 版轉換格式自 PIO 版 Log 資料來源。
+ *
+ * 注意：本程式是給 Log 版舊程式使用以轉換，非直接用在 PIO 新版上面
+ *
+ * @package PMCUtility
+ * @version $Id: pixmicat.php 389 2007-04-15 13:48:08Z scribe $
+ * @date $Date: 2007-04-15 21:48:08 +0800 (星期日, 15 四月 2007) $
+ */
 include_once('./config.php');
 define('DEL_ZOMBIE', true); // 如果有文章沒有出現在樹狀結構，是否不要轉換直接刪除？
 define('SAVE_LOG', true); // 是否儲存新結構 (舊結構將保留並更名)

@@ -1,9 +1,15 @@
 <?php
-/*
-Pixmicat!-MySQL -> Pixmciat-PIO (MySQL) 資料格式轉換器
-@Version : 0.2
-@Date : 2007/2/1 20:10
-*/
+/**
+ * Pixmicat! PIO 公用程式 - Pixmicat!-MySQL -> Pixmciat-PIO (MySQL) 資料格式轉換器
+ *
+ * 本程式可以自 MySQL 版轉換格式自 PIO 版 MySQL 資料來源。
+ *
+ * 注意：本程式是給 MySQL 版舊程式使用以轉換，非直接用在 PIO 新版上面
+ *
+ * @package PMCUtility
+ * @version $Id: pixmicat.php 389 2007-04-15 13:48:08Z scribe $
+ * @date $Date: 2007-04-15 21:48:08 +0800 (星期日, 15 四月 2007) $
+ */
 include_once('./config.php');
 
 $dirimg = realpath('.').DIRECTORY_SEPARATOR.IMG_DIR; // 圖檔存放位置
