@@ -1,5 +1,8 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2007/06/05
+-[config] 刪除 CAPTCHA 預留設定 (不考慮內建)
+
 2007/05/27
 -[pixmicat][PMS] 新增 RegistBegin, RegistBeforeCommit 掛載點
 -[pixmicat] 修正模組資訊頁面的排版問題

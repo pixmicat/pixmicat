@@ -131,10 +131,4 @@ define("FT_NAME", 'bvUFbdrIC'); // 名稱欄位
 define("FT_EMAIL", 'ObHGyhdTR'); // E-mail欄位
 define("FT_SUBJECT", 'SJBgiFbhj'); // 標題欄位
 define("FT_COMMENT", 'pOBvrtyJK'); // 內文欄位
-
-/* CAPTCHA驗證圖像 (CAPTCHA AuthImage)
-介紹：
-最常見於防範Spam的方法，正因為它有效才會被廣泛使用。
-*/
-// Not finish yet.
 ?>
