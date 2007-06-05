@@ -1,8 +1,13 @@
 <?php
-/*
-FileIO Satellite PHP
-@Version : 0.2 20061208
-*/
+/**
+ * Pixmicat! PIO 公用程式 - FileIO Satellite PHP
+ *
+ * 利用此一放置於外部空間的衛星程式，可以讓 FileIO 利用外部空間存放圖檔。
+ *
+ * @package PMCUtility
+ * @version $Id$
+ * @date $Date$
+ */
 
 define('TRANSPORT_KEY', '12345678'); // 傳輸認證金鑰
 define('USER_AGENT', 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1) Gecko/20061010 Firefox/2.0'); // Just for fun ;-)

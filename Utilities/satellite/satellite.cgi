@@ -1,7 +1,14 @@
 #!/usr/bin/perl -w
 
-# FileIO Satellite Perl
-# $Id$
+##
+# Pixmicat! PIO 公用程式 - FileIO Satellite Perl
+#
+# 利用此一放置於外部空間的衛星程式，可以讓 FileIO 利用外部空間存放圖檔。
+#
+# @package PMCUtility
+# @version $Id$
+# @date $Date$
+#
 
 require './cgi-lib.pl';
 
