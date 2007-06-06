@@ -30,11 +30,7 @@ class PTELibrary{
 		if(($tmp_block = $this->_readBlock($blockName))===false) return ""; // 找無
 		$tmp_block = $this->EvalFOREACH($tmp_block, $ary_val); // 解析FOREACH敘述
 		$tmp_block = $this->EvalIF($tmp_block, $ary_val); // 解析IF敘述
-		if(preg_match_all('/<!--&(.*)\/-->/smU', $tmp_block, $matches)){ // 迴遞處理
-			$blocksCount=count($matches[1]);
-			for($i=0;$i<$blocksCount;$i++)
-				$tmp_block = str_replace($matches[0][$i], $this->ParseBlock($matches[1][$i], $ary_val), $tmp_block);
-		}
+		$tmp_block = $this->EvalInclude($tmp_block, $ary_val); // 解析引用
 		return @str_replace(@array_keys($ary_val), @array_values($ary_val), $tmp_block);
 	}
 
@@ -44,11 +40,7 @@ class PTELibrary{
 		if(preg_match_all('/<!--&IF\((\$.*),\'(.*)\',\'(.*)\'\)-->/smU', $tmp_tpl, $matches, PREG_SET_ORDER)){
 			foreach($matches as $submatches){
 				$vari = $submatches[1]; $iftrue = $submatches[2]; $iffalse = $submatches[3];
-				if(preg_match('/<!--&(.*)\/-->/smU', $iftrue, $rmatches)) // 迴遞處理
-					$iftrue = str_replace($rmatches[0],$this->ParseBlock($rmatches[1],$ary),$iftrue);
-				if(preg_match('/<!--&(.*)\/-->/smU', $iffalse, $rmatches)) // 迴遞處理
-					$iffalse = str_replace($rmatches[0],$this->ParseBlock($rmatches[1],$ary),$iffalse);
-				$tmp_tpl = @str_replace($submatches[0], ($ary['{'.$vari.'}'] ? $iftrue : $iffalse), $tmp_tpl);
+				$tmp_tpl = @str_replace($submatches[0], ($ary['{'.$vari.'}'] ? $this->EvalInclude($iftrue, $ary) : $this->EvalInclude($iffalse, $ary)), $tmp_tpl);
 			}
 		}
 		return $tmp_tpl;
@@ -67,6 +59,14 @@ class PTELibrary{
 				$tmp_tpl = @str_replace($submatches[0], $foreach_tmp, $tmp_tpl);
 			}
 		}
+		return $tmp_tpl;
+	}
+	/* 解析區塊引用 */
+	function EvalInclude($tpl, $ary){
+		$tmp_tpl = $tpl;
+		if(preg_match_all('/<!--&(.*)\/-->/smU', $tmp_tpl, $matches, PREG_SET_ORDER))
+			foreach($matches as $submatches)
+				$tmp_tpl = str_replace($submatches[0], $this->ParseBlock($submatches[1], $ary), $tmp_tpl);
 		return $tmp_tpl;
 	}
 }
