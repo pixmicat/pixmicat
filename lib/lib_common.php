@@ -2,15 +2,18 @@
 // Revision : 2007/5/27 21:32
 
 /* 輸出表頭 */
-function head(&$dat,$use_header2=true){
+function head(&$dat,$use_js=true){
 	global $PTE, $PMS, $language;
 	header('Content-Type: '.((strpos($_SERVER['HTTP_ACCEPT'],'application/xhtml+xml')!==FALSE) ? 'application/xhtml+xml' : 'text/html').'; charset=utf-8'); // 如果瀏覽器支援XHTML標準MIME就輸出
 	$pte_vals = array('{$TITLE}'=>TITLE);
-	$dat .= $PTE->ParseBlock('HEADER1',$pte_vals);
+	$dat .= $PTE->ParseBlock('HEADER',$pte_vals);
 	$PMS->useModuleMethods('Head', array(&$dat)); // "Head" Hook Point
-	if($use_header2) {
-		$pte_vals['{$ALLOW_UPLOAD_EXT}'] = ALLOW_UPLOAD_EXT;
-		$dat .= $PTE->ParseBlock('HEADER2',$pte_vals);
+	if($use_js) {
+		$pte_vals+=array('{$ALLOW_UPLOAD_EXT}' => ALLOW_UPLOAD_EXT,
+			'{$JS_REGIST_WITHOUTCOMMENT}' => str_replace('\'', '\\\'', _T('regist_withoutcomment')),
+			'{$JS_REGIST_UPLOAD_NOTSUPPORT}' => str_replace('\'', '\\\'', _T('regist_upload_notsupport')),
+			'{$JS_CONVERT_SAKURA}' => str_replace('\'', '\\\'', _T('js_convert_sakura')));
+		$dat .= $PTE->ParseBlock('JSHEADER',$pte_vals);
 	}
 	$dat .= '</head>';
 	$pte_vals += array('{$TOP_LINKS}' => TOP_LINKS,

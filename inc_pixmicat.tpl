@@ -1,4 +1,4 @@
-<!--&HEADER1--><?xml version="1.0" encoding="UTF-8"?>
+<!--&HEADER--><?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="zh-tw">
 <head>
@@ -8,18 +8,18 @@
 <meta http-equiv="Content-Language" content="zh-tw" />
 <title>{$TITLE}</title>
 <link rel="stylesheet" type="text/css" href="mainstyle.css" />
-<!--/&HEADER1-->
+<!--/&HEADER-->
 
-<!--&HEADER2-->
-<script type="text/javascript" src="mainscript.lang.php"></script>
-<script type="text/javascript" src="mainscript.js"></script>
-<!--[if IE]><script type="text/javascript" src="iedivfix.js"></script><![endif]-->
+<!--&JSHEADER-->
 <script type="text/javascript">
 // <![CDATA[
+var msgs=['{$JS_REGIST_WITHOUTCOMMENT}','{$JS_REGIST_UPLOAD_NOTSUPPORT}','{$JS_CONVERT_SAKURA}'];
 var ext="{$ALLOW_UPLOAD_EXT}".toUpperCase().split("|");
 // ]]>
 </script>
-<!--/&HEADER2-->
+<script type="text/javascript" src="mainscript.js"></script>
+<!--[if IE]><script type="text/javascript" src="iedivfix.js"></script><![endif]-->
+<!--/&JSHEADER-->
 
 <!--&TOPLINKS-->
 <div id="toplink">
