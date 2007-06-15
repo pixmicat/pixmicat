@@ -1,5 +1,5 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release-dev RC (b070607)'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release-dev RC2 (b070615)'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -518,6 +518,7 @@ function regist(){
 	if($resto) $ThreadExistsBefore = $PIO->isThread($resto);
 	// 記錄檔行數已達上限：刪除過舊檔
 	if($PIO->postCount() >= LOG_MAX){
+		$PMS->useModuleMethods('UsageExceed', array()); // "UsageExceed" Hook Point
 		$files = $PIO->delOldPostes();
 		if(count($files)) $FileIO->deleteImage($files);
 	}

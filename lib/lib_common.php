@@ -1,5 +1,13 @@
 <?php
-// Revision : 2007/5/27 21:32
+/**
+ * Pixmicat! Common Library
+ *
+ * 存放常用函式供主程式引入
+ * 
+ * @package PMCLibrary
+ * @version $Id$
+ * @date $Date$
+ */
 
 /* 輸出表頭 */
 function head(&$dat,$use_js=true){
@@ -50,11 +58,12 @@ function form(&$dat, $resno){
 		'{$FORM_DELETE_PASSWORD_FIELD}' => '<input type="password" name="pwd" size="8" maxlength="8" value="" />',
 		'{$FORM_DELETE_PASSWORD_TEXT}' => _T('form_delete_password'),
 		'{$FORM_DELETE_PASSWORD_NOTICE}' => _T('form_delete_password_notice'),
-
+		'{$FORM_EXTRA_COLUMN}' => '',
 		'{$FORM_NOTICE}' => _T('form_notice',MAX_KB,MAX_W,MAX_H),
 		'{$HOOKPOSTINFO}' => '',
 		'{$ADDITION_INFO}' => $ADDITION_INFO,
 		'{$FORM_NOTICE_NOSCRIPT}' => _T('form_notice_noscript'));
+	$PMS->useModuleMethods('PostForm', array(&$pte_vals['{$FORM_EXTRA_COLUMN}'])); // "PostForm" Hook Point
 	if(RESIMG || !$resno){
 		$pte_vals += array('{$FORM_ATTECHMENT_TEXT}' => _T('form_attechment'),
 			'{$FORM_ATTECHMENT_FIELD}' => '<input type="file" name="upfile" id="fupfile" size="25" /><input class="hide" type="checkbox" name="reply" value="yes" />',

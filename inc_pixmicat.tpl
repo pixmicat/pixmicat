@@ -57,6 +57,7 @@ var ext="{$ALLOW_UPLOAD_EXT}".toUpperCase().split("|");
 <!--&IF($FORM_ATTECHMENT_FIELD,'</td></tr>','')-->
 <!--&IF($FORM_CATEGORY_FIELD,'<tr><td class="Form_bg"><b>{$FORM_CATEGORY_TEXT}</b></td><td>{$FORM_CATEGORY_FIELD}<small>{$FORM_CATEGORY_NOTICE}</small></td></tr>','')-->
 <tr><td class="Form_bg"><b>{$FORM_DELETE_PASSWORD_TEXT}</b></td><td>{$FORM_DELETE_PASSWORD_FIELD}<small>{$FORM_DELETE_PASSWORD_NOTICE}</small></td></tr>
+{$FORM_EXTRA_COLUMN}
 <tr><td colspan="2">
 <div id="postinfo">
 <ul>{$FORM_NOTICE}
