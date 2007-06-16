@@ -74,7 +74,7 @@ define("USE_CATEGORY", 1); // 是否開啟使用類別標籤分類功能 (是：
 
 // 模組載入
 $ModuleList = array();
-$ModuleList[] = 'mod_rss';
+//$ModuleList[] = 'mod_rss';
 //$ModuleList[] = 'mod_catalog';
 
 // 封鎖設定
