@@ -1,7 +1,15 @@
 <?php
 /*
-Pixmicat! Template-Embedded Library v070606
+Pixmicat! Template-Embedded Library v070618
 by: scribe & RT
+Copyright(C) 2005-2007 Pixmicat! Development Team
+
+Pixmicat! Template-Embedded Library (PTE) is released under The Clarified 
+Artistic License.
+A more detailed definition of the terms please refer to the attached "LICENSE" 
+file. If you do not receive the program with The Artistic License copy, please 
+visit http://pixmicat.openfoundry.org/license/ to obtain a copy.
+
 $Id$
 */
 
@@ -25,6 +33,11 @@ class PTELibrary{
 		return $this->tpl_block[$blockName];
 	}
 
+	/* 回傳去除前後空格的區塊樣板碼 */
+	function BlockValue($blockName){
+		return trim($this->_readBlock($blockName));
+	}
+
 	/* 將樣版的標籤取代為正確的字串並傳回 */
 	function ParseBlock($blockName, $ary_val){
 		if(($tmp_block = $this->_readBlock($blockName))===false) return ""; // 找無
@@ -37,10 +50,10 @@ class PTELibrary{
 	/* 解析IF敘述 */
 	function EvalIF($tpl, $ary){
 		$tmp_tpl = $tpl;
-		if(preg_match_all('/<!--&IF\((\$.*),\'(.*)\',\'(.*)\'\)-->/smU', $tmp_tpl, $matches, PREG_SET_ORDER)){
+		if(preg_match_all('/<!--&IF\(([\$&].*),\'(.*)\',\'(.*)\'\)-->/smU', $tmp_tpl, $matches, PREG_SET_ORDER)){
 			foreach($matches as $submatches){
-				$vari = $submatches[1]; $iftrue = $submatches[2]; $iffalse = $submatches[3];
-				$tmp_tpl = @str_replace($submatches[0], ($ary['{'.$vari.'}'] ? $this->EvalInclude($iftrue, $ary) : $this->EvalInclude($iffalse, $ary)), $tmp_tpl);
+				$isblock = substr($submatches[1],0,1) == "&"; $vari = substr($submatches[1],1); $iftrue = $submatches[2]; $iffalse = $submatches[3];
+				$tmp_tpl = @str_replace($submatches[0], ($isblock ? $this->BlockValue($vari) : array_key_exists('{$'.$vari.'}',$ary) ? $this->EvalInclude($iftrue, $ary) : $this->EvalInclude($iffalse, $ary)), $tmp_tpl);
 			}
 		}
 		return $tmp_tpl;

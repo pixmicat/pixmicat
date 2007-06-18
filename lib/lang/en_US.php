@@ -140,6 +140,7 @@ $language['info_basic_cr_limit']		= 'Comment row limit';
 $language['info_basic_cr_after']		= ' Row(s) (unlimited:0)';
 $language['info_basic_timezone']		= 'Time zone';
 $language['info_basic_threadcount']		= 'Total threads count';
+$language['info_basic_theme']			= 'Theme';
 $language['info_dsusage_top']			= 'Data source usage';
 $language['info_dsusage_max']			= 'Maximum size';
 $language['info_dsusage_usage']		= 'Usage';

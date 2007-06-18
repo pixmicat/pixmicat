@@ -140,6 +140,7 @@ $language['info_basic_cr_limit']		= '改行を抑制する行数';
 $language['info_basic_cr_after']		= ' 行 (しない：0)';
 $language['info_basic_timezone']		= '時間帯設定';
 $language['info_basic_threadcount']		= '現在のスレ数';
+$language['info_basic_theme']			= 'テーマ';
 $language['info_dsusage_top']			= 'データソース使用量';
 $language['info_dsusage_max']			= '最大値';
 $language['info_dsusage_usage']		= '使用率';

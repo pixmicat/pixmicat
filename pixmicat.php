@@ -973,7 +973,7 @@ function listModules(){
 
 /* 顯示系統各項資訊 */
 function showstatus(){
-	global $PIO, $FileIO, $language;
+	global $PTE, $PIO, $FileIO, $language;
 	$countline = $PIO->postCount(); // 計算投稿文字記錄檔目前資料筆數
 	$counttree = $PIO->threadCount(); // 計算樹狀結構記錄檔目前資料筆數
 	$tmp_total_size = total_size(); // 附加圖檔使用量總大小
@@ -1034,6 +1034,7 @@ function showstatus(){
 <tr><td>'._T('info_basic_cr_limit').'</td><td colspan="2"> '.BR_CHECK._T('info_basic_cr_after').'</td></tr>
 <tr><td>'._T('info_basic_timezone').'</td><td colspan="2"> GMT '.TIME_ZONE.'</td></tr>
 <tr><td>'._T('info_basic_threadcount').'</td><td colspan="2"> '.$counttree.' '._T('info_basic_threads').'</td></tr>
+<tr><td>'._T('info_basic_theme').'</td><td colspan="2"> '.$PTE->BlockValue('THEMENAME').' '.$PTE->BlockValue('THEMEVER').'<br/>by '.$PTE->BlockValue('THEMEAUTHOR').'</td></tr>
 <tr><td align="center" colspan="3">'._T('info_dsusage_top').'</td></tr>
 <tr align="center"><td>'._T('info_dsusage_max').'</td><td>'.LOG_MAX.'</td><td rowspan="2">'._T('info_dsusage_usage').'<br /><span style="color: #'.$clrflag_log.';">'.substr(($tmp_log_ratio * 100), 0, 6).'</span> %</td></tr>
 <tr align="center"><td>'._T('info_dsusage_count').'</td><td><span style="color: #'.$clrflag_log.';">'.$countline.'</span></td></tr>

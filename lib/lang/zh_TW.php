@@ -140,6 +140,7 @@ $language['info_basic_cr_limit']		= '文字換行行數上限';
 $language['info_basic_cr_after']		= ' 行 (不限：0)';
 $language['info_basic_timezone']		= '時區設定';
 $language['info_basic_threadcount']		= '目前總討論串篇數';
+$language['info_basic_theme']			= '主題風格';
 $language['info_dsusage_top']			= '記錄檔使用量';
 $language['info_dsusage_max']			= '最大筆數';
 $language['info_dsusage_usage']		= '使用率';
