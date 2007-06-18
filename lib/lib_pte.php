@@ -53,7 +53,7 @@ class PTELibrary{
 		if(preg_match_all('/<!--&IF\(([\$&].*),\'(.*)\',\'(.*)\'\)-->/smU', $tmp_tpl, $matches, PREG_SET_ORDER)){
 			foreach($matches as $submatches){
 				$isblock = substr($submatches[1],0,1) == "&"; $vari = substr($submatches[1],1); $iftrue = $submatches[2]; $iffalse = $submatches[3];
-				$tmp_tpl = @str_replace($submatches[0], ($isblock ? $this->BlockValue($vari) : array_key_exists('{$'.$vari.'}',$ary) ? $this->EvalInclude($iftrue, $ary) : $this->EvalInclude($iffalse, $ary)), $tmp_tpl);
+				$tmp_tpl = @str_replace($submatches[0], (($isblock ? $this->BlockValue($vari) : ($ary['{$'.$vari.'}'] !== '' && $ary['{$'.$vari.'}'] !== false && $ary['{$'.$vari.'}'] !== null)) ? $this->EvalInclude($iftrue, $ary) : $this->EvalInclude($iffalse, $ary)), $tmp_tpl);
 			}
 		}
 		return $tmp_tpl;
