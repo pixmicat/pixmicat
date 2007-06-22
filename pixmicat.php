@@ -88,7 +88,7 @@ function updatelog($resno=0,$page_num=0){
 		head($dat);
 		form($dat, $resno);
 		$pte_vals['{$THREADS}'] = '';
-		$PMS->useModuleMethods('ThreadFront', array(&$pte_vals['{$THREADFRONT}'])); // "ThreadFront" Hook Point
+		$PMS->useModuleMethods('ThreadFront', array(&$pte_vals['{$THREADFRONT}'],$resno)); // "ThreadFront" Hook Point
 		// 輸出討論串內容
 		for($i = 0; $i < $inner_for_count; $i++){
 			// 取出討論串編號
@@ -128,7 +128,7 @@ function updatelog($resno=0,$page_num=0){
 			$posts = $PIO->fetchPosts($tree_cut); // 取得文章架構內容
 			$pte_vals['{$THREADS}'] .= arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno, $arr_kill, $arr_old, $kill_sensor, $old_sensor); // 交給這個函式去搞討論串印出
 		}
-		$PMS->useModuleMethods('ThreadRear', array(&$pte_vals['{$THREADREAR}'])); // "ThreadRear" Hook Point
+		$PMS->useModuleMethods('ThreadRear', array(&$pte_vals['{$THREADREAR}'],$resno)); // "ThreadRear" Hook Point
 		$pte_vals += array('{$DEL_HEAD_TEXT}' => '<input type="hidden" name="mode" value="usrdel" />'._T('del_head'),
 			'{$DEL_IMG_ONLY_FIELD}' => '<input type="checkbox" name="onlyimgdel" id="onlyimgdel" value="on" />',
 			'{$DEL_IMG_ONLY_TEXT}' => _T('del_img_only'),
