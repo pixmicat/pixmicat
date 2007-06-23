@@ -85,7 +85,7 @@ function updatelog($resno=0,$page_num=0){
 	// 生成靜態頁面一頁份內容
 	for($page = $page_start; $page <= $page_end; $page++){
 		$dat = '';
-		head($dat);
+		head($dat,$resno);
 		form($dat, $resno);
 		$pte_vals['{$THREADS}'] = '';
 		$PMS->useModuleMethods('ThreadFront', array(&$pte_vals['{$THREADFRONT}'],$resno)); // "ThreadFront" Hook Point

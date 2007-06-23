@@ -10,19 +10,17 @@
  */
 
 /* 輸出表頭 */
-function head(&$dat,$use_js=true){
+function head(&$dat,$resno=0){
 	global $PTE, $PMS, $language;
 	header('Content-Type: '.((strpos($_SERVER['HTTP_ACCEPT'],'application/xhtml+xml')!==FALSE) ? 'application/xhtml+xml' : 'text/html').'; charset=utf-8'); // 如果瀏覽器支援XHTML標準MIME就輸出
-	$pte_vals = array('{$TITLE}'=>TITLE);
+	$pte_vals = array('{$TITLE}'=>TITLE,'{$RESTO}'=>$resno?$resno:'');
 	$dat .= $PTE->ParseBlock('HEADER',$pte_vals);
-	$PMS->useModuleMethods('Head', array(&$dat)); // "Head" Hook Point
-	if($use_js) {
-		$pte_vals+=array('{$ALLOW_UPLOAD_EXT}' => ALLOW_UPLOAD_EXT,
-			'{$JS_REGIST_WITHOUTCOMMENT}' => str_replace('\'', '\\\'', _T('regist_withoutcomment')),
-			'{$JS_REGIST_UPLOAD_NOTSUPPORT}' => str_replace('\'', '\\\'', _T('regist_upload_notsupport')),
-			'{$JS_CONVERT_SAKURA}' => str_replace('\'', '\\\'', _T('js_convert_sakura')));
-		$dat .= $PTE->ParseBlock('JSHEADER',$pte_vals);
-	}
+	$PMS->useModuleMethods('Head', array(&$dat,$resno)); // "Head" Hook Point
+	$pte_vals+=array('{$ALLOW_UPLOAD_EXT}' => ALLOW_UPLOAD_EXT,
+		'{$JS_REGIST_WITHOUTCOMMENT}' => str_replace('\'', '\\\'', _T('regist_withoutcomment')),
+		'{$JS_REGIST_UPLOAD_NOTSUPPORT}' => str_replace('\'', '\\\'', _T('regist_upload_notsupport')),
+		'{$JS_CONVERT_SAKURA}' => str_replace('\'', '\\\'', _T('js_convert_sakura')));
+	$dat .= $PTE->ParseBlock('JSHEADER',$pte_vals);
 	$dat .= '</head>';
 	$pte_vals += array('{$TOP_LINKS}' => TOP_LINKS,
 		'{$HOME}' => '[<a href="'.HOME.'" rel="_top">'._T('head_home').'</a>]',
@@ -31,7 +29,7 @@ function head(&$dat,$use_js=true){
 		'{$REFRESH}' => '[<a href="'.PHP_SELF2.'?">'._T('head_refresh').'</a>]',
 		'{$SEARCH}' => (USE_SEARCH) ? '[<a href="'.PHP_SELF.'?mode=search">'._T('head_search').'</a>]' : '',
 		'{$HOOKLINKS}' => '');
-	$PMS->useModuleMethods('Toplink', array(&$pte_vals['{$HOOKLINKS}'])); // "Toplink" Hook Point
+	$PMS->useModuleMethods('Toplink', array(&$pte_vals['{$HOOKLINKS}'],$resno)); // "Toplink" Hook Point
 	$dat .= $PTE->ParseBlock('BODYHEAD',$pte_vals);
 }
 
