@@ -126,13 +126,16 @@ var ext="{$ALLOW_UPLOAD_EXT}".toUpperCase().split("|");
 <div class="quote">{$COM}</div>
 <!--&IF($CATEGORY,'<div class="category">{$CATEGORY_TEXT}{$CATEGORY}</div>','')-->
 </div>
-<!--&SEPARATE/-->
+<!--&REALSEPARATE/-->
 <!--/&SEARCHRESULT-->
 
-
-<!--&SEPARATE-->
+<!--&THREADSEPARATE-->
 <hr />
-<!--/&SEPARATE-->
+<!--/&THREADSEPARATE-->
+
+<!--&REALSEPARATE-->
+<hr />
+<!--/&REALSEPARATE-->
 
 <!--&DELFORM-->
 <div id="del">
