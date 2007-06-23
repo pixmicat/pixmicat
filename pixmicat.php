@@ -88,7 +88,7 @@ function updatelog($resno=0,$page_num=0){
 		head($dat);
 		form($dat, $resno);
 		$pte_vals['{$THREADS}'] = '';
-		$PMS->useModuleMethods('ThreadFront', array(&$pte_vals['{$THREADFRONT}'])); // "ThreadFront" Hook Point
+		$PMS->useModuleMethods('ThreadFront', array(&$pte_vals['{$THREADFRONT}'],$resno)); // "ThreadFront" Hook Point
 		// 輸出討論串內容
 		for($i = 0; $i < $inner_for_count; $i++){
 			// 取出討論串編號
@@ -128,7 +128,7 @@ function updatelog($resno=0,$page_num=0){
 			$posts = $PIO->fetchPosts($tree_cut); // 取得文章架構內容
 			$pte_vals['{$THREADS}'] .= arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno, $arr_kill, $arr_old, $kill_sensor, $old_sensor); // 交給這個函式去搞討論串印出
 		}
-		$PMS->useModuleMethods('ThreadRear', array(&$pte_vals['{$THREADREAR}'])); // "ThreadRear" Hook Point
+		$PMS->useModuleMethods('ThreadRear', array(&$pte_vals['{$THREADREAR}'],$resno)); // "ThreadRear" Hook Point
 		$pte_vals += array('{$DEL_HEAD_TEXT}' => '<input type="hidden" name="mode" value="usrdel" />'._T('del_head'),
 			'{$DEL_IMG_ONLY_FIELD}' => '<input type="checkbox" name="onlyimgdel" id="onlyimgdel" value="on" />',
 			'{$DEL_IMG_ONLY_TEXT}' => _T('del_img_only'),
@@ -295,15 +295,17 @@ function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $
 		// 最終輸出處
 		if($i){ // 回應
 			$arrLabels = array('{$NO}'=>$no, '{$SUB}'=>$sub, '{$NAME}'=>$name, '{$NOW}'=>$now, '{$COM}'=>$com, '{$CATEGORY}'=>$category, '{$QUOTEBTN}'=>$QUOTEBTN, '{$IMG_BAR}'=>$IMG_BAR, '{$IMG_SRC}'=>$imgsrc, '{$WARN_BEKILL}'=>$WARN_BEKILL, '{$QUOTEBTN}'=>$QUOTEBTN, '{$NAME_TEXT}'=>_T('post_name'), '{$CATEGORY_TEXT}'=>_T('post_category'), '{$SELF}'=>PHP_SELF);
+			if($resno) $arrLabels['{$RESTO}']=$resno;
 			$PMS->useModuleMethods('ThreadReply', array(&$arrLabels, $posts[$i], $resno)); // "ThreadReply" Hook Point
 			$thdat .= $PTE->ParseBlock('REPLY',$arrLabels);
 		}else{ // 首篇
 			$arrLabels = array('{$NO}'=>$no, '{$SUB}'=>$sub, '{$NAME}'=>$name, '{$NOW}'=>$now, '{$COM}'=>$com, '{$CATEGORY}'=>$category, '{$QUOTEBTN}'=>$QUOTEBTN, '{$REPLYBTN}'=>$REPLYBTN, '{$IMG_BAR}'=>$IMG_BAR, '{$IMG_SRC}'=>$imgsrc, '{$WARN_OLD}'=>$WARN_OLD, '{$WARN_BEKILL}'=>$WARN_BEKILL, '{$WARN_ENDREPLY}'=>$WARN_ENDREPLY, '{$WARN_HIDEPOST}'=>$WARN_HIDEPOST, '{$NAME_TEXT}'=>_T('post_name'), '{$CATEGORY_TEXT}'=>_T('post_category'), '{$SELF}'=>PHP_SELF);
+			if($resno) $arrLabels['{$RESTO}']=$resno;
 			$PMS->useModuleMethods('ThreadPost', array(&$arrLabels, $posts[$i], $resno)); // "ThreadPost" Hook Point
 			$thdat .= $PTE->ParseBlock('THREAD',$arrLabels);
 		}
 	}
-	$thdat .= $PTE->ParseBlock('THREADSEPARATE',array());
+	$thdat .= $PTE->ParseBlock('THREADSEPARATE',($resno)?array('{$RESTO}'=>$resno):array());
 	return $thdat;
 }
 
