@@ -30,13 +30,11 @@
 <title>{$TITLE}</title>
 <link rel="stylesheet" type="text/css" href="mainstyle.css" />
 <style type="text/css">
-<!--
 .grid {float: left; border: 2px #F0E0D6 solid; width: <!--&BLOCKWIDTH/-->;height: <!--&BLOCKHEIGHT/-->;<!--&IF(&CLICKENTER,'cursor: pointer; cursor: hand;','')--> overflow:auto; margin:2px; padding:0;}
 #page_switch table {border: 2px #F0E0D6 solid;}
 #page_switch table td {border:0}
 <!--&IF($RESTO,'','#postform {border: 2px #F0E0D6 solid;} #postform hr {display:none;}')-->
 <!--&IF($RESTO,'','<!--&IMGSTYLE/-->')-->
--->
 </style>
 <!--/&HEADER-->
 
