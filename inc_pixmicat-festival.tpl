@@ -29,24 +29,22 @@
 <meta http-equiv="Content-Language" content="zh-tw" />
 <title>{$TITLE}</title>
 <link rel="stylesheet" type="text/css" href="mainstyle.css" />
-<style type="text/css">
+<style type="text/css"><!--/*--><![CDATA[/*><!--*/
 .grid {float: left; border: 2px #F0E0D6 solid; width: <!--&BLOCKWIDTH/-->;height: <!--&BLOCKHEIGHT/-->;<!--&IF(&CLICKENTER,'cursor: pointer; cursor: hand;','')--> overflow:auto; margin:2px; padding:0;}
 #page_switch table {border: 2px #F0E0D6 solid;}
 #page_switch table td {border:0}
+.reply { margin: 0.3ex 0.2ex 0.2ex 1em;}
 <!--&IF($RESTO,'','#postform {border: 2px #F0E0D6 solid;} #postform hr {display:none;}')-->
 <!--&IF($RESTO,'','<!--&IMGSTYLE/-->')-->
-</style>
+/*]]>*/--></style>
 <!--/&HEADER-->
 
 <!--&JSHEADER-->
-<script type="text/javascript">
-// <![CDATA[
+<script type="text/javascript"><!--//--><![CDATA[//><!--
 var msgs=['{$JS_REGIST_WITHOUTCOMMENT}','{$JS_REGIST_UPLOAD_NOTSUPPORT}','{$JS_CONVERT_SAKURA}'];
 var ext="{$ALLOW_UPLOAD_EXT}".toUpperCase().split("|");
 var boxclicked=0;
-
-// ]]>
-</script>
+//--><!]]></script>
 <script type="text/javascript" src="mainscript.js"></script>
 <!--[if IE]><script type="text/javascript" src="iedivfix.js"></script><![endif]-->
 <!--/&JSHEADER-->
@@ -137,7 +135,7 @@ var boxclicked=0;
 <!--&THREAD-->
 <!--&IF($RESTO,'','<!--&THREAD_CLICKENTER/-->')-->
 <div class="threadpost"><input type="checkbox" name="{$NO}" value="delete" onclick="boxclicked=1;" /><span class="title">{$SUB}</span>
-{$NAME_TEXT}<span class="name">{$NAME}</span> [{$NOW}] {$QUOTEBTN}&nbsp;{$REPLYBTN}</div>
+{$NAME_TEXT}<span class="name">{$NAME}</span> [{$NOW}] {$QUOTEBTN} {$REPLYBTN}</div>
 {$IMG_BAR}<!--&IF($RESTO,'<!--&IMG_LEFT/-->','<!--&IMGARRANGE/-->')-->
 {$WARN_OLD}{$WARN_BEKILL}{$WARN_ENDREPLY}{$WARN_HIDEPOST}
 <div class="quote">{$COM}</div>
@@ -146,7 +144,7 @@ var boxclicked=0;
 
 <!--&REPLY-->
 <div class="reply" id="r{$NO}">
-<input type="checkbox" name="{$NO}" value="delete" onclick="boxclicked=1;" /><span class="title">{$SUB}</span> {$NAME_TEXT}<span class="name">{$NAME}</span> [{$NOW}] {$QUOTEBTN} &nbsp;<!--&IF($IMG_BAR,'<br />&nbsp;','')-->{$IMG_BAR} {$IMG_SRC}
+<input type="checkbox" name="{$NO}" value="delete" onclick="boxclicked=1;" /><span class="title">{$SUB}</span> {$NAME_TEXT}<span class="name">{$NAME}</span> [{$NOW}] {$QUOTEBTN} <!--&IF($IMG_BAR,'<br />&nbsp;','')-->{$IMG_BAR} {$IMG_SRC}
 {$WARN_BEKILL}<div class="quote">{$COM}</div>
 <!--&IF($CATEGORY,'<div class="category">{$CATEGORY_TEXT}{$CATEGORY}</div>','')-->
 </div>
