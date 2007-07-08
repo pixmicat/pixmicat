@@ -95,9 +95,11 @@ function foot(&$dat){
 
 /* 網址自動連結 */
 function auto_link($proto){
-	$bak = preg_replace('/<a href=([\'"])(.*?):\/\//u', '<a href=$1$2:.://', $proto);
-	$new = preg_replace('/(https?|ftp|news)(:\/\/[\w\+\$\;\?\.\{\}%,!#~*\/:@&=_-]+)/u', '<a href="$1$2" rel="_blank">$1$2</a>', $bak);
-	return preg_replace('/<a href=([\'"])(.*?):\.:\/\//u', '<a href=$1$2://', $new);
+	return preg_replace_callback('/(>|^)([^<]+?)(<|$)/',
+		create_function('$matches',
+            'return preg_replace(\'/(https?|ftp|news)(:\/\/[\w\+\$\;\?\.\{\}%,!#~*\/:@&=_-]+)/u\', \'<a href="$1$2" rel="_blank">$1$2</a>\', $matches[0]);'
+        ),
+        $proto);
 }
 
 /* 引用標註 */
