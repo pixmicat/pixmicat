@@ -95,9 +95,9 @@ function foot(&$dat){
 
 /* 網址自動連結 */
 function auto_link($proto){
-	return preg_replace_callback('/(>|^)([^<]+?)(<|$)/',
+	return preg_replace_callback('/(>|^)([^<]+?)(<.*?>|$)/',
 		create_function('$matches',
-            'return preg_replace(\'/(https?|ftp|news)(:\/\/[\w\+\$\;\?\.\{\}%,!#~*\/:@&=_-]+)/u\', \'<a href="$1$2" rel="_blank">$1$2</a>\', $matches[0]);'
+            'return (strtolower($matches[3]) == "</a>") ? $matches[0] : preg_replace(\'/(https?|ftp|news)(:\/\/[\w\+\$\;\?\.\{\}%,!#~*\/:@&=_-]+)/u\', \'<a href="$1$2" rel="_blank">$1$2</a>\', $matches[0]);'
         ),
         $proto);
 }
