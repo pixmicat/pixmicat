@@ -94,12 +94,11 @@ function foot(&$dat){
 }
 
 /* 網址自動連結 */
+function auto_link_callback($matches){ 
+	return (strtolower($matches[3]) == "</a>") ? $matches[0] : preg_replace('/(https?|ftp|news)(:\/\/[\w\+\$\;\?\.\{\}%,!#~*\/:@&=_-]+)/u', '<a href="$1$2" rel="_blank">$1$2</a>', $matches[0]);
+}
 function auto_link($proto){
-	return preg_replace_callback('/(>|^)([^<]+?)(<.*?>|$)/',
-		create_function('$matches',
-            'return (strtolower($matches[3]) == "</a>") ? $matches[0] : preg_replace(\'/(https?|ftp|news)(:\/\/[\w\+\$\;\?\.\{\}%,!#~*\/:@&=_-]+)/u\', \'<a href="$1$2" rel="_blank">$1$2</a>\', $matches[0]);'
-        ),
-        $proto);
+	return preg_replace_callback('/(>|^)([^<]+?)(<.*?>|$)/','auto_link_callback',$proto);
 }
 
 /* 引用標註 */
