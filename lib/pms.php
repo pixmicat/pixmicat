@@ -36,7 +36,7 @@ class PMS{
 			// 搜尋載入模組列表有沒有，沒有就直接取消程式
 			if(array_search($specificModule, $this->ENV['MODULE.LOADLIST'])===false) return false;
 		}
-		$this->loadModules($specificModule); $this->autoHookMethods();
+		$this->loadModules($specificModule);
 		return true;
 	}
 
@@ -71,14 +71,16 @@ class PMS{
 	}
 
 	// 模組掛載與使用相關
-	/* 自動掛載相關模組方法於掛載點 */
-	function autoHookMethods(){
-		foreach(array_keys($this->hookPoints) as $h){
-			foreach($this->moduleLists as $m)
-				if(method_exists($this->moduleInstance[$m], 'autoHook'.$h)){
-					$this->hookModuleMethod($h, array(&$this->moduleInstance[$m], 'autoHook'.$h));
+	/* 自動掛載相關模組方法於掛載點並回傳掛載點 (Returning by Reference) */
+	function &__autoHookMethods($hookPoint){
+		if(count($this->hookPoints[$hookPoint])==0){ // 尚未掛載
+			foreach($this->moduleLists as $m){
+				if(method_exists($this->moduleInstance[$m], 'autoHook'.$hookPoint)){
+					$this->hookModuleMethod($hookPoint, array(&$this->moduleInstance[$m], 'autoHook'.$hookPoint));
 				}
+			}
 		}
+		return $this->hookPoints[$hookPoint];
 	}
 
 	/* 將模組方法掛載於特定掛載點 */
@@ -88,9 +90,17 @@ class PMS{
 
 	/* 使用模組方法 */
 	function useModuleMethods($hookPoint, $parameter){
-		$imax = count($this->hookPoints[$hookPoint]);
+		/* TODO:
+		if not hookmethod_of_this_hookpoint
+			hookit_and_cache
+		else
+			using_hook_cache
+		end
+		*/
+		$arrMethod =& $this->__autoHookMethods($hookPoint); // 取得掛載點模組方法
+		$imax = count($arrMethod);
 		for($i = 0; $i < $imax; $i++){
-			call_user_func_array($this->hookPoints[$hookPoint][$i], $parameter);
+			call_user_func_array($arrMethod[$i], $parameter);
 		}
 	}
 }

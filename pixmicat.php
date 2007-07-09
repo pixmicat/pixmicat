@@ -1,5 +1,5 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release (v070617)'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.2-dev (b070709)'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -1082,6 +1082,7 @@ if(GZIP_COMPRESS_LEVEL && ($Encoding = CheckSupportGZip())){ ob_start(); ob_impl
 $path = realpath("./").'/'; // 此資料夾的絕對位置
 $mode = isset($_GET['mode']) ? $_GET['mode'] : ''; // 目前執行模式
 if($mode=='' && isset($_POST['mode'])) $mode = $_POST['mode']; // 如果GET找不到，就用POST
+if($mode != 'module'){ $PMS->init(); } // 載入所有模組
 
 //init(); // ←■■！程式環境初始化，跑過一次後請刪除此行！■■
 switch($mode){
@@ -1109,7 +1110,8 @@ switch($mode){
 		break;
 	case 'module':
 		$loadModule = isset($_GET['load']) ? $_GET['load'] : '';
-		if(array_search($loadModule, $PMS->hookPoints['ModulePage'])!==false){
+		// 僅載入指定模組
+		if($PMS->init($loadModule) && array_search($loadModule, $PMS->hookPoints['ModulePage'])!==false){
 			$PMS->moduleInstance[$loadModule]->ModulePage();
 		}else{
 			echo '404 Not Found';

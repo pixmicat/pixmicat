@@ -16,5 +16,4 @@ $PMSEnv = array( // PMS 環境常數
 );
 require('./lib/pms.php');
 $PMS = new PMS($PMSEnv);
-$PMS->init();
 ?>
