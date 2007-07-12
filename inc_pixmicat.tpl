@@ -1,5 +1,5 @@
 <!--&THEMENAME-->futaba Theme<!--/&THEMENAME-->
-<!--&THEMEVER-->v20070618<!--/&THEMEVER-->
+<!--&THEMEVER-->v20070712<!--/&THEMEVER-->
 <!--&THEMEAUTHOR-->Pixmicat! Development Team<!--/&THEMEAUTHOR-->
 
 <!--&HEADER--><?xml version="1.0" encoding="UTF-8"?>
@@ -150,12 +150,12 @@ var ext="{$ALLOW_UPLOAD_EXT}".toUpperCase().split("|");
 
 <!--&MAIN-->
 <div id="contents">
-<form action="{$SELF}" method="POST">
-<div id="threads">
 {$THREADFRONT}
+<form action="{$SELF}" method="post">
+<div id="threads">
 {$THREADS}
-{$THREADREAR}
 </div>
+{$THREADREAR}
 <!--&DELFORM/-->
 <script type="text/javascript">l2();</script>
 </form>
