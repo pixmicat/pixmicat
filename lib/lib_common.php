@@ -12,7 +12,7 @@
 /* 輸出表頭 */
 function head(&$dat,$resno=0){
 	global $PTE, $PMS, $language;
-	header('Content-Type: '.((strpos($_SERVER['HTTP_ACCEPT'],'application/xhtml+xml')!==FALSE) ? 'application/xhtml+xml' : 'text/html').'; charset=utf-8'); // 如果瀏覽器支援XHTML標準MIME就輸出
+	header('Content-Type: '.((/*strpos($_SERVER['HTTP_ACCEPT'],'application/xhtml+xml')!==*/FALSE) ? 'application/xhtml+xml' : 'text/html').'; charset=utf-8'); // 如果瀏覽器支援XHTML標準MIME就輸出
 	$pte_vals = array('{$TITLE}'=>TITLE,'{$RESTO}'=>$resno?$resno:'');
 	$dat .= $PTE->ParseBlock('HEADER',$pte_vals);
 	$PMS->useModuleMethods('Head', array(&$dat,$resno)); // "Head" Hook Point
@@ -38,8 +38,8 @@ function form(&$dat, $resno){
 	global $PTE, $PMS, $ADDITION_INFO, $language;
 	$pte_vals = array('{$SELF}'=>PHP_SELF, '{$FORMTOP}'=>'');
 	if($resno){
-		$pte_vals['{$FORMTOP}'] = '[<a href="'.PHP_SELF2.'?'.time().'">'._T('return').'</a>]
-<div class="bar_reply">'._T('form_top').'</div>';
+		$PMS->useModuleMethods('LinksAboveBar', array($links = '[<a href="'.PHP_SELF2.'?'.time().'">'._T('return').'</a>]','reply',$resno)); // "LinksAboveBar" Hook Point
+		$pte_vals['{$FORMTOP}'] = $links.'<div class="bar_reply">'._T('form_top').'</div>';
 	}
 	if(USE_FLOATFORM && !$resno) $pte_vals['{$FORMTOP}'] .= "\n".'[<span id="show" class="hide" onmouseover="showform();" onclick="showform();">'._T('form_showpostform').'</span><span id="hide" class="show" onmouseover="hideform();" onclick="hideform();">'._T('form_hidepostform').'</span>]';
 	$pte_vals += array('{$MAX_FILE_SIZE}' => MAX_KB * 1024,

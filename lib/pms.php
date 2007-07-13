@@ -19,11 +19,13 @@ class PMS{
 		$this->ENV = $ENV; // 環境變數
 		// 掛載點
 		$this->hookPoints = array(
-			'Head'=>array(), 'Toplink'=>array(), 'PostInfo'=>array(), 'PostForm'=>array(),
+			'Head'=>array(), 'Toplink'=>array(), 'LinksAboveBar'=>array(),
+			'PostInfo'=>array(), 'PostForm'=>array(),
 			'ThreadFront'=>array(), 'ThreadRear'=>array(),
 			'ThreadPost'=>array(), 'ThreadReply'=>array(),
 			'Foot'=>array(), 'ModulePage'=>array(),
-			'AdminList'=>array(), 'RegistBegin'=>array(), 'RegistBeforeCommit'=>array(), 'UsageExceed'=>array()
+			'RegistBegin'=>array(), 'RegistBeforeCommit'=>array(), 'UsageExceed'=>array(),
+			'AdminList'=>array(), 'Authenticate'=>array()
 		);
 		$this->moduleInstance = array(); // 存放各模組實體
 		$this->moduleLists = array(); // 存放各模組類別名稱

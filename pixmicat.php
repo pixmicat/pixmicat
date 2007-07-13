@@ -133,7 +133,7 @@ function updatelog($resno=0,$page_num=0){
 			'{$DEL_IMG_ONLY_FIELD}' => '<input type="checkbox" name="onlyimgdel" id="onlyimgdel" value="on" />',
 			'{$DEL_IMG_ONLY_TEXT}' => _T('del_img_only'),
 			'{$DEL_PASS_TEXT}' => _T('del_pass'),
-			'{$DEL_PASS_FIELD}' => '<input type="password" name="pwd" size="8" maxlength="8" value="" />',
+			'{$DEL_PASS_FIELD}' => '<input type="password" name="pwd" size="8" value="" />',
 			'{$DEL_SUBMIT_BTN}' => '<input type="submit" value="'._T('del_btn').'" />');
 
 		$pte_vals['{$PAGENAV}'] = '<div id="page_switch">';
@@ -631,11 +631,14 @@ echo _T('regist_redirect',$mes,$RedirURL).'</div>
 
 /* 使用者刪除 */
 function usrdel(){
-	global $PIO, $FileIO, $language;
+	global $PIO, $FileIO, $PMS, $language;
 	// $pwd: 使用者輸入值, $pwdc: Cookie記錄密碼
 	$pwd = isset($_POST['pwd']) ? $_POST['pwd'] : '';
 	$pwdc = isset($_COOKIE['pwdc']) ? $_COOKIE['pwdc'] : '';
 	$onlyimgdel = isset($_POST['onlyimgdel']) ? $_POST['onlyimgdel'] : '';
+	$haveperm = false;
+	$PMS->useModuleMethods('Authenticate', array($pwd,&$haveperm));
+
 
 	if($pwd=='' && $pwdc!='') $pwd = $pwdc;
 	$pwd_md5 = substr(md5($pwd),2,8);
@@ -649,7 +652,7 @@ function usrdel(){
 	$delposts = array(); // 真正符合刪除條件文章
 	$posts = $PIO->fetchPosts($delno);
 	foreach($posts as $post){
-		if($pwd_md5==$post['pwd'] || $host==$post['host'] || $pwd==ADMIN_PASS){
+		if($pwd_md5==$post['pwd'] || $host==$post['host'] || $pwd==ADMIN_PASS || $haveperm){
 			$search_flag = true; // 有搜尋到
 			array_push($delposts, $post['no']);
 		}
@@ -664,14 +667,19 @@ function usrdel(){
 
 /* 管理員密碼認證 */
 function valid(){
-	global $language;
+	global $PMS, $language;
 	$pass = isset($_POST['pass']) ? $_POST['pass'] : ''; // 管理者密碼
-	if($pass && $pass != ADMIN_PASS) error(_T('admin_wrongpassword'));
+	$haveperm = false;
+	if($pass) {
+		if(!($haveperm = ($pass == ADMIN_PASS))) {
+			$PMS->useModuleMethods('Authenticate', array($pass,&$haveperm));
+			if(!$haveperm) error($pass._T('admin_wrongpassword'));
+		}
+	}
 	$dat = '';
 	head($dat);
-	$dat .= '<div id="banner">
-[<a href="'.PHP_SELF2.'?'.time().'">'._T('return').'</a>][<a href="'.PHP_SELF.'?mode=remake">'._T('admin_remake').'</a>]
-<div class="bar_admin">'._T('admin_top').'</div>
+	$PMS->useModuleMethods('LinksAboveBar', array($links = '[<a href="'.PHP_SELF2.'?'.time().'">'._T('return').'</a>] [<a href="'.PHP_SELF.'?mode=remake">'._T('admin_remake').'</a>]','admin',$haveperm)); // LinksAboveBar hook point
+	$dat .= '<div id="banner">'.$links.'<div class="bar_admin">'._T('admin_top').'</div>
 </div>
 <form action="'.PHP_SELF.'" method="post">
 <div id="admin-check" style="text-align: center;">
@@ -855,9 +863,8 @@ function search(){
 	$searchKeyword = isset($_POST['keyword']) ? trim($_POST['keyword']) : ''; // 欲搜尋的文字
 	$dat = '';
 	head($dat);
-	$dat .= '<div id="banner">
-[<a href="'.PHP_SELF2.'?'.time().'">'._T('return').'</a>]
-<div class="bar_admin">'._T('search_top').'</div>
+	$PMS->useModuleMethods('LinksAboveBar', array($links = '[<a href="'.PHP_SELF2.'?'.time().'">'._T('return').'</a>]','search'));
+	$dat .= '<div id="banner">'.$links.'<div class="bar_admin">'._T('search_top').'</div>
 </div>
 ';
 	echo $dat;
@@ -948,9 +955,8 @@ function listModules(){
 	global $PMS, $language;
 	$dat = '';
 	head($dat);
-	$dat .= '<div id="banner">
-[<a href="'.PHP_SELF2.'?'.time().'">'._T('return').'</a>]
-<div class="bar_admin">'._T('module_info_top').'</div>
+	$PMS->useModuleMethods('LinksAboveBar', array($links = '[<a href="'.PHP_SELF2.'?'.time().'">'._T('return').'</a>]','modules'));
+	$dat .= '<div id="banner">'.$links.'<div class="bar_admin">'._T('module_info_top').'</div>
 </div>
 
 <div id="modules">
@@ -977,7 +983,7 @@ function listModules(){
 
 /* 顯示系統各項資訊 */
 function showstatus(){
-	global $PTE, $PIO, $FileIO, $language;
+	global $PTE, $PIO, $FileIO, $PMS, $language;
 	$countline = $PIO->postCount(); // 計算投稿文字記錄檔目前資料筆數
 	$counttree = $PIO->threadCount(); // 計算樹狀結構記錄檔目前資料筆數
 	$tmp_total_size = total_size(); // 附加圖檔使用量總大小
@@ -1009,10 +1015,8 @@ function showstatus(){
 
 	$dat = '';
 	head($dat);
-	$dat .= '<div id="banner">
-[<a href="'.PHP_SELF2.'?'.time().'">'._T('return').'</a>]
-[<a href="'.PHP_SELF.'?mode=moduleloaded">'._T('module_info_top').'</a>]
-<div class="bar_admin">'._T('info_top').'</div>
+	$PMS->useModuleMethods('LinksAboveBar', array($links = '[<a href="'.PHP_SELF2.'?'.time().'">'._T('return').'</a>] [<a href="'.PHP_SELF.'?mode=moduleloaded">'._T('module_info_top').'</a>]','status'));
+	$dat .= '<div id="banner">'.$links.'<div class="bar_admin">'._T('info_top').'</div>
 </div>
 ';
 
