@@ -678,7 +678,8 @@ function valid(){
 	}
 	$dat = '';
 	head($dat);
-	$PMS->useModuleMethods('LinksAboveBar', array($links = '[<a href="'.PHP_SELF2.'?'.time().'">'._T('return').'</a>] [<a href="'.PHP_SELF.'?mode=remake">'._T('admin_remake').'</a>]','admin',$haveperm)); // LinksAboveBar hook point
+	$links = '[<a href="'.PHP_SELF2.'?'.time().'">'._T('return').'</a>] [<a href="'.PHP_SELF.'?mode=remake">'._T('admin_remake').'</a>]';
+	$PMS->useModuleMethods('LinksAboveBar', array(&$links,'admin',$haveperm)); // LinksAboveBar hook point
 	$dat .= '<div id="banner">'.$links.'<div class="bar_admin">'._T('admin_top').'</div>
 </div>
 <form action="'.PHP_SELF.'" method="post">
@@ -863,7 +864,8 @@ function search(){
 	$searchKeyword = isset($_POST['keyword']) ? trim($_POST['keyword']) : ''; // 欲搜尋的文字
 	$dat = '';
 	head($dat);
-	$PMS->useModuleMethods('LinksAboveBar', array($links = '[<a href="'.PHP_SELF2.'?'.time().'">'._T('return').'</a>]','search'));
+	$links = '[<a href="'.PHP_SELF2.'?'.time().'">'._T('return').'</a>]';
+	$PMS->useModuleMethods('LinksAboveBar', array(&$links,'search'));
 	$dat .= '<div id="banner">'.$links.'<div class="bar_admin">'._T('search_top').'</div>
 </div>
 ';
@@ -927,7 +929,9 @@ function searchCategory(){
 
 	$dat = '';
 	head($dat);
-	$dat .= '<div>[<a href="'.PHP_SELF2.'?'.time().'">'._T('return').'</a>][<a href="'.PHP_SELF.'?mode=category&amp;c='.$category_enc.'&amp;recache=1">'._T('category_recache').'</a>]</div>'."\n";
+	$links = '[<a href="'.PHP_SELF2.'?'.time().'">'._T('return').'</a>][<a href="'.PHP_SELF.'?mode=category&amp;c='.$category_enc.'&amp;recache=1">'._T('category_recache').'</a>]';
+	$PMS->useModuleMethods('LinksAboveBar', array(&$links,'category'));
+	$dat .= "<div>$links</div>\n";
 	for($i = 0; $i < $loglist_cut_count; $i++){
 		$posts = $PIO->fetchPosts($loglist_cut[$i]); // 取得文章內容
 		$dat .= arrangeThread($PTE, 0, 0, $posts, 0, $loglist_cut[$i], 0, 0, 0, 0, false); // 逐個輸出 (引用連結不顯示)
@@ -955,7 +959,8 @@ function listModules(){
 	global $PMS, $language;
 	$dat = '';
 	head($dat);
-	$PMS->useModuleMethods('LinksAboveBar', array($links = '[<a href="'.PHP_SELF2.'?'.time().'">'._T('return').'</a>]','modules'));
+	$links = '[<a href="'.PHP_SELF2.'?'.time().'">'._T('return').'</a>]';
+	$PMS->useModuleMethods('LinksAboveBar', array(&$links,'modules'));
 	$dat .= '<div id="banner">'.$links.'<div class="bar_admin">'._T('module_info_top').'</div>
 </div>
 
@@ -1015,7 +1020,8 @@ function showstatus(){
 
 	$dat = '';
 	head($dat);
-	$PMS->useModuleMethods('LinksAboveBar', array($links = '[<a href="'.PHP_SELF2.'?'.time().'">'._T('return').'</a>] [<a href="'.PHP_SELF.'?mode=moduleloaded">'._T('module_info_top').'</a>]','status'));
+	$links = '[<a href="'.PHP_SELF2.'?'.time().'">'._T('return').'</a>] [<a href="'.PHP_SELF.'?mode=moduleloaded">'._T('module_info_top').'</a>]';
+	$PMS->useModuleMethods('LinksAboveBar', array(&$links,'status'));
 	$dat .= '<div id="banner">'.$links.'<div class="bar_admin">'._T('info_top').'</div>
 </div>
 ';
