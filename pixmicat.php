@@ -381,32 +381,34 @@ function regist(){
 	if($upfile && is_file($upfile)){
 		// 一‧先儲存檔案
 		$dest = $path.$tim.'.tmp';
-		@move_uploaded_file($upfile, $dest);
+		@move_uploaded_file($upfile, $dest) or @copy($upfile, $dest);
 		@chmod($dest, 0666);
 		if(!is_file($dest)) error(_T('regist_upload_filenotfound'), $dest);
 
 		// 二‧判斷上傳附加圖檔途中是否有中斷
 		$upsizeTTL = $_SERVER['CONTENT_LENGTH'];
-		$upsizeHDR = 0;
-		// 檔案路徑：IE附完整路徑，故得從隱藏表單取得
-		$tmp_upfile_path = $upfile_name;
-		if($upfile_path) $tmp_upfile_path = get_magic_quotes_gpc() ? stripslashes($upfile_path) : $upfile_path;
-		list(,$boundary) = explode('=', $_SERVER['CONTENT_TYPE']);
-		foreach($_POST as $header => $value){ // 表單欄位傳送資料
+		if(isset($_FILES['upfile'])){ // 有傳輸資料才需要計算，避免作白工
+			$upsizeHDR = 0;
+			// 檔案路徑：IE附完整路徑，故得從隱藏表單取得
+			$tmp_upfile_path = $upfile_name;
+			if($upfile_path) $tmp_upfile_path = get_magic_quotes_gpc() ? stripslashes($upfile_path) : $upfile_path;
+			list(,$boundary) = explode('=', $_SERVER['CONTENT_TYPE']);
+			foreach($_POST as $header => $value){ // 表單欄位傳送資料
+				$upsizeHDR += strlen('--'.$boundary."\r\n");
+				$upsizeHDR += strlen('Content-Disposition: form-data; name="$header"'."\r\n\r\n".(get_magic_quotes_gpc()?stripslashes($value):$value)."\r\n");
+			}
+			// 附加圖檔欄位傳送資料
 			$upsizeHDR += strlen('--'.$boundary."\r\n");
-			$upsizeHDR += strlen('Content-Disposition: form-data; name="$header"'."\r\n\r\n".(get_magic_quotes_gpc()?stripslashes($value):$value)."\r\n");
-		}
-		// 附加圖檔欄位傳送資料
-		$upsizeHDR += strlen('--'.$boundary."\r\n");
-		$upsizeHDR += strlen('Content-Disposition: form-data; name="upfile"; filename="'.$tmp_upfile_path."\"\r\n".'Content-Type: '.$_FILES['upfile']['type']."\r\n\r\n");
-		$upsizeHDR += strlen("\r\n--".$boundary."--\r\n");
-		$upsizeHDR += $_FILES['upfile']['size']; // 傳送附加圖檔資料量
-		// 上傳位元組差值超過 HTTP_UPLOAD_DIFF：上傳附加圖檔不完全
-		if(($upsizeTTL - $upsizeHDR) > HTTP_UPLOAD_DIFF){
-			if(KILL_INCOMPLETE_UPLOAD){
-				unlink($dest);
-				die(_T('regist_upload_killincomp')); // 給瀏覽器的提示，假如使用者還看的到的話才不會納悶
-			}else $up_incomplete = 1;
+			$upsizeHDR += strlen('Content-Disposition: form-data; name="upfile"; filename="'.$tmp_upfile_path."\"\r\n".'Content-Type: '.$_FILES['upfile']['type']."\r\n\r\n");
+			$upsizeHDR += strlen("\r\n--".$boundary."--\r\n");
+			$upsizeHDR += $_FILES['upfile']['size']; // 傳送附加圖檔資料量
+			// 上傳位元組差值超過 HTTP_UPLOAD_DIFF：上傳附加圖檔不完全
+			if(($upsizeTTL - $upsizeHDR) > HTTP_UPLOAD_DIFF){
+				if(KILL_INCOMPLETE_UPLOAD){
+					unlink($dest);
+					die(_T('regist_upload_killincomp')); // 給瀏覽器的提示，假如使用者還看的到的話才不會納悶
+				}else $up_incomplete = 1;
+			}
 		}
 
 		// 三‧檢查是否為可接受的檔案
