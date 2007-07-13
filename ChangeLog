@@ -1,5 +1,9 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2007/07/13
+-[pixmicat] 偵測上傳中斷前先判斷是否有資料長度才作，避免作白工
+-[PMS] autoHookRegistBegin 修改 $upfileInfo 為傳址, 去除 $POST ($_POST 為 superglobal)
+
 2007/07/09:
 -[PMS] 自事前掛載改為動態掛載，並可於模組頁面時只讀取特定模組
 

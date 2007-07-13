@@ -1,5 +1,5 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.2-dev (b070709)'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.2-dev (b070713)'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -346,7 +346,7 @@ function regist(){
 			error(_T('regist_wordfiltered'));
 		}
 	}
-	$PMS->useModuleMethods('RegistBegin', array(&$name, &$email, &$sub, &$com, (isset($_FILES['upfile']) ? $_FILES['upfile'] : array()), array($ip, $host), $_POST)); // "RegistBegin" Hook Point
+	$PMS->useModuleMethods('RegistBegin', array(&$name, &$email, &$sub, &$com, array('file'=>&$upfile, 'path'=>&$upfile_path, 'name'=>&$upfile_name, 'status'=>&$upfile_status), array('ip'=>$ip, 'host'=>$host))); // "RegistBegin" Hook Point
 
 	// 檢查是否輸入櫻花日文假名
 	$chkanti = array($name, $email, $sub, $com);
