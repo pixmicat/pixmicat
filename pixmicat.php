@@ -636,9 +636,8 @@ function usrdel(){
 	$pwd = isset($_POST['pwd']) ? $_POST['pwd'] : '';
 	$pwdc = isset($_COOKIE['pwdc']) ? $_COOKIE['pwdc'] : '';
 	$onlyimgdel = isset($_POST['onlyimgdel']) ? $_POST['onlyimgdel'] : '';
-	$haveperm = false;
-	$PMS->useModuleMethods('Authenticate', array($pwd,&$haveperm));
-
+	$haveperm = ($pwd==ADMIN_PASS);
+	$PMS->useModuleMethods('Authenticate', array($pwd,'userdel',&$haveperm));
 
 	if($pwd=='' && $pwdc!='') $pwd = $pwdc;
 	$pwd_md5 = substr(md5($pwd),2,8);
@@ -652,7 +651,7 @@ function usrdel(){
 	$delposts = array(); // 真正符合刪除條件文章
 	$posts = $PIO->fetchPosts($delno);
 	foreach($posts as $post){
-		if($pwd_md5==$post['pwd'] || $host==$post['host'] || $pwd==ADMIN_PASS || $haveperm){
+		if($pwd_md5==$post['pwd'] || $host==$post['host'] || $haveperm){
 			$search_flag = true; // 有搜尋到
 			array_push($delposts, $post['no']);
 		}
@@ -672,7 +671,7 @@ function valid(){
 	$haveperm = false;
 	if($pass) {
 		if(!($haveperm = ($pass == ADMIN_PASS))) {
-			$PMS->useModuleMethods('Authenticate', array($pass,&$haveperm));
+			$PMS->useModuleMethods('Authenticate', array($pass,'adminlogin',&$haveperm));
 			if(!$haveperm) error($pass._T('admin_wrongpassword'));
 		}
 	}
@@ -715,6 +714,10 @@ function admindel(){
 
 	// 刪除文章區塊
 	if($delflag){
+		$haveperm = ($pass == ADMIN_PASS);
+		$PMS->useModuleMethods('Authenticate', array($pass,'admindel',&$haveperm));
+		if(!$haveperm) error($pass._T('admin_wrongpassword'));
+
 		$delno = array_merge($delno, $_POST['delete']);
 		$files = ($onlyimgdel != 'on') ? $PIO->removePosts($delno) : $PIO->removeAttachments($delno);
 		$FileIO->deleteImage($files);
@@ -723,6 +726,10 @@ function admindel(){
 	}
 	// 討論串停止區塊
 	if($thsflag){
+		$haveperm = ($pass == ADMIN_PASS);
+		$PMS->useModuleMethods('Authenticate', array($pass,'threadstop',&$haveperm));
+		if(!$haveperm) error($pass._T('admin_wrongpassword'));
+
 		$thsno = array_merge($thsno, $_POST['stop']);
 		$threads = $PIO->fetchPosts($thsno); // 取得文章
 		$tstatus = $tstatusType = $tsval = array();
