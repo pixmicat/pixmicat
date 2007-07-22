@@ -865,7 +865,7 @@ function total_size($isupdate=false){
 
 /* 搜尋(全文檢索)功能 */
 function search(){
-	global $PTE, $PIO, $FileIO, $language;
+	global $PTE, $PIO, $FileIO, $PMS, $language;
 
 	if(!USE_SEARCH) error(_T('search_disabled'));
 	$searchKeyword = isset($_POST['keyword']) ? trim($_POST['keyword']) : ''; // 欲搜尋的文字
