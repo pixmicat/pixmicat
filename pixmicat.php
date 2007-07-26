@@ -1,5 +1,5 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.2-dev (b070713)'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.2-dev (b070726)'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -23,8 +23,9 @@ PHP 4.3.0 / 27 December 2002
 GD Version 2.0.28 / 21 July 2004
 
 建議運行環境：
-PHP 5.1.x 或更高版本並開啟GD和zlib支援
-安裝PHP編譯快取套件 (如eAccelerator, XCache, APC) 或其他快取套件 (如memcached) 更佳
+PHP 5.2.0 或更高版本並開啟 GD 和 zlib 支援，如支援 ImageMagick 建議使用
+安裝 PHP 編譯快取套件 (如eAccelerator, XCache, APC) 或其他快取套件 (如memcached) 更佳
+如伺服器支援 SQLite, MySQL, PostgreSQL 等請盡量使用
 
 設置方法：
 根目錄的權限請設為777，
@@ -32,7 +33,8 @@ PHP 5.1.x 或更高版本並開啟GD和zlib支援
 自動設定完成後請刪除或註解起來此檔案底部之init(); // ←■■！程式環境初始化(略)一行，
 然後再執行一遍pixmicat.php，即完成初始化程序，可以開始使用。
 
-細部的設定請打開config.php參考註解修改。
+細部的設定請打開config.php參考註解修改，另有 Wiki (http://pixmicat.wikidot.com/pmcuse:config)
+說明條目可資參考。
 */
 
 include_once('./config.php'); // 引入設定檔
@@ -311,8 +313,9 @@ function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $
 
 /* 寫入記錄檔 */
 function regist(){
-	global $path, $PIO, $FileIO, $PMS, $language, $BAD_STRING, $BAD_FILEMD5, $BAD_IPADDR;
+	global $PIO, $FileIO, $PMS, $language, $BAD_STRING, $BAD_FILEMD5, $BAD_IPADDR;
 	$dest = ''; $mes = ''; $up_incomplete = 0; $is_admin = false;
+	$path = realpath('.').DIRECTORY_SEPARATOR; // 此目錄的絕對位置
 
 	if($_SERVER['REQUEST_METHOD'] != 'POST') error(_T('regist_notpost')); // 非正規POST方式
 
@@ -579,13 +582,22 @@ function regist(){
 	setcookie('emailc', $email, time()+7*24*3600);
 
 	if($dest && is_file($dest)){
-		rename($dest, $path.IMG_DIR.$tim.$ext);
-		if(USE_THUMB) thumb($path.IMG_DIR, $tim, $ext, $imgW, $imgH, $W, $H); // 使用GD製作縮圖
-	}
-
-	if($FileIO->uploadImage()){ // 支援上傳圖片至其他伺服器
-		if(file_exists($path.IMG_DIR.$tim.$ext)) $FileIO->uploadImage($tim.$ext, $path.IMG_DIR.$tim.$ext, filesize($path.IMG_DIR.$tim.$ext));
-		if(file_exists($path.THUMB_DIR.$tim.'s.jpg')) $FileIO->uploadImage($tim.'s.jpg', $path.THUMB_DIR.$tim.'s.jpg', filesize($path.THUMB_DIR.$tim.'s.jpg'));
+		$destFile = $path.IMG_DIR.$tim.$ext; // 圖檔儲存位置
+		$thumbFile = $path.THUMB_DIR.$tim.'s.jpg'; // 預覽圖儲存位置
+		rename($dest, $destFile);
+		if(USE_THUMB !== 0){ // 生成預覽圖
+			$thumbType = USE_THUMB; if(USE_THUMB==1){ $thumbType = 'gd'; } // 與舊設定相容
+			require('./lib/thumb/thumb.'.$thumbType.'.php');
+			$thObj = new ThumbWrapper($destFile, $imgW, $imgH);
+			$thObj->setThumbnailConfig($W, $H, THUMB_Q);
+			$thObj->makeThumbnailtoFile($thumbFile);
+			@chmod($thumbFile, 0666);
+			unset($thObj);
+		}
+		if($FileIO->uploadImage()){ // 支援上傳圖片至其他伺服器
+			if(file_exists($destFile)) $FileIO->uploadImage($tim.$ext, $destFile, filesize($destFile));
+			if(file_exists($thumbFile)) $FileIO->uploadImage($tim.'s.jpg', $thumbFile, filesize($thumbFile));
+		}
 	}
 
 	// 刪除舊容量快取
@@ -1016,14 +1028,17 @@ function showstatus(){
 	elseif($tmp_ts_ratio < 0.9 ) $clrflag_sl = 'F200D3';
 	else $clrflag_sl = 'F2004A';
 
-	// 判斷是否開啟GD模組、取出GD版本號及功能是否正常
-	$func_gd = '<span style="color: red;">'._T('info_disabled').'</span>';
-	$func_gdver = '(No info)';
-	if(extension_loaded('gd')){
-		$func_gd = '<span style="color: blue;">'._T('info_enabled').'</span>';
-		if($func_gdver = @gd_info()) $func_gdver = $func_gdver['GD Version'];
+	// 生成預覽圖物件資訊及功能是否正常
+	$func_thumbWork = '<span style="color: red;">'._T('info_nonfunctional').'</span>';
+	$func_thumbInfo = '(No thumbnail)';
+	if(USE_THUMB !== 0){
+		$thumbType = USE_THUMB; if(USE_THUMB==1){ $thumbType = 'gd'; }
+		require('./lib/thumb/thumb.'.$thumbType.'.php');
+		$thObj = new ThumbWrapper();
+		if($thObj->isWorking()) $func_thumbWork = '<span style="color: blue;">'._T('info_functional').'</span>';
+		$func_thumbInfo = $thObj->getClass();
+		unset($thObj);
 	}
-	$thumb_IsAvailable = function_exists('ImageCreateTrueColor') ? '<span style="color: blue;">'._T('info_functional').'</span>' : '<span style="color: red">'._T('info_nonfunctional').'</span>';
 
 	$dat = '';
 	head($dat);
@@ -1048,9 +1063,8 @@ function showstatus(){
 <tr><td>'._T('info_basic_com_limit').'</td><td colspan="2"> '.COMM_MAX._T('info_basic_com_after').'</td></tr>
 <tr><td>'._T('info_basic_anonpost').'</td><td colspan="2"> '.ALLOW_NONAME.' '._T('info_basic_anonpost_opt').'</td></tr>
 <tr><td>'._T('info_basic_del_incomplete').'</td><td colspan="2"> '.KILL_INCOMPLETE_UPLOAD.' '._T('info_0no1yes').'</td></tr>
-<tr><td>'._T('info_basic_use_sample',THUMB_Q).'</td><td colspan="2"> '.USE_THUMB.' '._T('info_0notuse1use').'</td></tr>';
-	if(USE_THUMB) $dat .= '<tr><td>'._T('info_basic_use_sample_func').'</td><td colspan="2"> '.$thumb_IsAvailable.' </td></tr>'."\n";
-	$dat .= '<tr><td>'._T('info_basic_useblock').'</td><td colspan="2"> '.BAN_CHECK.' '._T('info_0disable1enable').'</td></tr>
+<tr><td>'._T('info_basic_use_sample',THUMB_Q).'</td><td colspan="2"> '.USE_THUMB.' '._T('info_0notuse1use').'</td></tr>
+<tr><td>'._T('info_basic_useblock').'</td><td colspan="2"> '.BAN_CHECK.' '._T('info_0disable1enable').'</td></tr>
 <tr><td>'._T('info_basic_showid').'</td><td colspan="2"> '.DISP_ID.' '._T('info_basic_showid_after').'</td></tr>
 <tr><td>'._T('info_basic_cr_limit').'</td><td colspan="2"> '.BR_CHECK._T('info_basic_cr_after').'</td></tr>
 <tr><td>'._T('info_basic_timezone').'</td><td colspan="2"> GMT '.TIME_ZONE.'</td></tr>
@@ -1072,7 +1086,7 @@ function showstatus(){
 
 	$dat .= '
 <tr><td align="center" colspan="3">'._T('info_server_top').'</td></tr>
-<tr align="center"><td colspan="2">'._T('info_server_gd').$func_gdver.'</td><td>'.$func_gd.'</td></tr>
+<tr align="center"><td colspan="2">'.$func_thumbInfo.'</td><td>'.$func_thumbWork.'</td></tr>
 </table>
 <hr />
 </div>'."\n";
@@ -1098,7 +1112,6 @@ function init(){
 
 /*-----------程式各項功能主要判斷-------------*/
 if(GZIP_COMPRESS_LEVEL && ($Encoding = CheckSupportGZip())){ ob_start(); ob_implicit_flush(0); } // 支援且開啟Gzip壓縮就設緩衝區
-$path = realpath("./").'/'; // 此資料夾的絕對位置
 $mode = isset($_GET['mode']) ? $_GET['mode'] : ''; // 目前執行模式
 if($mode=='' && isset($_POST['mode'])) $mode = $_POST['mode']; // 如果GET找不到，就用POST
 if($mode != 'module'){ $PMS->init(); } // 載入所有模組

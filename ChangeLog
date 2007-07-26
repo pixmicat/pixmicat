@@ -1,5 +1,9 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2007/07/26
+-[pixmicat] $path 取消 global
+-[pixmicat] 新增預覽圖生成函式庫物件，可以支援其他圖像處理函式庫
+
 2007/07/13
 -[pixmicat] 偵測上傳中斷前先判斷是否有資料長度才作，避免作白工
 -[PMS] autoHookRegistBegin 修改 $upfileInfo 為傳址, 去除 $POST ($_POST 為 superglobal)
