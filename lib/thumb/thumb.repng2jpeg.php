@@ -29,7 +29,7 @@ class ThumbWrapper{
 	}
 
 	function isWorking(){
-		return file_exists($this->_exec) && (is_executable($this->_exec) || strtoupper(substr(PHP_OS, 0, 3))==='WIN');
+		return file_exists($this->_exec) && (strtoupper(substr(PHP_OS, 0, 3))==='WIN' || is_executable($this->_exec));
 	}
 
 	function setThumbnailConfig($thumbWidth, $thumbHeight, $thumbQuality=50){
