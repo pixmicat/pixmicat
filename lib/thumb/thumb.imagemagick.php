@@ -32,7 +32,8 @@ class ThumbWrapper{
 	}
 
 	function isWorking(){
-		return true; // I'm too lazy to check whether the binary is existed or not. Use it at your own risk.
+		@exec("$this->_exec -version",$status,$retval);
+		return ($retval===0);
 	}
 
 	function setThumbnailConfig($thumbWidth, $thumbHeight, $thumbQuality=50){
