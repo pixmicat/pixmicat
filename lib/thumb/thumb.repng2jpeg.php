@@ -23,7 +23,7 @@ class ThumbWrapper{
 	function getClass(){
 		$str = 'repng2jpeg Wrapper';
 		if($this->isWorking()){
-			$str .= ' : '.(strtoupper(substr(PHP_OS, 0, 3))==='WIN' ? `repng2jpeg --version` : `./repng2jpeg --version`);
+			$str .= ' : '.`$this->_exec --version`;
 		}
 		return $str;
 	}
