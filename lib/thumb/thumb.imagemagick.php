@@ -32,6 +32,7 @@ class ThumbWrapper{
 	}
 
 	function isWorking(){
+		if(!function_exists('exec')) return false;
 		@exec("$this->_exec -version",$status,$retval);
 		return ($retval===0);
 	}

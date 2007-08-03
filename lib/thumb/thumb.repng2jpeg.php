@@ -29,7 +29,7 @@ class ThumbWrapper{
 	}
 
 	function isWorking(){
-		return file_exists($this->_exec) && (strtoupper(substr(PHP_OS, 0, 3))==='WIN' || is_executable($this->_exec));
+		return file_exists($this->_exec) && function_exists('exec') && (strtoupper(substr(PHP_OS, 0, 3))==='WIN' || is_executable($this->_exec));
 	}
 
 	function setThumbnailConfig($thumbWidth, $thumbHeight, $thumbQuality=50){
@@ -48,7 +48,7 @@ class ThumbWrapper{
 			default:
 				return false;
 		}
-		$CLI = $this->_exec." \"$this->sourceFile\" \"$destFile\" $this->thumbWidth $this->thumbHeight $this->thumbQuality";
+		$CLI = "$this->_exec \"$this->sourceFile\" \"$destFile\" $this->thumbWidth $this->thumbHeight $this->thumbQuality";
 		@exec($CLI);
 		return true;
 	}
