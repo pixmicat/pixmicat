@@ -23,10 +23,10 @@ class ThumbWrapper{
 	function getClass(){
 		$str = 'ImageMagick Wrapper';
 		if($this->isWorking()){
-			$b = null;
-			$a = preg_match('/^Version: ImageMagick (.*?) http:/', `$this->_exec -version`, $b);
-			$str .= ' : '.$b[1];
-			unset($a); unset($b);
+			$a = null;
+			preg_match('/^Version: ImageMagick (.*?) http:/', `$this->_exec -version`, $a);
+			$str .= ' : '.$a[1];
+			unset($a);
 		}
 		return $str;
 	}
