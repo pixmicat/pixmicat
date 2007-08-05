@@ -121,7 +121,7 @@ class ThumbWrapper{
 
 	function makeThumbnailtoFile($destFile){
 		if(!$this->isWorking()) return false;
-		switch(strtolower(strrchr($destFile, '.'))){ // 取出副檔名
+		switch(strtolower(strrchr($this->sourceFile, '.'))){ // 取出副檔名
 			case '.jpg':
 				$im_in = @ImageCreateFromJPEG($this->sourceFile); break;
 			case '.gif':
