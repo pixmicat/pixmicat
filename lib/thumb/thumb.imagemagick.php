@@ -24,7 +24,7 @@ class ThumbWrapper{
 		$str = 'ImageMagick Wrapper';
 		if($this->isWorking()){
 			$a = null;
-			preg_match('/^Version: ImageMagick (.*?) http:/', `$this->_exec -version`, $a);
+			preg_match('/^Version: ImageMagick (.*?) [hf]/', `$this->_exec -version`, $a);
 			$str .= ' : '.$a[1];
 			unset($a);
 		}
@@ -33,7 +33,7 @@ class ThumbWrapper{
 
 	function isWorking(){
 		if(!function_exists('exec')) return false;
-		@exec("$this->_exec -version",$status,$retval);
+		@exec("$this->_exec -version", $status, $retval);
 		return ($retval===0);
 	}
 

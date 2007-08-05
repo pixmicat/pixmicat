@@ -184,9 +184,12 @@ class CheckEnvironment{
 
 	/* 回傳伺服器資訊 */
 	function getServerInfo(){
-		$msg = '- PHP   : '.phpversion()."\n";
-		$msg .= '- HTTPd : '.($_SERVER['SERVER_SOFTWARE'] ? $_SERVER['SERVER_SOFTWARE'] : getenv('SERVER_SOFTWARE'))."\n";
-		$msg .= '- OS    : '.php_uname('s').' '.php_uname('r').' '.php_uname('v');
+		$msg = "\t".'PHP: '.phpversion()."\n";
+		$msg .= "\t\t".'- upload_max_filesize: '.ini_get('upload_max_filesize')."\n";
+		$msg .= "\t\t".'- post_max_size: '.ini_get('post_max_size')."\n";
+		$msg .= "\t\t".'- disable_functions: '.ini_get('disable_functions')."\n";
+		$msg .= "\t".'HTTPd: '.($_SERVER['SERVER_SOFTWARE'] ? $_SERVER['SERVER_SOFTWARE'] : getenv('SERVER_SOFTWARE'))."\n";
+		$msg .= "\t".'OS: '.php_uname('s').' '.php_uname('r').' '.php_uname('v');
 		return $msg;
 	}
 }
