@@ -65,8 +65,8 @@ class ThumbWrapper{
 
 		// 第三步：讀取色盤資訊
 		$PALETTE = array();
-		if ($BMP['colors'] < 16777216) {
-			if($BMP['colors'] == 65536 && $BMP['compression'] == 3) // BI_BITFIELDS
+		if ($BMP['colors'] <=256 || $BMP['compression'] == 3) {
+			if($BMP['compression'] == 3) // BI_BITFIELDS
 				$PALETTE = unpack('V3', fread($f1,12));
 			else
 		 		$PALETTE = unpack('V'.$BMP['colors'], fread($f1,$BMP['colors']*4));
