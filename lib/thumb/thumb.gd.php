@@ -18,6 +18,22 @@ class ThumbWrapper{
 		$this->sourceHeight = $sourceHeight;
 	}
 
+	function _GetLeftShiftCount($dwVal,$len=4) {
+		$nCount = 0;
+		for ($i=0; $i<$len * 8; $i++) {
+			if ($dwVal & 1) $nCount++;
+			$dwVal >>= 1;
+		}
+		return (8 - $nCount);
+	}
+	function _GetRightShiftCount($dwVal,$len=4) {
+		for ($i=0; $i<$len * 8; $i++) {
+			if ($dwVal & 1) return $i;
+			$dwVal >>= 1;
+		}
+		return -1;
+	}
+
 	/* ImageCreateFromBMP : 讓GD可處理BMP圖檔
 	此為修改後最適化版本。原出處：http://www.php.net/imagecreate#53879
 	原作宣告：
@@ -49,10 +65,22 @@ class ThumbWrapper{
 
 		// 第三步：讀取色盤資訊
 		$PALETTE = array();
-		if($BMP['colors'] < 16777216) $PALETTE = unpack('V'.$BMP['colors'], fread($f1, $BMP['colors'] * 4));
+		if ($BMP['colors'] < 16777216) {
+			if($BMP['colors'] == 65536 && $BMP['compression'] == 3) // BI_BITFIELDS
+				$PALETTE = unpack('V3', fread($f1,12));
+			else
+		 		$PALETTE = unpack('V'.$BMP['colors'], fread($f1,$BMP['colors']*4));
+		}
+		if($BMP['compression'] == 3) // BI_BITFIELDS
+			$mask = array(array($PALETTE[1],$PALETTE[2],$PALETTE[3]),
+				array($this->_GetRightShiftCount($PALETTE[1]),$this->_GetRightShiftCount($PALETTE[2]),$this->_GetRightShiftCount($PALETTE[3])),
+				array($this->_GetLeftShiftCount($PALETTE[1]),$this->_GetLeftShiftCount($PALETTE[2]),$this->_GetLeftShiftCount($PALETTE[3])));
+		else {
+			if($BMP['colors'] == 65536) $mask = array(array(0x7C00,0x3E0,0x1F),array(10,5,0),array(3,3,3));
+		}
 
 		// 第四步：變換每一個畫素
-		// 尚不支援32bit, 32bit with BITFIELDS, 8bit with RLE8, 4bit with RLE4等格式
+		// 尚不支援8bit with RLE8, 4bit with RLE4等格式
 		$IMG = fread($f1, $BMP['size_bitmap']);
 		$VIDE = chr(0);
 
@@ -63,8 +91,17 @@ class ThumbWrapper{
 			$X = 0;
 			while($X < $BMP['width']){
 				switch($BMP['bits_per_pixel']){
+					case 32: 
+						$COLOR = unpack('V', substr($IMG, $P, 4));
+						$COLOR[1] &= 0xFFFFFF; // 不處理Alpha
+						break;
 					case 24: $COLOR = unpack('V', substr($IMG, $P, 3).$VIDE); break;
-					case 16: $COLOR = unpack('n', substr($IMG, $P, 2)); break;
+					case 16:
+						$COLOR = unpack("v",substr($IMG,$P,2));
+						$COLOR[1] = (((($COLOR[1] & $mask[0][0])>>$mask[1][0])<<$mask[2][0])<<16) |
+							(((($COLOR[1] & $mask[0][1])>>$mask[1][1])<<$mask[2][1])<<8) |
+							((($COLOR[1] & $mask[0][2])>>$mask[1][2])<<$mask[2][2]);
+						break;
 					case 8:	$COLOR = unpack('n', $VIDE.substr($IMG, $P, 1)); break;
 					case 4:
 						$COLOR = unpack('n', $VIDE.substr($IMG, floor($P), 1));
@@ -87,7 +124,7 @@ class ThumbWrapper{
 					default:
 						return FALSE;
 				}
-				if($BMP['bits_per_pixel']!=24) $COLOR[1] = $PALETTE[$COLOR[1]+1];
+				if($BMP['bits_per_pixel']<16) $COLOR[1] = $PALETTE[$COLOR[1]+1];
 				ImageSetPixel($res, $X, $Y, $COLOR[1]);
 				$X++;
 				$P += $BMP['bytes_per_pixel'];
