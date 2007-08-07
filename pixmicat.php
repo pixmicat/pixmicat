@@ -1,5 +1,5 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.2-dev (b070726)'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.2-dev (b070807)'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -280,7 +280,7 @@ function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $
 		if(STORAGE_LIMIT && $kill_sensor) if(isset($arr_kill[$no])) $WARN_BEKILL = '<span class="warn_txt">'._T('warn_sizelimit').'</span><br />'."\n"; // 預測刪除過大檔
 		if(!$i){ // 首篇 Only
 			if($old_sensor) if($arr_old[$no] + 1 >= LOG_MAX * 0.95) $WARN_OLD = '<span class="warn_txt">'._T('warn_oldthread').'</span><br />'."\n"; // 快要被刪除的提示
-			if($PIO->getPostStatus($status, 'TS')) $WARN_ENDREPLY = '<span class="warn_txt">'._T('warn_locked').'</span><br />'."\n"; // 被標記為禁止回應
+			if(strpos($status, 'T')!==false) $WARN_ENDREPLY = '<span class="warn_txt">'._T('warn_locked').'</span><br />'."\n"; // 被標記為禁止回應
 			if($hiddenReply) $WARN_HIDEPOST = '<span class="warn_txt2">'._T('notice_omitted',$hiddenReply).'</span><br />'."\n"; // 有隱藏的回應
 		}
 		// 對類別標籤作自動連結
@@ -551,7 +551,7 @@ function regist(){
 				$post = $PIO->fetchPosts($resto); // [特殊] 取單篇文章內容，但是回傳的$post同樣靠[$i]切換文章！
 				list($chkstatus, $chktime) = array($post[0]['status'], $post[0]['tim']);
 				$chktime = substr($chktime, 0, -3); // 拿掉微秒 (後面三個字元)
-				if($PIO->getPostStatus($chkstatus, 'TS')) error(_T('regist_threadlocked'), $dest);
+				if(strpos($chkstatus, 'T')!==false) error(_T('regist_threadlocked'), $dest);
 			}
 		}else error(_T('thread_not_found'), $dest); // 不存在
 	}
@@ -744,13 +744,10 @@ function admindel(){
 
 		$thsno = array_merge($thsno, $_POST['stop']);
 		$threads = $PIO->fetchPosts($thsno); // 取得文章
-		$tstatus = $tstatusType = $tsval = array();
 		foreach($threads as $th){
-			array_push($tstatus, $th['status']);
-			array_push($tstatusType, 'TS');
-			array_push($tsval, ($PIO->getPostStatus($th['status'], 'TS')==1 ? 0 : 1));
+			$tnewstatus = strpos($th['status'], 'T')!==false ? str_replace('T', '', $th['status']) : $th['status'].'T';
+			$PIO->setPostStatus($th['no'], $tnewstatus);
 		}
-		$PIO->setPostStatus($thsno, $tstatus, $tstatusType, $tsval);
 		$is_modified = true;
 	}
 	if(($delflag || $thsflag) && $is_modified) $PIO->dbCommit(); // 無論如何都有檔案操作，回寫檔案
@@ -794,7 +791,7 @@ function ChangePage(page){
 		$modFunc = $THstop = ' ';
 		$PMS->useModuleMethods('AdminList', array(&$modFunc, $posts[$j], $resto)); // "AdminList" Hook Point
 		if($resto==0){ // $resto = 0 (即討論串首篇)
-			$THstop = '<input type="checkbox" name="stop[]" value="'.$no.'" />'.(($PIO->getPostStatus($status, 'TS')==1)?_T('admin_stop_btn'):'');
+			$THstop = '<input type="checkbox" name="stop[]" value="'.$no.'" />'.((strpos($status, 'T')!==false)?_T('admin_stop_btn'):'');
 		}
 
 		// 從記錄抽出附加圖檔使用量並生成連結

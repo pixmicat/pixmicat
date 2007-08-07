@@ -27,7 +27,7 @@ class PIOsqlite3{
 
 	/* PIO模組版本 */
 	public function pioVersion() {
-		return '0.4 (v20070605)';
+		return '0.5alpha (b20070807)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -387,35 +387,11 @@ class PIOsqlite3{
 		return $result->fetchAll(PDO::FETCH_COLUMN, 0);
 	}
 
-	/* 取出單一文章狀態 */
-	public function getPostStatus($status, $statusType){
-		if(!$this->prepared) $this->dbPrepare();
-		$returnValue = 0; // 回傳值
-
-		switch($statusType){
-			case 'TS': // 討論串是否鎖定
-				$returnValue = (strpos($status, 'T')!==false) ? 1 : 0; // 討論串是否鎖定
-				break;
-			default:
-		}
-		return $returnValue;
-	}
-
 	/* 設定文章狀態 */
-	public function setPostStatus($no, $status, $statusType, $newValue){
+	public function setPostStatus($no, $newStatus){
 		if(!$this->prepared) $this->dbPrepare();
 
-		$forcount = count($no);
-		for($i = 0; $i < $forcount; $i++){
-			$newStatus = ''; // 討論串狀態旗標字串
-			switch($statusType[$i]){
-				case 'TS': // 討論串是否停止
-					$newStatus = $newValue[$i] ? ($status[$i].'T') : str_replace('T', '', $status[$i]);
-					if(!$this->con->exec('UPDATE '.$this->tablename." SET status = '$newStatus' WHERE no = ".$no[$i])) $this->_error_handler('Update the status of the post failed', __LINE__);
-					break;
-				default:
-			}
-		}
+		if(!$this->con->exec('UPDATE '.$this->tablename." SET status = '$newStatus' WHERE no = $no")) $this->_error_handler('Update the status of the post failed', __LINE__);
 	}
 }
 ?>

@@ -102,7 +102,7 @@ class PIOlogflockp{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.4 (v20070605)';
+		return '0.5alpha (b20070807)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -513,45 +513,14 @@ class PIOlogflockp{
 		return $foundPosts;
 	}
 
-	/* 取得文章屬性 */
-	function getPostStatus($status, $statusType){
-		if(!$this->prepared) $this->dbPrepare();
-		$returnValue = 0; // 回傳值
-
-		switch($statusType){
-			case 'TS': // 討論串是否鎖定
-				$returnValue = (strpos($status, 'T')!==false) ? 1 : 0; // 討論串是否鎖定
-				break;
-			default:
-		}
-		return $returnValue;
-	}
-
 	/* 設定文章屬性 */
-	function setPostStatus($no, $status, $statusType, $newValue){
+	function setPostStatus($no, $newStatus){
 		if(!$this->prepared) $this->dbPrepare();
 
-		$scount = count($no);
-		for($i = 0; $i < $scount; $i++){
-			$statusType[$i] = explode(',', $statusType[$i]);
-			$newValue[$i] = explode(',', $newValue[$i]);
-			$st_count = count($statusType[$i]);
-			for($j = 0; $j < $st_count; $j++){
-				switch($statusType[$i][$j]){
-					case 'TS': // 討論串鎖定
-						if(strpos($status[$i], 'T')!==false && $newValue[$i][$j]==0)
-							$status[$i] = str_replace('T', '', $status[$i]); // 討論串解除鎖定
-						elseif(strpos($status[$i], 'T')===false && $newValue[$i][$j]==1)
-							$status[$i] .= 'T'; // 討論串鎖定
-						break;
-					default:
-				}
-			}
-			$this->_ArrangeArrayStructure($no[$i]); // 將資料變成陣列
-			$this->logs[$this->LUT[$no[$i]]]['status'] = $status[$i]; // 修改狀態
-		}
+		$this->_ArrangeArrayStructure($no); // 將資料變成陣列
+		$this->logs[$this->LUT[$no]]['status'] = $newStatus; // 修改狀態
 	}
-	
+
 	/* 檔案鎖定/解鎖處理 */
 	function _lock($lock, $tries=10) {
 		ignore_user_abort(true);
