@@ -328,7 +328,7 @@ class PIOsqlite{
 	}
 
 	/* 新增文章/討論串 */
-	function addPost($no, $resto, $md5chksum, $category, $tim, $ext, $imgw, $imgh, $imgsize, $tw, $th, $pwd, $now, $name, $email, $sub, $com, $host, $age=false){
+	function addPost($no, $resto, $md5chksum, $category, $tim, $ext, $imgw, $imgh, $imgsize, $tw, $th, $pwd, $now, $name, $email, $sub, $com, $host, $age=false, $status=''){
 		if(!$this->prepared) $this->dbPrepare();
 
 		$time = (int)substr($tim, 0, -3); // 13位數的數字串是檔名，10位數的才是時間數值
@@ -355,7 +355,7 @@ class PIOsqlite{
 	"'".sqlite_escape_string($email)."',".
 	"'".sqlite_escape_string($sub)."',".
 	"'".sqlite_escape_string($com)."',".
-	"'".sqlite_escape_string($host)."', '')";
+	"'".sqlite_escape_string($host)."', '".sqlite_escape_string($status)."')";
 		if(!$result=$this->_sqlite_call($query)) $this->_error_handler('Insert a new post failed', __LINE__);
 	}
 

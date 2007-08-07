@@ -2,6 +2,8 @@
 ----------------------
 2007/08/07
 -[pixmicat][PIO] PIO 0.5alpha: 取消 setPostStatus，修改 getPostStatus
+-[pixmicat][PIO] PIO 0.5alpha: addPost() 新增 $status 引入
+-[PMS] RegistBeforeCommit 掛載點新增 &$status 引入
 
 2007/07/26
 -[pixmicat] $path 取消 global

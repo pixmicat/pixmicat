@@ -404,10 +404,10 @@ class PIOlog{
 	}
 
 	/* 新增文章/討論串 */
-	function addPost($no, $resto, $md5chksum, $category, $tim, $ext, $imgw, $imgh, $imgsize, $tw, $th, $pwd, $now, $name, $email, $sub, $com, $host, $age=false) {
+	function addPost($no, $resto, $md5chksum, $category, $tim, $ext, $imgw, $imgh, $imgsize, $tw, $th, $pwd, $now, $name, $email, $sub, $com, $host, $age=false, $status='') {
 		if(!$this->prepared) $this->dbPrepare();
 
-		$tline = array($no, $resto, $md5chksum, $category, $tim, $ext, $imgw, $imgh, $imgsize, $tw, $th, $pwd, $now, $name, $email, $sub, $com, $host, '');
+		$tline = array($no, $resto, $md5chksum, $category, $tim, $ext, $imgw, $imgh, $imgsize, $tw, $th, $pwd, $now, $name, $email, $sub, $com, $host, $status);
 		$tline = array_map(array($this, '_replaceComma'), $tline); // 將資料內的 , 轉換 (Only Log needed)
 		array_unshift($this->logs, implode(',', $tline).",\r\n"); // 更新logs
 		array_unshift($this->porder, $no); // 更新porder

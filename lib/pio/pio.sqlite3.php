@@ -296,7 +296,7 @@ class PIOsqlite3{
 	}
 
 	/* 新增文章/討論串 */
-	public function addPost($no, $resto, $md5chksum, $category, $tim, $ext, $imgw, $imgh, $imgsize, $tw, $th, $pwd, $now, $name, $email, $sub, $com, $host, $age=false){
+	public function addPost($no, $resto, $md5chksum, $category, $tim, $ext, $imgw, $imgh, $imgsize, $tw, $th, $pwd, $now, $name, $email, $sub, $com, $host, $age=false, $status=''){
 		if(!$this->prepared) $this->dbPrepare();
 
 		$time = (int)substr($tim, 0, -3); // 13位數的數字串是檔名，10位數的才是時間數值
@@ -323,7 +323,7 @@ class PIOsqlite3{
 	$this->con->quote($email).','.
 	$this->con->quote($sub).','.
 	$this->con->quote($com).','.
-	$this->con->quote($host).", '')";
+	$this->con->quote($host).','.$this->con->quote($status).')';
 		if(!$this->con->exec($query)) $this->_error_handler('Insert a new post failed', __LINE__);
 	}
 

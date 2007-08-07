@@ -90,6 +90,8 @@ function updatelog($resno=0,$page_num=0){
 		head($dat,$resno);
 		form($dat, $resno);
 		$pte_vals['{$THREADS}'] = '';
+		$pte_vals['{$THREADFRONT}'] = '';
+		$pte_vals['{$THREADREAR}'] = '';
 		$PMS->useModuleMethods('ThreadFront', array(&$pte_vals['{$THREADFRONT}'],$resno)); // "ThreadFront" Hook Point
 		// 輸出討論串內容
 		for($i = 0; $i < $inner_for_count; $i++){
@@ -566,15 +568,16 @@ function regist(){
 	isset($H) ? 0 : $H = 0;
 	isset($md5chksum) ? 0 : $md5chksum = '';
 	$age = false;
+	$status = '';
 	if($resto){
 		if(!stristr($email, 'sage') && ($PIO->postCount($resto) <= MAX_RES || MAX_RES==0)){
 			if(!MAX_AGE_TIME || (($time - $chktime) < (MAX_AGE_TIME * 60 * 60))) $age = true; // 討論串並無過期，推文
 		}
 	}
-	$PMS->useModuleMethods('RegistBeforeCommit', array(&$name, &$email, &$sub, &$com, &$category, &$age, $dest, $resto, array($W, $H, $imgW, $imgH))); // "RegistBeforeCommit" Hook Point
+	$PMS->useModuleMethods('RegistBeforeCommit', array(&$name, &$email, &$sub, &$com, &$category, &$age, $dest, $resto, array($W, $H, $imgW, $imgH), &$status)); // "RegistBeforeCommit" Hook Point
 
 	// 正式寫入儲存
-	$PIO->addPost($no,$resto,$md5chksum,$category,$tim,$ext,$imgW,$imgH,$imgsize,$W,$H,$pass,$now,$name,$email,$sub,$com,$host,$age);
+	$PIO->addPost($no,$resto,$md5chksum,$category,$tim,$ext,$imgW,$imgH,$imgsize,$W,$H,$pass,$now,$name,$email,$sub,$com,$host,$age,$status);
 	$PIO->dbCommit();
 
 	// Cookies儲存：密碼與E-mail部分，期限是一週
