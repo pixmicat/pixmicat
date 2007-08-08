@@ -1,6 +1,7 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
-2007/08/07
+2007/08/07,08
+-[PIO] PIO Structure V3: 加大 status 儲存量
 -[pixmicat][PIO] PIO 0.5alpha: 取消 setPostStatus，修改 getPostStatus
 -[pixmicat][PIO] PIO 0.5alpha: addPost() 新增 $status 引入
 -[PMS] RegistBeforeCommit 掛載點新增 &$status 引入

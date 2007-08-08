@@ -102,7 +102,7 @@ class PIOlog{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.5alpha (b20070807)';
+		return '0.5alpha (b20070808)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -122,7 +122,7 @@ class PIOlog{
 			if(!is_file($value)){ // 檔案不存在
 				$fp = fopen($value, 'w');
 				stream_set_write_buffer($fp, 0);
-				if($value==$this->logfile) fwrite($fp, '1,0,,,0,,0,0,,0,0,,05/01/01(六)00:00,'.$this->ENV['NONAME'].',,'.$this->ENV['NOTITLE'].','.$this->ENV['NOCOMMENT'].',,,'); // PIO Structure V2
+				if($value==$this->logfile) fwrite($fp, '1,0,,,0,,0,0,,0,0,,05/01/01(六)00:00,'.$this->ENV['NONAME'].',,'.$this->ENV['NOTITLE'].','.$this->ENV['NOCOMMENT'].',,,'); // PIO Structure V3
 				if($value==$this->treefile) fwrite($fp, '1');
 				if($value==$this->porderfile) fwrite($fp, '1');
 				fclose($fp);

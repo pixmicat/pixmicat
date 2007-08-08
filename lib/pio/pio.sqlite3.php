@@ -27,7 +27,7 @@ class PIOsqlite3{
 
 	/* PIO模組版本 */
 	public function pioVersion() {
-		return '0.5alpha (b20070807)';
+		return '0.5alpha (b20070808)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -67,8 +67,8 @@ class PIOsqlite3{
 	"sub" VARCHAR(255)  NOT NULL,
 	"com" TEXT  NOT NULL,
 	"host" VARCHAR(255)  NOT NULL,
-	"status" VARCHAR(4)  NOT NULL
-	);'; // PIO Structure V2
+	"status" VARCHAR(255)  NOT NULL
+	);'; // PIO Structure V3
 			$idx = array('resto', 'root', 'time');
 			foreach($idx as $x) $result .= 'CREATE INDEX IDX_'.$this->tablename.'_'.$x.' ON '.$this->tablename.'('.$x.');';
 			$result .= 'CREATE INDEX IDX_'.$this->tablename.'_resto_no ON '.$this->tablename.'(resto,no);';

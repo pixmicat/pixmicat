@@ -5,8 +5,8 @@
  * 提供存取以 Log 檔案構成的資料結構後端的物件
  *
  * @package PMCLibrary
- * @version $Id: pio.log.php 430 2007-06-07 13:17:08Z scribe $
- * @date $Date: 2007-06-07 21:17:08 +0800 (Thu, 07 Jun 2007) $
+ * @version $Id$
+ * @date $Date$
  */
 
 class PIOlogflockp{
@@ -102,7 +102,7 @@ class PIOlogflockp{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.5alpha (b20070807)';
+		return '0.5alpha (b20070808)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -122,7 +122,7 @@ class PIOlogflockp{
 			if(!is_file($value)){ // 檔案不存在
 				$fp = fopen($value, 'w');
 				stream_set_write_buffer($fp, 0);
-				if($value==$this->logfile) fwrite($fp, '1,0,,,0,,0,0,,0,0,,05/01/01(六)00:00,'.$this->ENV['NONAME'].',,'.$this->ENV['NOTITLE'].','.$this->ENV['NOCOMMENT'].',,,'); // PIO Structure V2
+				if($value==$this->logfile) fwrite($fp, '1,0,,,0,,0,0,,0,0,,05/01/01(六)00:00,'.$this->ENV['NONAME'].',,'.$this->ENV['NOTITLE'].','.$this->ENV['NOCOMMENT'].',,,'); // PIO Structure V3
 				if($value==$this->treefile) fwrite($fp, '1');
 				if($value==$this->porderfile) fwrite($fp, '1');
 				fclose($fp);

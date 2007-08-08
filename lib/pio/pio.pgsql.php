@@ -40,7 +40,7 @@ class PIOpgsql{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.5alpha (b20070807)';
+		return '0.5alpha (b20070808)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -83,8 +83,8 @@ class PIOpgsql{
 	\"sub\" varchar(255) NOT NULL,
 	\"com\" text NOT NULL,
 	\"host\" varchar(255) NOT NULL,
-	\"status\" varchar(4) NOT NULL,
-	PRIMARY KEY (\"no\"));"; // PIO Structure V2
+	\"status\" varchar(255) NOT NULL,
+	PRIMARY KEY (\"no\"));"; // PIO Structure V3
 			$idxs = array('resto', 'root', 'time');
 			foreach($idxs as $idx) $result .= 'CREATE INDEX '.$this->tablename.'_'.$idx.'_index ON '.$this->tablename.' ('.$idx.');';
 			pg_query($this->con, $result); // 正式新增資料表

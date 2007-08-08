@@ -40,7 +40,7 @@ class PIOmysql{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.5alpha (b20070807)';
+		return '0.5alpha (b20070808)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -82,9 +82,9 @@ class PIOmysql{
 	sub varchar(255) not null,
 	com text not null,
 	host varchar(255) not null,
-	status varchar(4) not null)
+	status varchar(255) not null)
 	TYPE = MYISAM
-	COMMENT = 'PIO Structure V2'";
+	COMMENT = 'PIO Structure V3'";
 			$result2 = @mysql_query("SHOW CHARACTER SET like 'utf8'"); // 是否支援UTF-8 (MySQL 4.1.1開始支援)
 			if($result2 && mysql_num_rows($result2)){
 				$result .= ' CHARACTER SET utf8 COLLATE utf8_general_ci'; // 資料表追加UTF-8編碼
