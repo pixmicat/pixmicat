@@ -101,12 +101,12 @@ function auto_link_callback($matches){
 function auto_link($proto){
 	$proto = preg_replace('|<br\s*/?>|',"\n",$proto);
 	$proto = preg_replace_callback('/(>|^)([^<]+?)(<.*?>|$)/m','auto_link_callback',$proto);
-	return nl2br($proto);
+	return str_replace("\n",'<br />',$proto);
 }
 
 /* 引用標註 */
 function quoteLight($comment){
-	return preg_replace('/(^|<br \/>|\n)((?:&gt;|＞).*?)(?=<br \/>|$)/u', '$1<span class="resquote">$2</span>', $comment);
+	return preg_replace('/(^|<br \/>)((?:&gt;|＞).*?)(?=<br \/>|$)/u', '$1<span class="resquote">$2</span>', $comment);
 }
 
 /* 取得完整的網址 */
