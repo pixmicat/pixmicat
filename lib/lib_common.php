@@ -106,7 +106,7 @@ function auto_link($proto){
 
 /* 引用標註 */
 function quoteLight($comment){
-	return preg_replace('/(^|<br \/>)((?:&gt;|＞).*?)(?=<br \/>|$)/u', '$1<span class="resquote">$2</span>', $comment);
+	return preg_replace('/(^|<br \/>|\n)((?:&gt;|＞).*?)(?=<br \/>|$)/u', '$1<span class="resquote">$2</span>', $comment);
 }
 
 /* 取得完整的網址 */
