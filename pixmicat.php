@@ -1,5 +1,5 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.2-dev (b070817)'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.2-dev (b070818)'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -748,8 +748,7 @@ function admindel(){
 		$thsno = array_merge($thsno, $_POST['stop']);
 		$threads = $PIO->fetchPosts($thsno); // 取得文章
 		foreach($threads as $th){
-			$tnewstatus = strpos($th['status'], 'T')!==false ? str_replace('T', '', $th['status']) : $th['status'].'T';
-			$PIO->setPostStatus($th['no'], $tnewstatus);
+			$PIO->setPostStatus($th['no'], $PIO->getPostStatus($th['status'])->toggle('TS')->toString());
 		}
 		$is_modified = true;
 	}
