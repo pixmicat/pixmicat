@@ -102,7 +102,7 @@ class PIOlogflockp{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.5alpha (b20070808)';
+		return '0.5alpha (b20070817)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -511,6 +511,11 @@ class PIOlogflockp{
 			if(strpos(strtolower($ary_category), '&#44;'.$category.'&#44;')!==false) array_push($foundPosts, $logsarray[0]['no']); // 找到標籤，加入名單
 		}
 		return $foundPosts;
+	}
+
+	/* 取得文章屬性 */
+	function getPostStatus($status){
+		return new FlagHelper($status); // 回傳 FlagHelper 物件
 	}
 
 	/* 設定文章屬性 */

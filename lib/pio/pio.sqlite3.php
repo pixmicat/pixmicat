@@ -27,7 +27,7 @@ class PIOsqlite3{
 
 	/* PIO模組版本 */
 	public function pioVersion() {
-		return '0.5alpha (b20070808)';
+		return '0.5alpha (b20070817)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -385,6 +385,11 @@ class PIOsqlite3{
 		$result = $this->con->prepare('SELECT no FROM '.$this->tablename.' WHERE lower(category) LIKE :category');
 		$result->execute(array(':category' => '%,'.strtolower($category).',%'));
 		return $result->fetchAll(PDO::FETCH_COLUMN, 0);
+	}
+
+	/* 取得文章屬性 */
+	public function getPostStatus($status){
+		return new FlagHelper($status); // 回傳 FlagHelper 物件
 	}
 
 	/* 設定文章狀態 */

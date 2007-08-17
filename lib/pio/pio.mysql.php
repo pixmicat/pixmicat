@@ -40,7 +40,7 @@ class PIOmysql{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.5alpha (b20070808)';
+		return '0.5alpha (b20070817)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -437,11 +437,16 @@ class PIOmysql{
 		return $foundPosts;
 	}
 
+	/* 取得文章屬性 */
+	function getPostStatus($status){
+		return new FlagHelper($status); // 回傳 FlagHelper 物件
+	}
+
 	/* 設定文章狀態 */
 	function setPostStatus($no, $newStatus){
 		if(!$this->prepared) $this->dbPrepare();
 
-		if(!$this->_mysql_call('UPDATE '.$this->tablename." SET status = '$newStatus' WHERE no = $no")) $this->_error_handler('Update the status of the post failed', __LINE__); // 更新討論串屬性
+		if(!$this->_mysql_call('UPDATE '.$this->tablename." SET status = '$newStatus', root = root WHERE no = $no")) $this->_error_handler('Update the status of the post failed', __LINE__); // 更新討論串屬性
 	}
 }
 ?>
