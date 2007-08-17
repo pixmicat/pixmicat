@@ -923,7 +923,7 @@ function search(){
 
 /* 利用類別標籤搜尋符合的文章 */
 function searchCategory(){
-	global $PTE, $PIO, $FileIO, $language;
+	global $PTE, $PIO, $PMS, $FileIO, $language;
 	$category = isset($_GET['c']) ? strtolower(strip_tags(trim($_GET['c']))) : ''; // 搜尋之類別標籤
 	$category_enc = urlencode($category); // URL 編碼後字串
 	$page = isset($_GET['p']) ? @intval($_GET['p']) : 1; // 目前瀏覽頁數
