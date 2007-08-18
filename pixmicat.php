@@ -70,7 +70,9 @@ function updatelog($resno=0,$page_num=0){
 			$threads = $PIO->fetchThreadList($page_num * PAGE_DEF, PAGE_DEF); // 取出分頁後的討論串首篇列表
 			$inner_for_count = count($threads); // 討論串個數就是迴圈次數
 		}
-	}else{ if(!$PIO->isThread($resno)){ error(_T('thread_not_found')); } }
+	}else{
+		if(!$PIO->isThread($resno)){ error(_T('thread_not_found')); }
+	}
 
 	// 預測過舊文章和將被刪除檔案
 	if($PIO->postCount() >= LOG_MAX * 0.95){
@@ -84,15 +86,14 @@ function updatelog($resno=0,$page_num=0){
 		$arr_kill = $PIO->delOldAttachments($tmp_total_size, $tmp_STORAGE_MAX); // 過舊附檔陣列
 	}
 
+	$PMS->useModuleMethods('ThreadFront', array(&$pte_vals['{$THREADFRONT}'], $resno)); // "ThreadFront" Hook Point
+	$PMS->useModuleMethods('ThreadRear', array(&$pte_vals['{$THREADREAR}'], $resno)); // "ThreadRear" Hook Point
+
 	// 生成靜態頁面一頁份內容
 	for($page = $page_start; $page <= $page_end; $page++){
-		$dat = '';
-		head($dat,$resno);
+		$dat = ''; $pte_vals['{$THREADS}'] = '';
+		head($dat, $resno);
 		form($dat, $resno);
-		$pte_vals['{$THREADS}'] = '';
-		$pte_vals['{$THREADFRONT}'] = '';
-		$pte_vals['{$THREADREAR}'] = '';
-		$PMS->useModuleMethods('ThreadFront', array(&$pte_vals['{$THREADFRONT}'],$resno)); // "ThreadFront" Hook Point
 		// 輸出討論串內容
 		for($i = 0; $i < $inner_for_count; $i++){
 			// 取出討論串編號
@@ -102,13 +103,12 @@ function updatelog($resno=0,$page_num=0){
 				if(($page * PAGE_DEF + $i) >= $threads_count) break; // 超出索引代表已全部完成
 				$tID = $threads[$page * PAGE_DEF + $i];
 			}
-			// 取出討論串結構及回應個數等資訊
-			$tree = $PIO->fetchPostList($tID); // 整個討論串樹狀結構
-			$tree_count = count($tree) - 1; // 討論串回應個數
 			// 計算回應分頁範圍
+			$tree_count = $PIO->postCount($tID) - 1; // 討論串回應個數
 			$RES_start = $RES_amount = 0;
 			$hiddenReply = 0; // 被隱藏回應數
 			if($resno){ // 回應模式
+				$AllRes = isset($_GET['page_num']) && $_GET['page_num']=='all'; // 是否使用 ALL 全部輸出
 				if($tree_count && RE_PAGE_DEF){ // 有回應且RE_PAGE_DEF > 0才做分頁動作
 					if($page_num==='all'){ // show all
 						$page_num = 0;
@@ -121,18 +121,31 @@ function updatelog($resno=0,$page_num=0){
 						$RES_amount = RE_PAGE_DEF; // 取幾個
 					}
 				}elseif($page_num > 0) error(_T('page_not_found')); // 沒有回應的情況只允許page_num = 0 或負數
-				else{ $RES_start = 1; $RES_amount = $tree_count; } // 輸出全部回應
+				else{ $RES_start = 1; $RES_amount = $tree_count; $page_num = 0; } // 輸出全部回應
+
+				if(USE_RE_CACHE){ // 檢查快取是否仍可使用 / 頁面有無更動
+					$cacheETag = md5(($AllRes ? 'all' : $page_num).'-'.$tree_count); // 最新狀態快取用 ETag
+					$cacheFile = './cache/'.$tID.'-'.($AllRes ? 'all' : $page_num).'.'; // 暫存快取檔位置
+					if(isset($_SERVER['HTTP_IF_NONE_MATCH']) && $_SERVER['HTTP_IF_NONE_MATCH'] == '"'.$cacheETag.'"'){ // 再度瀏覽而快取無更動
+						header('HTTP/1.1 304 Not Modified');
+						return;
+					}elseif(file_exists($cacheFile.$cacheETag)){ // 有(更新的)暫存快取檔存在
+						header('X-Cache: HIT from Pixmicat!');
+						header('ETag: "'.$cacheETag.'"');
+						readfile($cacheFile.$cacheETag); return;
+					}
+				}
 			}else{ // 一般模式下的回應隱藏
 				$RES_start = $tree_count - RE_DEF + 1; if($RES_start < 1) $RES_start = 1; // 開始
 				$RES_amount = RE_DEF; // 取幾個
 				$hiddenReply = $RES_start - 1; // 被隱藏回應數
 			}
 			// $RES_start, $RES_amount 拿去算新討論串結構 (分頁後, 部分回應隱藏)
+			$tree = $PIO->fetchPostList($tID); // 整個討論串樹狀結構
 			$tree_cut = array_slice($tree, $RES_start, $RES_amount); array_unshift($tree_cut, $tID); // 取出特定範圍回應
 			$posts = $PIO->fetchPosts($tree_cut); // 取得文章架構內容
 			$pte_vals['{$THREADS}'] .= arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno, $arr_kill, $arr_old, $kill_sensor, $old_sensor); // 交給這個函式去搞討論串印出
 		}
-		$PMS->useModuleMethods('ThreadRear', array(&$pte_vals['{$THREADREAR}'],$resno)); // "ThreadRear" Hook Point
 		$pte_vals += array('{$DEL_HEAD_TEXT}' => '<input type="hidden" name="mode" value="usrdel" />'._T('del_head'),
 			'{$DEL_IMG_ONLY_FIELD}' => '<input type="checkbox" name="onlyimgdel" id="onlyimgdel" value="on" />',
 			'{$DEL_IMG_ONLY_TEXT}' => _T('del_img_only'),
@@ -147,11 +160,9 @@ function updatelog($resno=0,$page_num=0){
 		$next = ($resno ? $page_num : $page) + 1;
 		if($resno){ // 回應分頁
 			if(RE_PAGE_DEF > 0){ // 回應分頁開啟
-				$AllRes = isset($_GET['page_num']) && $_GET['page_num']=='all'; // 是否使用 ALL 全部輸出
-				$pte_vals['{$PAGENAV}'] .= '<table border="1"><tr>';
-				if($prev >= 0) $pte_vals['{$PAGENAV}'] .= '<td><form action="'.PHP_SELF.'?res='.$resno.'&amp;page_num='.$prev.'" method="post"><div><input type="submit" value="'._T('prev_page').'" /></div></form></td>';
-				else $pte_vals['{$PAGENAV}'] .= '<td style="white-space: nowrap;">'._T('first_page').'</td>';
-				$pte_vals['{$PAGENAV}'] .= "<td>";
+				$pte_vals['{$PAGENAV}'] .= '<table border="1"><tr><td style="white-space: nowrap;">';
+				$pte_vals['{$PAGENAV}'] .= ($prev >= 0) ? '<a href="'.PHP_SELF.'?res='.$resno.'&amp;page_num='.$prev.'">'._T('prev_page').'</a>' : _T('first_page');
+				$pte_vals['{$PAGENAV}'] .= "</td><td>";
 				if($tree_count==0) $pte_vals['{$PAGENAV}'] .= '[<b>0</b>] '; // 無回應
 				else{
 					for($i = 0; $i < $tree_count ; $i += RE_PAGE_DEF){
@@ -160,10 +171,9 @@ function updatelog($resno=0,$page_num=0){
 					}
 					$pte_vals['{$PAGENAV}'] .= $AllRes ? '[<b>'._T('all_pages').'</b>] ' : ($tree_count > RE_PAGE_DEF ? '[<a href="'.PHP_SELF.'?res='.$resno.'&amp;page_num=all">'._T('all_pages').'</a>] ' : '');
 				}
-				$pte_vals['{$PAGENAV}'] .= '</td>';
-				if(!$AllRes && $tree_count > $next * RE_PAGE_DEF) $pte_vals['{$PAGENAV}'] .= '<td><form action="'.PHP_SELF.'?res='.$resno.'&amp;page_num='.$next.'" method="post"><div><input type="submit" value="'._T('next_page').'" /></div></form></td>';
-				else $pte_vals['{$PAGENAV}'] .= '<td style="white-space: nowrap;">'._T('last_page').'</td>';
-				$pte_vals['{$PAGENAV}'] .= '</tr></table>'."\n";
+				$pte_vals['{$PAGENAV}'] .= '</td><td style="white-space: nowrap;">';
+				$pte_vals['{$PAGENAV}'] .= (!$AllRes && $tree_count > $next * RE_PAGE_DEF) ? '<a href="'.PHP_SELF.'?res='.$resno.'&amp;page_num='.$next.'">'._T('next_page').'</a>' : _T('last_page');
+				$pte_vals['{$PAGENAV}'] .= '</td></tr></table>'."\n";
 			}
 		}else{ // 一般分頁
 			$pte_vals['{$PAGENAV}'] .= '<table border="1"><tr>';
@@ -194,12 +204,11 @@ function updatelog($resno=0,$page_num=0){
 		}
 		$pte_vals['{$PAGENAV}'] .= '<br style="clear: left;" />
 </div>';
-		$dat .= $PTE->ParseBlock('MAIN',$pte_vals);
+		$dat .= $PTE->ParseBlock('MAIN', $pte_vals);
 		foot($dat);
 
 		// 存檔 / 輸出
-		if(!$page_num){ // 非使用php輸出方式，而是靜態生成
-			if($resno){ echo $dat; break; } // 回應分頁第0頁
+		if(!$page_num && !$resno){ // 靜態快取頁面生成
 			if($page==0) $logfilename = PHP_SELF2;
 			else $logfilename = $page.PHP_EXT;
 			$fp = fopen($logfilename, 'w');
@@ -207,11 +216,19 @@ function updatelog($resno=0,$page_num=0){
 			fwrite($fp, $dat);
 			fclose($fp);
 			@chmod($logfilename, 0666);
-		}else{ // php輸出
-			print $dat;
-			break; // 只執行一次迴圈，即印出一頁內容
+			if(STATIC_HTML_UNTIL != -1 && STATIC_HTML_UNTIL==$page) break; // 頁面數目限制
+		}else{ // PHP 輸出 (回應模式/一般動態輸出)
+			if($resno && USE_RE_CACHE){ // 更新快取
+				foreach(glob($cacheFile.'*') as $oldCache) unlink($oldCache); // 刪除舊快取
+				$fp = fopen($cacheFile.$cacheETag, 'w');
+				fwrite($fp, $dat);
+				fclose($fp);
+				@chmod($cacheFile.$cacheETag, 0666);
+				header('ETag: "'.$cacheETag.'"');
+			}
+			echo $dat;
+			break;
 		}
-		if((STATIC_HTML_UNTIL != -1) && STATIC_HTML_UNTIL==$page) break; // 生成靜態頁面數目限制
 	}
 }
 

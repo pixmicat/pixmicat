@@ -71,6 +71,7 @@ define("CLEAR_SAGE", 0); // 使用不推文模式時清除E-mail中的「sage」
 define("USE_QUOTESYSTEM", 1); // 是否打開引用瀏覽系統 [自動轉換>>No.xxx文字成連結並導引] (是：1 否：0)
 define("SHOW_IMGWH", 1); // 是否顯示附加圖檔之原檔長寬尺寸 (是：1 否：0)
 define("USE_CATEGORY", 1); // 是否開啟使用類別標籤分類功能 (是：1 否：0)
+define("USE_RE_CACHE", 1); // 是否使用回應頁面顯示快取功能 (是：1 否：0)
 
 // 模組載入
 $ModuleList = array();
