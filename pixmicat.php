@@ -1,5 +1,5 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.2-dev (b070818)'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.2-dev (b070819)'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -128,10 +128,12 @@ function updatelog($resno=0,$page_num=0){
 					$cacheFile = './cache/'.$tID.'-'.($AllRes ? 'all' : $page_num).'.'; // 暫存快取檔位置
 					if(isset($_SERVER['HTTP_IF_NONE_MATCH']) && $_SERVER['HTTP_IF_NONE_MATCH'] == '"'.$cacheETag.'"'){ // 再度瀏覽而快取無更動
 						header('HTTP/1.1 304 Not Modified');
+						header('ETag: "'.$cacheETag.'"');
 						return;
 					}elseif(file_exists($cacheFile.$cacheETag)){ // 有(更新的)暫存快取檔存在
 						header('X-Cache: HIT from Pixmicat!');
 						header('ETag: "'.$cacheETag.'"');
+						header('Connection: close');
 						readfile($cacheFile.$cacheETag); return;
 					}
 				}
@@ -225,6 +227,7 @@ function updatelog($resno=0,$page_num=0){
 				fclose($fp);
 				@chmod($cacheFile.$cacheETag, 0666);
 				header('ETag: "'.$cacheETag.'"');
+				header('Connection: close');
 			}
 			echo $dat;
 			break;
