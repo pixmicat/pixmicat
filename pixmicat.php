@@ -23,7 +23,7 @@ PHP 4.3.0 / 27 December 2002
 GD Version 2.0.28 / 21 July 2004
 
 建議運行環境：
-PHP 5.2.0 或更高版本並開啟 GD 和 zlib 支援，如支援 ImageMagick 建議使用
+PHP 5.2.0 或更高版本並開啟 GD 和 Zlib 支援，如支援 ImageMagick 建議使用
 安裝 PHP 編譯快取套件 (如eAccelerator, XCache, APC) 或其他快取套件 (如memcached) 更佳
 如伺服器支援 SQLite, MySQL, PostgreSQL 等請盡量使用
 
@@ -126,6 +126,7 @@ function updatelog($resno=0,$page_num=0){
 				if(USE_RE_CACHE){ // 檢查快取是否仍可使用 / 頁面有無更動
 					$cacheETag = md5(($AllRes ? 'all' : $page_num).'-'.$tree_count); // 最新狀態快取用 ETag
 					$cacheFile = './cache/'.$tID.'-'.($AllRes ? 'all' : $page_num).'.'; // 暫存快取檔位置
+					$cacheGzipPrefix = extension_loaded('zlib') ? 'compress.zlib://' : ''; // 支援 Zlib Compression Stream 就使用
 					if(isset($_SERVER['HTTP_IF_NONE_MATCH']) && $_SERVER['HTTP_IF_NONE_MATCH'] == '"'.$cacheETag.'"'){ // 再度瀏覽而快取無更動
 						header('HTTP/1.1 304 Not Modified');
 						header('ETag: "'.$cacheETag.'"');
@@ -134,7 +135,7 @@ function updatelog($resno=0,$page_num=0){
 						header('X-Cache: HIT from Pixmicat!');
 						header('ETag: "'.$cacheETag.'"');
 						header('Connection: close');
-						readfile($cacheFile.$cacheETag); return;
+						readfile($cacheGzipPrefix.$cacheFile.$cacheETag); return;
 					}
 				}
 			}else{ // 一般模式下的回應隱藏
@@ -222,7 +223,7 @@ function updatelog($resno=0,$page_num=0){
 		}else{ // PHP 輸出 (回應模式/一般動態輸出)
 			if($resno && USE_RE_CACHE){ // 更新快取
 				foreach(glob($cacheFile.'*') as $oldCache) unlink($oldCache); // 刪除舊快取
-				$fp = fopen($cacheFile.$cacheETag, 'w');
+				$fp = fopen($cacheGzipPrefix.$cacheFile.$cacheETag, 'w');
 				fwrite($fp, $dat);
 				fclose($fp);
 				@chmod($cacheFile.$cacheETag, 0666);
