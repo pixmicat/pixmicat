@@ -1,5 +1,5 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.2-dev (b070819)'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.2-dev (b070820)'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -53,6 +53,7 @@ function updatelog($resno=0,$page_num=0){
 
 	$page_start = $page_end = 0; // 靜態頁面編號
 	$inner_for_count = 1; // 內部迴圈執行次數
+	$RES_start = $RES_amount = $hiddenReply = $tree_count = 0;
 	$kill_sensor = $old_sensor = false; // 預測系統啟動旗標
 	$arr_kill = $arr_old = array(); // 過舊編號陣列
 	$pte_vals = array('{$THREADFRONT}'=>'','{$THREADREAR}'=>'','{$SELF}'=>PHP_SELF);
@@ -72,6 +73,39 @@ function updatelog($resno=0,$page_num=0){
 		}
 	}else{
 		if(!$PIO->isThread($resno)){ error(_T('thread_not_found')); }
+		$AllRes = isset($_GET['page_num']) && $_GET['page_num']=='all'; // 是否使用 ALL 全部輸出
+
+		// 計算回應分頁範圍
+		$tree_count = $PIO->postCount($resno) - 1; // 討論串回應個數
+		if($tree_count && RE_PAGE_DEF){ // 有回應且RE_PAGE_DEF > 0才做分頁動作
+			if($page_num==='all'){ // show all
+				$page_num = 0;
+				$RES_start = 1; $RES_amount = $tree_count;
+			}else{
+				if($page_num==='RE_PAGE_MAX') $page_num = ceil($tree_count / RE_PAGE_DEF) - 1; // 特殊值：最末頁
+				if($page_num < 0) $page_num = 0; // 負數
+				if($page_num * RE_PAGE_DEF >= $tree_count) error(_T('page_not_found'));
+				$RES_start = $page_num * RE_PAGE_DEF + 1; // 開始
+				$RES_amount = RE_PAGE_DEF; // 取幾個
+			}
+		}elseif($page_num > 0) error(_T('page_not_found')); // 沒有回應的情況只允許page_num = 0 或負數
+		else{ $RES_start = 1; $RES_amount = $tree_count; $page_num = 0; } // 輸出全部回應
+
+		if(USE_RE_CACHE){ // 檢查快取是否仍可使用 / 頁面有無更動
+			$cacheETag = md5(($AllRes ? 'all' : $page_num).'-'.$tree_count); // 最新狀態快取用 ETag
+			$cacheFile = './cache/'.$resno.'-'.($AllRes ? 'all' : $page_num).'.'; // 暫存快取檔位置
+			$cacheGzipPrefix = extension_loaded('zlib') ? 'compress.zlib://' : ''; // 支援 Zlib Compression Stream 就使用
+			if(isset($_SERVER['HTTP_IF_NONE_MATCH']) && $_SERVER['HTTP_IF_NONE_MATCH'] == '"'.$cacheETag.'"'){ // 再度瀏覽而快取無更動
+				header('HTTP/1.1 304 Not Modified');
+				header('ETag: "'.$cacheETag.'"');
+				return;
+			}elseif(file_exists($cacheFile.$cacheETag)){ // 有(更新的)暫存快取檔存在
+				header('X-Cache: HIT from Pixmicat!');
+				header('ETag: "'.$cacheETag.'"');
+				header('Connection: close');
+				readfile($cacheGzipPrefix.$cacheFile.$cacheETag); return;
+			}
+		}
 	}
 
 	// 預測過舊文章和將被刪除檔案
@@ -98,51 +132,15 @@ function updatelog($resno=0,$page_num=0){
 		for($i = 0; $i < $inner_for_count; $i++){
 			// 取出討論串編號
 			if($resno) $tID = $resno; // 單討論串輸出 (回應模式)
-			elseif($page_start==$page_end) $tID = $threads[$i]; // 一頁內容 (一般模式)
-			else{ // 多頁內容 (remake模式)
-				if(($page * PAGE_DEF + $i) >= $threads_count) break; // 超出索引代表已全部完成
-				$tID = $threads[$page * PAGE_DEF + $i];
-			}
-			// 計算回應分頁範圍
-			$tree_count = $PIO->postCount($tID) - 1; // 討論串回應個數
-			$RES_start = $RES_amount = 0;
-			$hiddenReply = 0; // 被隱藏回應數
-			if($resno){ // 回應模式
-				$AllRes = isset($_GET['page_num']) && $_GET['page_num']=='all'; // 是否使用 ALL 全部輸出
-				if($tree_count && RE_PAGE_DEF){ // 有回應且RE_PAGE_DEF > 0才做分頁動作
-					if($page_num==='all'){ // show all
-						$page_num = 0;
-						$RES_start = 1; $RES_amount = $tree_count;
-					}else{
-						if($page_num==='RE_PAGE_MAX') $page_num = ceil($tree_count / RE_PAGE_DEF) - 1; // 特殊值：最末頁
-						if($page_num < 0) $page_num = 0; // 負數
-						if($page_num * RE_PAGE_DEF >= $tree_count) error(_T('page_not_found'));
-						$RES_start = $page_num * RE_PAGE_DEF + 1; // 開始
-						$RES_amount = RE_PAGE_DEF; // 取幾個
-					}
-				}elseif($page_num > 0) error(_T('page_not_found')); // 沒有回應的情況只允許page_num = 0 或負數
-				else{ $RES_start = 1; $RES_amount = $tree_count; $page_num = 0; } // 輸出全部回應
-
-				if(USE_RE_CACHE){ // 檢查快取是否仍可使用 / 頁面有無更動
-					$cacheETag = md5(($AllRes ? 'all' : $page_num).'-'.$tree_count); // 最新狀態快取用 ETag
-					$cacheFile = './cache/'.$tID.'-'.($AllRes ? 'all' : $page_num).'.'; // 暫存快取檔位置
-					$cacheGzipPrefix = extension_loaded('zlib') ? 'compress.zlib://' : ''; // 支援 Zlib Compression Stream 就使用
-					if(isset($_SERVER['HTTP_IF_NONE_MATCH']) && $_SERVER['HTTP_IF_NONE_MATCH'] == '"'.$cacheETag.'"'){ // 再度瀏覽而快取無更動
-						header('HTTP/1.1 304 Not Modified');
-						header('ETag: "'.$cacheETag.'"');
-						return;
-					}elseif(file_exists($cacheFile.$cacheETag)){ // 有(更新的)暫存快取檔存在
-						header('X-Cache: HIT from Pixmicat!');
-						header('ETag: "'.$cacheETag.'"');
-						header('Connection: close');
-						readfile($cacheGzipPrefix.$cacheFile.$cacheETag); return;
-					}
-				}
-			}else{ // 一般模式下的回應隱藏
+			else{
+				if($page_num == 0 && ($page * PAGE_DEF + $i) >= $threads_count) break; // remake 超出索引代表已全部完成
+				$tID = ($page_start==$page_end) ? $threads[$i] : $threads[$page * PAGE_DEF + $i]; // 一頁內容 (一般模式) / 多頁內容 (remake模式)
+				$tree_count = $PIO->postCount($tID) - 1; // 討論串回應個數
 				$RES_start = $tree_count - RE_DEF + 1; if($RES_start < 1) $RES_start = 1; // 開始
 				$RES_amount = RE_DEF; // 取幾個
 				$hiddenReply = $RES_start - 1; // 被隱藏回應數
 			}
+
 			// $RES_start, $RES_amount 拿去算新討論串結構 (分頁後, 部分回應隱藏)
 			$tree = $PIO->fetchPostList($tID); // 整個討論串樹狀結構
 			$tree_cut = array_slice($tree, $RES_start, $RES_amount); array_unshift($tree_cut, $tID); // 取出特定範圍回應

@@ -1,6 +1,6 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
-2007/08/17,18
+2007/08/17,18,20
 -[PIO] 修正 MySQL setPostStatus() 自動更新到 root 欄位的問題
 -[PIO] 新增 FlagHelper 類別，加回 getPostStatus() [會回傳 FlagHelper 物件]
 -[pixmicat] 新增回應頁面顯示快取功能降低系統負擔 (因應原按鈕式 POST 換頁無法快取改為連結式)
