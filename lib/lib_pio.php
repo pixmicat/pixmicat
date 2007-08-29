@@ -79,6 +79,28 @@ class FlagHelper{
 	}
 }
 
+// 文章自動刪除機制
+include('./lib/lib_pio.cond.php');
+class PIOSensor{
+	/*public static */function check($type, $condobj){
+		foreach($condobj as $i => $j){
+			// 有其中一個需要處理
+			if(call_user_func_array(array($i, 'check'), array($type, $j))===true) return true;
+		}
+		return false;
+	}
+
+	/*public static */function listee($type, $condobj){
+		$tmparray = array(); // 項目陣列
+		foreach($condobj as $i => $j){
+			// 結果併進 $tmparray
+			$tmparray = array_merge($tmparray, call_user_func_array(array($i, 'listee'), array($type, $j)));
+		}
+		sort($tmparray); // 由舊排到新 (小到大)
+		return array_unique($tmparray);
+	}
+}
+
 // 分析連線字串
 if(preg_match('/^(.*):\/\//i', CONNECTION_STRING, $backend)) define('PIXMICAT_BACKEND', $backend[1]);
 
@@ -90,7 +112,6 @@ $PIOEnv = array( // PIO 環境常數
 	'NONAME' => DEFAULT_NONAME,
 	'NOTITLE' => DEFAULT_NOTITLE,
 	'NOCOMMENT' => DEFAULT_NOCOMMENT,
-	'LOG_MAX' => LOG_MAX,
 	'PERIOD.POST' => RENZOKU,
 	'PERIOD.IMAGEPOST' => RENZOKU2
 );

@@ -105,8 +105,8 @@ define("THUMB_Q", 75); // 預覽圖片之品質 (1-100, 建議預設75，越高�
 
 // 外觀設定
 $ADDITION_INFO = ""; // 可在表單下顯示額外文字
+$LIMIT_SENSOR = array('ByPostCountCondition'=>500); // 文章自動刪除機制設定
 define("TEMPLATE_FILE", 'inc_pixmicat.tpl'); // 樣板位置
-define("LOG_MAX", 500); // 記錄檔保留之最大資料筆數
 define("PAGE_DEF", 15); // 一頁顯示幾篇討論串
 define("ADMIN_PAGE_DEF", 20); // 管理模式下，一頁顯示幾筆資料
 define("RE_DEF", 10); // 一篇討論串最多顯示之回應筆數 (超過則自動隱藏，全部隱藏：0)

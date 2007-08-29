@@ -102,7 +102,7 @@ class PIOlogflockp{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.5alpha (b20070817)';
+		return '0.5alpha (b20070829)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -339,15 +339,6 @@ class PIOlogflockp{
 		if(!$this->prepared) $this->dbPrepare();
 
 		return $this->_ArrangeArrayStructure($postlist); // 輸出陣列結構
-	}
-
-	/* 刪除舊文 */
-	function delOldPostes(){
-		if(!$this->prepared) $this->dbPrepare();
-
-		$delPosts = @array_slice($this->porder, $this->ENV['LOG_MAX'] - 1); // 截出舊文編號陣列
-		if(count($delPosts)) return $this->removePosts($delPosts);
-		else return false;
 	}
 
 	/* 刪除舊附件 (輸出附件清單) */

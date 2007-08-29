@@ -27,7 +27,7 @@ class PIOsqlite3{
 
 	/* PIO模組版本 */
 	public function pioVersion() {
-		return '0.5alpha (b20070817)';
+		return '0.5alpha (b20070829)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -214,40 +214,6 @@ class PIOsqlite3{
 		}else $tmpSQL = 'SELECT * FROM '.$this->tablename.' WHERE no = '.$postlist; // 取單串
 		$line = $this->con->query($tmpSQL)->fetchAll();
 		return $line;
-	}
-
-	/* 刪除舊文 */
-	public function delOldPostes(){
-		global $FileIO;
-		if(!$this->prepared) $this->dbPrepare();
-
-		$oldAttachments = array();
-		$delStack = array(); // Records needed to be deleted
-		$countline = $this->postCount();
-		$cutIndex = $countline - $this->ENV['LOG_MAX'] + 1;
-		$result = $this->con->prepare('SELECT no,ext,tim FROM '.$this->tablename.' ORDER BY no LIMIT 0, :cutindex');
-		$result->execute(array(':cutindex' => $cutIndex)) or $this->_error_handler('Get the old post failed', __LINE__);
-		while(list($dno, $dext, $dtim) = $result->fetch(PDO::FETCH_NUM)){
-			if($dext){
-				$dfile = $dtim.$dext; $dthumb = $dtim.'s.jpg';
-				if($FileIO->imageExists($dfile)) $oldAttachments[] = $dfile;
-				if($FileIO->imageExists($dthumb)) $oldAttachments[] = $dthumb;
-			}
-			// 逐次搜尋舊文之回應
-			$resultres = $this->con->prepare('SELECT ext,tim FROM '.$this->tablename.' WHERE ext <> "" AND resto = :dno');
-			$resultres->execute(array(':dno' => $dno)) or $this->_error_handler('Get replies of the old post failed', __LINE__);
-			while(list($rext, $rtim) = $resultres->fetch(PDO::FETCH_NUM)){
-				$rfile = $rtim.$rext; $rthumb = $rtim.'s.jpg';
-				if($FileIO->imageExists($rfile)) $oldAttachments[] = $rfile;
-				if($FileIO->imageExists($rthumb)) $oldAttachments[] = $rthumb;
-			}
-			$delStack[] = $dno; // Add to stack
-		}
-		$delCount = count($delStack);
-		for($i = 0; $i < $delCount; $i++){
-			if(!$this->con->exec('DELETE FROM '.$this->tablename.' WHERE no = '.$delStack[$i].' OR resto = '.$delStack[$i])) $this->_error_handler('Delete old posts and replies failed', __LINE__);
-		}
-		return $oldAttachments; // 回傳需刪除檔案列表
 	}
 
 	/* 刪除舊附件 (輸出附件清單) */

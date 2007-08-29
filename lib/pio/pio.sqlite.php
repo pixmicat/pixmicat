@@ -45,7 +45,7 @@ class PIOsqlite{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.5alpha (b20070817)';
+		return '0.5alpha (b20070829)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -243,37 +243,6 @@ class PIOsqlite{
 		$line = $this->_sqlite_call($tmpSQL);
 
 		return $this->_ArrangeArrayStructure($line); // 輸出陣列結構
-	}
-
-	/* 刪除舊文 */
-	function delOldPostes(){
-		global $FileIO;
-		if(!$this->prepared) $this->dbPrepare();
-
-		$oldAttachments = array(); // 舊文的附加檔案清單
-		$countline = $this->postCount(); // 文章數目
-		$cutIndex = $countline - $this->ENV['LOG_MAX'] + 1; // LIMIT用，取出最舊的幾篇
-		if(!$result=$this->_sqlite_call('SELECT no,ext,tim FROM '.$this->tablename." ORDER BY no LIMIT 0, ".$cutIndex)) $this->_error_handler('Get the old post failed', __LINE__);
-		else{
-			while(list($dno, $dext, $dtim)=sqlite_fetch_array($result)){ // 個別跑舊文迴圈
-				if($dext){
-					$dfile = $dtim.$dext; // 附加檔案名稱
-					$dthumb = $dtim.'s.jpg'; // 預覽檔案名稱
-					if($FileIO->imageExists($dfile)) $oldAttachments[] = $dfile;
-					if($FileIO->imageExists($dthumb)) $oldAttachments[] = $dthumb;
-				}
-				// 逐次搜尋舊文之回應
-				if(!$resultres=$this->_sqlite_call('SELECT ext,tim FROM '.$this->tablename." WHERE ext <> '' AND resto = $dno")) $this->_error_handler('Get replies of the old post failed', __LINE__);
-				while(list($rext, $rtim)=sqlite_fetch_array($resultres)){
-					$rfile = $rtim.$rext; // 附加檔案名稱
-					$rthumb = $rtim.'s.jpg'; // 預覽檔案名稱
-					if($FileIO->imageExists($rfile)) $oldAttachments[] = $rfile;
-					if($FileIO->imageExists($rthumb)) $oldAttachments[] = $rthumb;
-				}
-				if(!$this->_sqlite_call('DELETE FROM '.$this->tablename.' WHERE no = '.$dno.' OR resto = '.$dno)) $this->_error_handler('Delete old posts and replies failed', __LINE__); // 刪除文章
-			}
-		}
-		return $oldAttachments; // 回傳需刪除檔案列表
 	}
 
 	/* 刪除舊附件 (輸出附件清單) */

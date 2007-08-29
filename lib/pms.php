@@ -92,13 +92,6 @@ class PMS{
 
 	/* 使用模組方法 */
 	function useModuleMethods($hookPoint, $parameter){
-		/* TODO:
-		if not hookmethod_of_this_hookpoint
-			hookit_and_cache
-		else
-			using_hook_cache
-		end
-		*/
 		$arrMethod =& $this->__autoHookMethods($hookPoint); // 取得掛載點模組方法
 		$imax = count($arrMethod);
 		for($i = 0; $i < $imax; $i++){

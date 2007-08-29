@@ -1,5 +1,5 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.2-dev (b070820)'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.2-dev (b070829)'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -49,7 +49,7 @@ $PTE = new PTELibrary(TEMPLATE_FILE); // PTE Library
 
 /* 更新記錄檔檔案／輸出討論串 */
 function updatelog($resno=0,$page_num=0){
-	global $PIO, $FileIO, $PTE, $PMS, $language;
+	global $PIO, $FileIO, $PTE, $PMS, $language, $LIMIT_SENSOR;
 
 	$page_start = $page_end = 0; // 靜態頁面編號
 	$inner_for_count = 1; // 內部迴圈執行次數
@@ -95,11 +95,12 @@ function updatelog($resno=0,$page_num=0){
 			$cacheETag = md5(($AllRes ? 'all' : $page_num).'-'.$tree_count); // 最新狀態快取用 ETag
 			$cacheFile = './cache/'.$resno.'-'.($AllRes ? 'all' : $page_num).'.'; // 暫存快取檔位置
 			$cacheGzipPrefix = extension_loaded('zlib') ? 'compress.zlib://' : ''; // 支援 Zlib Compression Stream 就使用
+			$cacheControl = isset($_SERVER['HTTP_CACHE_CONTROL']) ? $_SERVER['HTTP_CACHE_CONTROL'] : ''; // 瀏覽器快取控制
 			if(isset($_SERVER['HTTP_IF_NONE_MATCH']) && $_SERVER['HTTP_IF_NONE_MATCH'] == '"'.$cacheETag.'"'){ // 再度瀏覽而快取無更動
 				header('HTTP/1.1 304 Not Modified');
 				header('ETag: "'.$cacheETag.'"');
 				return;
-			}elseif(file_exists($cacheFile.$cacheETag)){ // 有(更新的)暫存快取檔存在
+			}elseif(file_exists($cacheFile.$cacheETag) && $cacheControl != 'no-cache'){ // 有(更新的)暫存快取檔存在 (未強制no-cache)
 				header('X-Cache: HIT from Pixmicat!');
 				header('ETag: "'.$cacheETag.'"');
 				header('Connection: close');
@@ -109,9 +110,9 @@ function updatelog($resno=0,$page_num=0){
 	}
 
 	// 預測過舊文章和將被刪除檔案
-	if($PIO->postCount() >= LOG_MAX * 0.95){
+	if(PIOSensor::check('predict', $LIMIT_SENSOR)){ // 是否需要預測
 		$old_sensor = true; // 標記打開
-		$arr_old = array_flip($PIO->fetchPostList()); // 過舊文章陣列
+		$arr_old = array_flip(PIOSensor::listee('predict', $LIMIT_SENSOR)); // 過舊文章陣列
 	}
 	$tmp_total_size = total_size(); // 目前附加圖檔使用量
 	$tmp_STORAGE_MAX = STORAGE_MAX * (($tmp_total_size >= STORAGE_MAX) ? 1 : 0.95); // 預估上限值
@@ -300,7 +301,7 @@ function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $
 		// 設定討論串屬性
 		if(STORAGE_LIMIT && $kill_sensor) if(isset($arr_kill[$no])) $WARN_BEKILL = '<span class="warn_txt">'._T('warn_sizelimit').'</span><br />'."\n"; // 預測刪除過大檔
 		if(!$i){ // 首篇 Only
-			if($old_sensor) if($arr_old[$no] + 1 >= LOG_MAX * 0.95) $WARN_OLD = '<span class="warn_txt">'._T('warn_oldthread').'</span><br />'."\n"; // 快要被刪除的提示
+			if($old_sensor) if(isset($arr_old[$no])) $WARN_OLD = '<span class="warn_txt">'._T('warn_oldthread').'</span><br />'."\n"; // 快要被刪除的提示
 			if($PIO->getPostStatus($status)->exists('TS')) $WARN_ENDREPLY = '<span class="warn_txt">'._T('warn_locked').'</span><br />'."\n"; // 被標記為禁止回應
 			if($hiddenReply) $WARN_HIDEPOST = '<span class="warn_txt2">'._T('notice_omitted',$hiddenReply).'</span><br />'."\n"; // 有隱藏的回應
 		}
@@ -334,7 +335,7 @@ function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $
 
 /* 寫入記錄檔 */
 function regist(){
-	global $PIO, $FileIO, $PMS, $language, $BAD_STRING, $BAD_FILEMD5, $BAD_IPADDR;
+	global $PIO, $FileIO, $PMS, $language, $BAD_STRING, $BAD_FILEMD5, $BAD_IPADDR, $LIMIT_SENSOR;
 	$dest = ''; $mes = ''; $up_incomplete = 0; $is_admin = false;
 	$path = realpath('.').DIRECTORY_SEPARATOR; // 此目錄的絕對位置
 
@@ -542,13 +543,17 @@ function regist(){
 	$pwdc = substr(md5($pwdc), 2, 8); // Cookies密碼
 	if($PIO->isSuccessivePost($checkcount, $com, $time, $pass, $pwdc, $host, $upfile_name)) error(_T('regist_successivepost'), $dest); // 連續投稿檢查
 	if($dest){ if($PIO->isDuplicateAttechment($checkcount, $md5chksum)) error(_T('regist_duplicatefile'), $dest); } // 相同附加圖檔檢查
-
 	if($resto) $ThreadExistsBefore = $PIO->isThread($resto);
-	// 記錄檔行數已達上限：刪除過舊檔
-	if($PIO->postCount() >= LOG_MAX){
-		$PMS->useModuleMethods('UsageExceed', array()); // "UsageExceed" Hook Point
-		$files = $PIO->delOldPostes();
-		if(count($files)) $FileIO->deleteImage($files);
+
+	// 舊文章刪除處理
+	if(PIOSensor::check('delete', $LIMIT_SENSOR)){
+		$delarr = PIOSensor::listee('delete', $LIMIT_SENSOR);
+		if(count($delarr)){
+			deleteCache($delarr);
+			$PMS->useModuleMethods('UsageExceed', array($delarr)); // "UsageExceed" Hook Point
+			$files = $PIO->removePosts($delarr);
+			if(count($files)) $FileIO->deleteImage($files);
+		}
 	}
 
 	// 附加圖檔容量限制功能啟動：刪除過大檔
@@ -562,7 +567,7 @@ function regist(){
 
 	// 判斷欲回應的文章是不是剛剛被刪掉了
 	if($resto){
-		if($ThreadExistsBefore){ // 欲回應的討論串是否存在 (看逆轉換成功與否)
+		if($ThreadExistsBefore){ // 欲回應的討論串是否存在
 			if(!$PIO->isThread($resto)){ // 被回應的討論串存在但已被刪
 				// 提前更新資料來源，此筆新增亦不紀錄
 				$PIO->dbCommit();
@@ -693,6 +698,7 @@ function usrdel(){
 	if($search_flag){
 		$files = $onlyimgdel ? $PIO->removeAttachments($delposts) : $PIO->removePosts($delposts);
 		$FileIO->deleteImage($files);
+		deleteCache($delposts);
 		total_size(true); // 刪除容量快取
 		$PIO->dbCommit();
 	}else error(_T('del_wrongpwornotfound'));
@@ -755,6 +761,7 @@ function admindel(){
 		$delno = array_merge($delno, $_POST['delete']);
 		$files = ($onlyimgdel != 'on') ? $PIO->removePosts($delno) : $PIO->removeAttachments($delno);
 		$FileIO->deleteImage($files);
+		deleteCache($delno);
 		total_size(true); // 刪除容量快取
 		$is_modified = TRUE;
 	}
@@ -1023,21 +1030,20 @@ function listModules(){
 	echo $dat;
 }
 
+/* 刪除舊頁面快取檔 */
+function deleteCache($no){
+	foreach($no as $n){
+		foreach(glob('./cache/'.$n.'-*') as $oldCache) @unlink($oldCache);
+	}
+}
+
 /* 顯示系統各項資訊 */
 function showstatus(){
 	global $PTE, $PIO, $FileIO, $PMS, $language;
 	$countline = $PIO->postCount(); // 計算投稿文字記錄檔目前資料筆數
 	$counttree = $PIO->threadCount(); // 計算樹狀結構記錄檔目前資料筆數
 	$tmp_total_size = total_size(); // 附加圖檔使用量總大小
-	$tmp_log_ratio = $countline / LOG_MAX; // 記錄檔使用量
 	$tmp_ts_ratio = $tmp_total_size / STORAGE_MAX; // 附加圖檔使用量
-
-	// 決定「記錄檔使用量」提示文字顏色
-  	if($tmp_log_ratio < 0.3 ) $clrflag_log = '235CFF';
-	elseif($tmp_log_ratio < 0.5 ) $clrflag_log = '0CCE0C';
-	elseif($tmp_log_ratio < 0.7 ) $clrflag_log = 'F28612';
-	elseif($tmp_log_ratio < 0.9 ) $clrflag_log = 'F200D3';
-	else $clrflag_log = 'F2004A';
 
 	// 決定「附加圖檔使用量」提示文字顏色
   	if($tmp_ts_ratio < 0.3 ) $clrflag_sl = '235CFF';
@@ -1086,11 +1092,10 @@ function showstatus(){
 <tr><td>'._T('info_basic_showid').'</td><td colspan="2"> '.DISP_ID.' '._T('info_basic_showid_after').'</td></tr>
 <tr><td>'._T('info_basic_cr_limit').'</td><td colspan="2"> '.BR_CHECK._T('info_basic_cr_after').'</td></tr>
 <tr><td>'._T('info_basic_timezone').'</td><td colspan="2"> GMT '.TIME_ZONE.'</td></tr>
-<tr><td>'._T('info_basic_threadcount').'</td><td colspan="2"> '.$counttree.' '._T('info_basic_threads').'</td></tr>
 <tr><td>'._T('info_basic_theme').'</td><td colspan="2"> '.$PTE->BlockValue('THEMENAME').' '.$PTE->BlockValue('THEMEVER').'<br/>by '.$PTE->BlockValue('THEMEAUTHOR').'</td></tr>
 <tr><td align="center" colspan="3">'._T('info_dsusage_top').'</td></tr>
-<tr align="center"><td>'._T('info_dsusage_max').'</td><td>'.LOG_MAX.'</td><td rowspan="2">'._T('info_dsusage_usage').'<br /><span style="color: #'.$clrflag_log.';">'.substr(($tmp_log_ratio * 100), 0, 6).'</span> %</td></tr>
-<tr align="center"><td>'._T('info_dsusage_count').'</td><td><span style="color: #'.$clrflag_log.';">'.$countline.'</span></td></tr>
+<tr align="center"><td>'._T('info_basic_threadcount').'</td><td colspan="2"> '.$counttree.' '._T('info_basic_threads').'</td></tr>
+<tr align="center"><td>'._T('info_dsusage_count').'</td><td colspan="2">'.$countline.'</td></tr>
 <tr><td align="center" colspan="3">'._T('info_fileusage_top').STORAGE_LIMIT.' '._T('info_0disable1enable').'</td></tr>';
 
 	if(STORAGE_LIMIT){
