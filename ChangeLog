@@ -1,9 +1,10 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
-2007/08/29
+2007/08/29,30
 -[pixmicat] 新增支援瀏覽器強制 no-cache (Ctrl + F5) 更新快取功能
 -[pixmicat] 移除筆數限制及使用量顯示
 -[pixmicat] 新增快取隨文章刪除功能
+-[pixmicat] 修正 Gzip 壓縮功能關閉時 $Encoding 變數未定義錯誤
 -[PIO] 新增文章自動刪除機制，可用自行定義好的模式來進行自動刪除判斷
 -[PIO] 移除 delOldPostes() 方法 (被文章自動刪除機制替代)
 

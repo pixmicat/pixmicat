@@ -2,14 +2,14 @@
 /**
  * PIO Condition Object
  *
- * ”»Ð•¶Í¥”Û•„‡™ˆœžŠŒ•À—ño™ˆœ•Òåj
+ * åˆ¤æ–·æ–‡ç« æ˜¯å¦ç¬¦åˆåˆªé™¤æ¢ä»¶ä¸¦åˆ—å‡ºåˆªé™¤ç·¨è™Ÿ
  * 
  * @package PMCLibrary
  * @version $Id$
  * @date $Date$
  */
 
-/* ˆÈã`•¶Í•ÑÉìˆ×™ˆœ”»Ð */
+/* ä»¥ç¸½æ–‡ç« ç¯‡æ•¸ä½œç‚ºåˆªé™¤åˆ¤æ–· */
 class ByPostCountCondition{
 	/*public static */function check($type, $limit){
 		global $PIO;
@@ -19,6 +19,19 @@ class ByPostCountCondition{
 	/*public static */function listee($type, $limit){
 		global $PIO;
 		return $PIO->fetchPostList(0, intval($limit * ($type=='predict' ? 0.95 : 1)) - 1, $limit);
+	}
+}
+
+/* ä»¥ç¸½è¨Žè«–ä¸²æ•¸ä½œç‚ºåˆªé™¤åˆ¤æ–· */
+class ByThreadCountCondition{
+	/*public static */function check($type, $limit){
+		global $PIO;
+		return $PIO->threadCount() >= ($type=='predict' ? $limit * 0.95 : 1);
+	}
+
+	/*public static */function listee($type, $limit){
+		global $PIO;
+		return $PIO->fetchThreadList(intval($limit * ($type=='predict' ? 0.95 : 1)), $limit);
 	}
 }
 ?>

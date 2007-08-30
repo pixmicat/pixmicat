@@ -1,5 +1,5 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.2-dev (b070829)'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.2-dev (b070830)'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -1196,7 +1196,7 @@ switch($mode){
 			header('Location: '.fullURL().PHP_SELF2.'?'.time());
 		}
 }
-if($Encoding && GZIP_COMPRESS_LEVEL){ // 有啟動Gzip
+if(GZIP_COMPRESS_LEVEL && $Encoding){ // 有啟動Gzip
 	if(!ob_get_length()) exit; // 沒內容不必壓縮
 	header('Content-Encoding: '.$Encoding);
 	header('X-Content-Encoding-Level: '.GZIP_COMPRESS_LEVEL);
