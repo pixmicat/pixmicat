@@ -302,7 +302,8 @@ function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $
 		if(STORAGE_LIMIT && $kill_sensor) if(isset($arr_kill[$no])) $WARN_BEKILL = '<span class="warn_txt">'._T('warn_sizelimit').'</span><br />'."\n"; // 預測刪除過大檔
 		if(!$i){ // 首篇 Only
 			if($old_sensor) if(isset($arr_old[$no])) $WARN_OLD = '<span class="warn_txt">'._T('warn_oldthread').'</span><br />'."\n"; // 快要被刪除的提示
-			if($PIO->getPostStatus($status)->exists('TS')) $WARN_ENDREPLY = '<span class="warn_txt">'._T('warn_locked').'</span><br />'."\n"; // 被標記為禁止回應
+			$flgh = $PIO->getPostStatus($status);
+			if($flgh->exists('TS')) $WARN_ENDREPLY = '<span class="warn_txt">'._T('warn_locked').'</span><br />'."\n"; // 被標記為禁止回應
 			if($hiddenReply) $WARN_HIDEPOST = '<span class="warn_txt2">'._T('notice_omitted',$hiddenReply).'</span><br />'."\n"; // 有隱藏的回應
 		}
 		// 對類別標籤作自動連結
@@ -577,7 +578,8 @@ function regist(){
 				$post = $PIO->fetchPosts($resto); // [特殊] 取單篇文章內容，但是回傳的$post同樣靠[$i]切換文章！
 				list($chkstatus, $chktime) = array($post[0]['status'], $post[0]['tim']);
 				$chktime = substr($chktime, 0, -3); // 拿掉微秒 (後面三個字元)
-				if($PIO->getPostStatus($chkstatus)->exists('TS')) error(_T('regist_threadlocked'), $dest);
+				$flgh = $PIO->getPostStatus($chkstatus);
+				if($flgh->exists('TS')) error(_T('regist_threadlocked'), $dest);
 			}
 		}else error(_T('thread_not_found'), $dest); // 不存在
 	}
@@ -721,7 +723,7 @@ function valid(){
 	$PMS->useModuleMethods('LinksAboveBar', array(&$links,'admin',$haveperm)); // LinksAboveBar hook point
 	$dat .= '<div id="banner">'.$links.'<div class="bar_admin">'._T('admin_top').'</div>
 </div>
-<form action="'.PHP_SELF.'" method="post">
+<form action="'.PHP_SELF.'" method="post" name="adminform">
 <div id="admin-check" style="text-align: center;">
 ';
 	echo $dat;
@@ -774,7 +776,9 @@ function admindel(){
 		$thsno = array_merge($thsno, $_POST['stop']);
 		$threads = $PIO->fetchPosts($thsno); // 取得文章
 		foreach($threads as $th){
-			$PIO->setPostStatus($th['no'], $PIO->getPostStatus($th['status'])->toggle('TS')->toString());
+			$flgh = $PIO->getPostStatus($th['status']);
+			$flgh->toggle('TS');
+			$PIO->setPostStatus($th['no'], $flgh->toString());
 		}
 		$is_modified = true;
 	}
@@ -788,8 +792,8 @@ function admindel(){
 	echo '<script type="text/javascript">
 // <![CDATA[
 function ChangePage(page){
-	document.forms[0].page.value = page;
-	document.forms[0].submit();
+	document.forms["adminform"].page.value = page;
+	document.forms["adminform"].submit();
 }
 // ]]>
 </script>
@@ -819,7 +823,8 @@ function ChangePage(page){
 		$modFunc = $THstop = ' ';
 		$PMS->useModuleMethods('AdminList', array(&$modFunc, $posts[$j], $resto)); // "AdminList" Hook Point
 		if($resto==0){ // $resto = 0 (即討論串首篇)
-			$THstop = '<input type="checkbox" name="stop[]" value="'.$no.'" />'.($PIO->getPostStatus($status)->exists('TS') ? _T('admin_stop_btn') : '');
+			$flgh = $PIO->getPostStatus($status);
+			$THstop = '<input type="checkbox" name="stop[]" value="'.$no.'" />'.($flgh->exists('TS') ? _T('admin_stop_btn') : '');
 		}
 
 		// 從記錄抽出附加圖檔使用量並生成連結
