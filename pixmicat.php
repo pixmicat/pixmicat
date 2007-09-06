@@ -1,5 +1,5 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.2-dev (b070830)'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.2-dev (b070906)'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -716,6 +716,8 @@ function valid(){
 			$PMS->useModuleMethods('Authenticate', array($pass,'adminlogin',&$haveperm));
 			if(!$haveperm) error($pass._T('admin_wrongpassword'));
 		}
+		// TODO: 生成認證用 Session
+		// session_make
 	}
 	$dat = '';
 	head($dat);
@@ -728,6 +730,8 @@ function valid(){
 ';
 	echo $dat;
 	// 登錄用表單
+	// TODO: 檢查 Session 正確性
+	// if(!session_correct){
 	if(!$pass){
 		echo '<br />
 <input type="radio" name="admin" value="del" checked="checked" />'._T('admin_manageposts').'
@@ -789,6 +793,9 @@ function admindel(){
 	$posts = $PIO->fetchPosts($line); // 文章內容陣列
 
 	// 印出刪除表格
+	// TODO: 刪除 JS 換頁，不必再傳遞 pass 檢查 (valid()會檢查session)
+	// - 送出刪除/狀態修改要求時以 POST 方式 (表單依舊存在)
+	// - 換頁時採用 GET 方式，連結式分頁 (?mode=admin&admin=del&page=X) (可改用 $_REQUEST 接取可能來自於 $_POST, $_GET 的參數)
 	echo '<script type="text/javascript">
 // <![CDATA[
 function ChangePage(page){
