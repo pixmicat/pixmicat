@@ -710,14 +710,16 @@ function usrdel(){
 function valid(){
 	global $PMS, $language;
 	$pass = isset($_POST['pass']) ? $_POST['pass'] : ''; // 管理者密碼
+	session_start();
 	$haveperm = false;
-	if($pass) {
-		if(!($haveperm = ($pass == ADMIN_PASS))) {
-			$PMS->useModuleMethods('Authenticate', array($pass,'adminlogin',&$haveperm));
-			if(!$haveperm) error($pass._T('admin_wrongpassword'));
+	if(!isset($_SESSION['pmcLogin'])){
+		if($pass) {
+			if(!($haveperm = ($pass == ADMIN_PASS))) {
+				$PMS->useModuleMethods('Authenticate', array($pass,'admin',&$haveperm));
+				if(!$haveperm) error(_T('admin_wrongpassword'));
+			}
+			if($haveperm) $_SESSION['pmcLogin']=1;
 		}
-		// TODO: 生成認證用 Session
-		// session_make
 	}
 	$dat = '';
 	head($dat);
@@ -729,16 +731,23 @@ function valid(){
 <div id="admin-check" style="text-align: center;">
 ';
 	echo $dat;
-	// 登錄用表單
-	// TODO: 檢查 Session 正確性
-	// if(!session_correct){
-	if(!$pass){
+	if(!isset($_SESSION['pmcLogin'])){
 		echo '<br />
 <input type="radio" name="admin" value="del" checked="checked" />'._T('admin_manageposts').'
 <input type="radio" name="admin" value="opt" />'._T('admin_optimize').'<p />
 <input type="hidden" name="mode" value="admin" />
 <input type="password" name="pass" size="8" />
 <input type="submit" value="'._T('admin_verify_btn').'" />
+</div>
+</form>';
+		die("\n</body>\n</html>");
+	} else if(!isset($_REQUEST['admin'])) {
+		echo '<br />
+<input type="radio" name="admin" value="del" checked="checked" />'._T('admin_manageposts').'
+<input type="radio" name="admin" value="opt" />'._T('admin_optimize').'
+<input type="radio" name="admin" value="logout" />'._T('admin_logout').'<p />
+<input type="hidden" name="mode" value="admin" />
+<input type="submit" value="'._T('admin_submit_btn').'" />
 </div>
 </form>';
 		die("\n</body>\n</html>");
@@ -750,7 +759,7 @@ function admindel(){
 	global $PIO, $FileIO, $PMS, $language;
 
 	$pass = isset($_POST['pass']) ? $_POST['pass'] : ''; // 管理者密碼
-	$page = isset($_POST['page']) ? $_POST['page'] : 0; // 切換頁數
+	$page = isset($_REQUEST['page']) ? $_REQUEST['page'] : 0; // 切換頁數
 	$onlyimgdel = isset($_POST['onlyimgdel']) ? $_POST['onlyimgdel'] : ''; // 只刪圖
 	$modFunc = '';
 	$delno = $thsno = array();
@@ -760,9 +769,8 @@ function admindel(){
 
 	// 刪除文章區塊
 	if($delflag){
-		$haveperm = ($pass == ADMIN_PASS);
-		$PMS->useModuleMethods('Authenticate', array($pass,'admindel',&$haveperm));
-		if(!$haveperm) error($pass._T('admin_wrongpassword'));
+		if(!isset($_SESSION['pmcLogin'])) 
+			error(_T('admin_wrongpassword'));
 
 		$delno = array_merge($delno, $_POST['delete']);
 		$files = ($onlyimgdel != 'on') ? $PIO->removePosts($delno) : $PIO->removeAttachments($delno);
@@ -773,9 +781,8 @@ function admindel(){
 	}
 	// 討論串停止區塊
 	if($thsflag){
-		$haveperm = ($pass == ADMIN_PASS);
-		$PMS->useModuleMethods('Authenticate', array($pass,'threadstop',&$haveperm));
-		if(!$haveperm) error($pass._T('admin_wrongpassword'));
+		if(!isset($_SESSION['pmcLogin'])) 
+			error(_T('admin_wrongpassword'));
 
 		$thsno = array_merge($thsno, $_POST['stop']);
 		$threads = $PIO->fetchPosts($thsno); // 取得文章
@@ -792,22 +799,8 @@ function admindel(){
 	$posts_count = count($line); // 迴圈次數
 	$posts = $PIO->fetchPosts($line); // 文章內容陣列
 
-	// 印出刪除表格
-	// TODO: 刪除 JS 換頁，不必再傳遞 pass 檢查 (valid()會檢查session)
-	// - 送出刪除/狀態修改要求時以 POST 方式 (表單依舊存在)
-	// - 換頁時採用 GET 方式，連結式分頁 (?mode=admin&admin=del&page=X) (可改用 $_REQUEST 接取可能來自於 $_POST, $_GET 的參數)
-	echo '<script type="text/javascript">
-// <![CDATA[
-function ChangePage(page){
-	document.forms["adminform"].page.value = page;
-	document.forms["adminform"].submit();
-}
-// ]]>
-</script>
-<input type="hidden" name="mode" value="admin" />
+	echo '<input type="hidden" name="mode" value="admin" />
 <input type="hidden" name="admin" value="del" />
-<input type="hidden" name="pass" value="'.$pass.'" />
-<input type="hidden" name="page" value="'.$page.'" />
 <div style="text-align: left;">'._T('admin_notices').'</div>
 <p><input type="submit" value="'._T('admin_submit_btn').'" /> <input type="reset" value="'._T('admin_reset_btn').'" /> [<input type="checkbox" name="onlyimgdel" id="onlyimgdel" value="on" /><label for="onlyimgdel">'._T('del_img_only').'</label>]</p>
 <table border="1" cellspacing="0" style="margin: 0px auto;">
@@ -855,25 +848,25 @@ _ADMINEOF_;
 	echo '</table>
 <p><input type="submit" value="'._T('admin_submit_btn').'" /> <input type="reset" value="'._T('admin_reset_btn').'" /></p>
 <p>'._T('admin_totalsize',total_size()).'</p>
+</div>
+</form>
 <hr />
 ';
 
 	$countline = $PIO->postCount(); // 總文章數
 	$page_max = ceil($countline / ADMIN_PAGE_DEF) - 1; // 總頁數
 	echo '<table border="1" style="float: left;"><tr>';
-	if($page) echo '<td><input type="button" value="'._T('prev_page').'" onclick="ChangePage('.($page - 1).');" /></td>';
+	if($page) echo '<td><form action="'.PHP_SELF.'?mode=admin&amp;admin=del&amp;page='.($page - 1).'" method="post" name="pageform"><input type="submit" value="'._T('prev_page').'" /></form></td>';
 	else echo '<td style="white-space: nowrap;">'._T('first_page').'</td>';
 	echo '<td>';
 	for($i = 0; $i <= $page_max; $i++){
 		if($i==$page) echo '[<b>'.$i.'</b>] ';
-		else echo '[<a href="javascript:ChangePage('.$i.');">'.$i.'</a>] ';
+		else echo '[<a href="'.PHP_SELF.'?mode=admin&amp;admin=del&amp;page='.$i.'">'.$i.'</a>] ';
 	}
 	echo '</td>';
-	if($page < $page_max) echo '<td><input type="button" value="'._T('next_page').'" onclick="ChangePage('.($page + 1).');" /></td>';
+	if($page < $page_max) echo '<td><form action="'.PHP_SELF.'?mode=admin&amp;admin=del&amp;page='.($page + 1).'" method="post" name="pageform"><input type="submit" value="'._T('next_page').'" /></form></td>';
 	else echo '<td style="white-space: nowrap;">'._T('last_page').'</td>';
-	die('</tr></table>
-</div>
-</form>
+	die('</tr></table><br/><br/>
 </body>
 </html>');
 }
@@ -1147,8 +1140,7 @@ function init(){
 
 /*-----------程式各項功能主要判斷-------------*/
 if(GZIP_COMPRESS_LEVEL && ($Encoding = CheckSupportGZip())){ ob_start(); ob_implicit_flush(0); } // 支援且開啟Gzip壓縮就設緩衝區
-$mode = isset($_GET['mode']) ? $_GET['mode'] : ''; // 目前執行模式
-if($mode=='' && isset($_POST['mode'])) $mode = $_POST['mode']; // 如果GET找不到，就用POST
+$mode = isset($_REQUEST['mode']) ? $_REQUEST['mode'] : ''; // 目前執行模式
 if($mode != 'module'){ $PMS->init(); } // 載入所有模組
 
 //init(); // ←■■！程式環境初始化，跑過一次後請刪除此行！■■
@@ -1157,9 +1149,14 @@ switch($mode){
 		regist();
 		break;
 	case 'admin':
-		$admin = isset($_POST['admin']) ? $_POST['admin'] : ''; // 管理者執行模式
+		$admin = isset($_REQUEST['admin']) ? $_REQUEST['admin'] : ''; // 管理者執行模式
 		valid();
 		if($admin=='del') admindel();
+		if($admin=='logout') {
+			unset($_SESSION['pmcLogin']);
+			header('HTTP/1.1 302 Moved Temporarily');
+			header('Location: '.fullURL().PHP_SELF2.'?'.time());
+		}
 		if($admin=='opt'){
 			if(!$PIO->dbOptimize()) echo _T('action_opt_notsupport');
 			else echo _T('action_opt_optimize').($PIO->dbOptimize(true)?_T('action_opt_success'):_T('action_opt_failed'));
