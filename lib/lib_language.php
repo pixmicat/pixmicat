@@ -2,9 +2,10 @@
 /*
 Pixmicat! Language module loader
 */
+$langattechment=array();
 
 function _T(/*$arg1, $arg2...$argN*/) {
-	global $language;
+	global $language,$langattechment;
 	if (!isset($language))	// language file is not loaded
 		LoadLanguage(PIXMICAT_LANGUAGE);
 	if (!func_num_args()) // called with no arg
@@ -15,12 +16,17 @@ function _T(/*$arg1, $arg2...$argN*/) {
 }
 
 function LoadLanguage($locale = 'en_US') {
-	global $language;
+	global $language,$langattechment;
 	if(!defined('PIXMICAT_LANGUAGE') || defined('PIXMICAT_LANGUAGE_OVERLOADING')) // language overloading
 		include_once("./lib/lang/en_US.php");
 	if (file_exists("./lib/lang/$locale.php"))
 		include_once("./lib/lang/$locale.php");
 	else
 		include_once("./lib/lang/en_US.php");
+	foreach($langattechment as $lf) call_user_func($lf); // Attech other language strings
+}
+function AttechLanguage($fcall){
+	global $langattechment;
+	$langattechment[]=$fcall;
 }
 ?>
