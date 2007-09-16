@@ -1,5 +1,8 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2007/09/16
+-[pixmicat][lib_common] 實裝 Session 後端認證功能
+
 2007/08/29,30
 -[pixmicat] 新增支援瀏覽器強制 no-cache (Ctrl + F5) 更新快取功能
 -[pixmicat] 移除筆數限制及使用量顯示

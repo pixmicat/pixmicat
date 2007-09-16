@@ -213,4 +213,25 @@ function BanIPHostDNSBLCheck($IP, $HOST, &$baninfo){
 	if($isListed){ $baninfo = _T('ip_dnsbl_banned',$isListed); return true; }
 	return false;
 }
+
+/* 後端登入權限管理 */
+function adminAuthenticate($mode){
+	@session_start();
+	$loginkey = md5($_SERVER['HTTP_USER_AGENT'].ADMIN_PASS.$_SERVER['REMOTE_ADDR']);
+	switch($mode){
+		case 'logout':
+			if(isset($_SESSION['pmcLogin'])) unset($_SESSION['pmcLogin']);
+			return true; break;
+		case 'login':
+			$_SESSION['pmcLogin'] = $loginkey;
+			break;
+		case 'check':
+			if(isset($_SESSION['pmcLogin']) && $_SESSION['pmcLogin']==$loginkey){
+				session_regenerate_id(true); // 更換 Session id key 避免 Hijacking
+				return true;
+			}
+			return false;
+			break;
+	}
+}
 ?>

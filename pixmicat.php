@@ -1,5 +1,5 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.2-dev (b070906)'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.2-dev (b070916)'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -710,15 +710,15 @@ function usrdel(){
 function valid(){
 	global $PMS, $language;
 	$pass = isset($_POST['pass']) ? $_POST['pass'] : ''; // 管理者密碼
-	session_start();
 	$haveperm = false;
-	if(!isset($_SESSION['pmcLogin'])){
+	$isCheck = adminAuthenticate('check'); // 登入是否正確
+	if(!$isCheck){
 		if($pass) {
 			if(!($haveperm = ($pass == ADMIN_PASS))) {
 				$PMS->useModuleMethods('Authenticate', array($pass,'admin',&$haveperm));
 				if(!$haveperm) error(_T('admin_wrongpassword'));
 			}
-			if($haveperm) $_SESSION['pmcLogin']=1;
+			if($haveperm){ adminAuthenticate('login'); $isCheck = true; }
 		}
 	}
 	$dat = '';
@@ -731,7 +731,7 @@ function valid(){
 <div id="admin-check" style="text-align: center;">
 ';
 	echo $dat;
-	if(!isset($_SESSION['pmcLogin'])){
+	if(!$isCheck){
 		echo '<br />
 <input type="radio" name="admin" value="del" checked="checked" />'._T('admin_manageposts').'
 <input type="radio" name="admin" value="opt" />'._T('admin_optimize').'<p />
@@ -769,8 +769,7 @@ function admindel(){
 
 	// 刪除文章區塊
 	if($delflag){
-		if(!isset($_SESSION['pmcLogin'])) 
-			error(_T('admin_wrongpassword'));
+		if(!adminAuthenticate('check')) error(_T('admin_wrongpassword'));
 
 		$delno = array_merge($delno, $_POST['delete']);
 		$files = ($onlyimgdel != 'on') ? $PIO->removePosts($delno) : $PIO->removeAttachments($delno);
@@ -781,8 +780,7 @@ function admindel(){
 	}
 	// 討論串停止區塊
 	if($thsflag){
-		if(!isset($_SESSION['pmcLogin'])) 
-			error(_T('admin_wrongpassword'));
+		if(!adminAuthenticate('check')) error(_T('admin_wrongpassword'));
 
 		$thsno = array_merge($thsno, $_POST['stop']);
 		$threads = $PIO->fetchPosts($thsno); // 取得文章
@@ -856,7 +854,7 @@ _ADMINEOF_;
 	$countline = $PIO->postCount(); // 總文章數
 	$page_max = ceil($countline / ADMIN_PAGE_DEF) - 1; // 總頁數
 	echo '<table border="1" style="float: left;"><tr>';
-	if($page) echo '<td><form action="'.PHP_SELF.'?mode=admin&amp;admin=del&amp;page='.($page - 1).'" method="post" name="pageform"><input type="submit" value="'._T('prev_page').'" /></form></td>';
+	if($page) echo '<td><a href="'.PHP_SELF.'?mode=admin&amp;admin=del&amp;page='.($page - 1).'">'._T('prev_page').'</a></td>';
 	else echo '<td style="white-space: nowrap;">'._T('first_page').'</td>';
 	echo '<td>';
 	for($i = 0; $i <= $page_max; $i++){
@@ -864,7 +862,7 @@ _ADMINEOF_;
 		else echo '[<a href="'.PHP_SELF.'?mode=admin&amp;admin=del&amp;page='.$i.'">'.$i.'</a>] ';
 	}
 	echo '</td>';
-	if($page < $page_max) echo '<td><form action="'.PHP_SELF.'?mode=admin&amp;admin=del&amp;page='.($page + 1).'" method="post" name="pageform"><input type="submit" value="'._T('next_page').'" /></form></td>';
+	if($page < $page_max) echo '<td><a href="'.PHP_SELF.'?mode=admin&amp;admin=del&amp;page='.($page + 1).'">'._T('next_page').'</a></td>';
 	else echo '<td style="white-space: nowrap;">'._T('last_page').'</td>';
 	die('</tr></table><br/><br/>
 </body>
@@ -1152,8 +1150,8 @@ switch($mode){
 		$admin = isset($_REQUEST['admin']) ? $_REQUEST['admin'] : ''; // 管理者執行模式
 		valid();
 		if($admin=='del') admindel();
-		if($admin=='logout') {
-			unset($_SESSION['pmcLogin']);
+		if($admin=='logout'){
+			adminAuthenticate('logout');
 			header('HTTP/1.1 302 Moved Temporarily');
 			header('Location: '.fullURL().PHP_SELF2.'?'.time());
 		}
