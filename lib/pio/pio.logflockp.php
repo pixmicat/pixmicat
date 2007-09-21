@@ -14,16 +14,6 @@ class PIOlogflockp{
 	var $logs, $trees, $LUT, $porder, $torder, $prepared; // Local Global
 	//var $memcached, $mid;
 
-	function PIOlogflockp($connstr='', $ENV){
-		$this->ENV = $ENV;
-		$this->logs = $this->trees = $this->LUT = $this->porder = $this->torder = array();
-		$this->prepared = 0;
-		//$this->mid = md5($_SERVER['SCRIPT_FILENAME']); // Unique ID
-		//$this->memcached = false; // memcached object (null: use, false: don't use)
-
-		if($connstr) $this->dbConnect($connstr);
-	}
-
 	/* private 設定 memcached 資料
 	function _memcacheSet($isAnalysis=true){
 		if(!$this->_memcachedEstablish()) return false;
@@ -47,13 +37,6 @@ class PIOlogflockp{
 			$this->torder = $this->memcached->get('pmc'.$this->mid.'_torder');
 			return true;
 		}else return false;
-	}*/
-
-	/* private 把每一行 Log 解析轉換成陣列資料 */
-	function _AnalysisLogs($line){
-		$tline = array();
-		list($tline['no'], $tline['resto'], $tline['md5chksum'], $tline['category'], $tline['tim'], $tline['ext'], $tline['imgw'], $tline['imgh'], $tline['imgsize'], $tline['tw'], $tline['th'], $tline['pwd'], $tline['now'], $tline['name'], $tline['email'], $tline['sub'], $tline['com'], $tline['host'], $tline['status']) = explode(',', $line);
-		return array_reverse($tline);
 	}
 
 	/* private 建立 memcached 實體
@@ -66,6 +49,23 @@ class PIOlogflockp{
 		}
 		return ($this->memcached===false) ? false : true;
 	}*/
+
+	function PIOlogflockp($connstr='', $ENV){
+		$this->ENV = $ENV;
+		$this->logs = $this->trees = $this->LUT = $this->porder = $this->torder = array();
+		$this->prepared = 0;
+		//$this->mid = md5($_SERVER['SCRIPT_FILENAME']); // Unique ID
+		//$this->memcached = false; // memcached object (null: use, false: don't use)
+
+		if($connstr) $this->dbConnect($connstr);
+	}
+
+	/* private 把每一行 Log 解析轉換成陣列資料 */
+	function _AnalysisLogs($line){
+		$tline = array();
+		list($tline['no'], $tline['resto'], $tline['md5chksum'], $tline['category'], $tline['tim'], $tline['ext'], $tline['imgw'], $tline['imgh'], $tline['imgsize'], $tline['tw'], $tline['th'], $tline['pwd'], $tline['now'], $tline['name'], $tline['email'], $tline['sub'], $tline['com'], $tline['host'], $tline['status']) = explode(',', $line);
+		return array_reverse($tline); // list()是由右至左代入的
+	}
 
 	/* private 將回文放進陣列 */
 	function _includeReplies($posts){
@@ -88,12 +88,10 @@ class PIOlogflockp{
 		$line = (array)$line; // 全部視為Arrays
 		$posts = array();
 		foreach($line as $i){
+			if(!isset($this->LUT[$i])) continue;
 			if(!is_array($this->logs[$this->LUT[$i]])){ // 進行分析轉換
-				$line = $this->logs[$this->LUT[$i]];
-				if($line=='') continue;
-				$tline = array();
-				list($tline['no'], $tline['resto'], $tline['md5chksum'], $tline['category'], $tline['tim'], $tline['ext'], $tline['imgw'], $tline['imgh'], $tline['imgsize'], $tline['tw'], $tline['th'], $tline['pwd'], $tline['now'], $tline['name'], $tline['email'], $tline['sub'], $tline['com'], $tline['host'], $tline['status']) = explode(',', $line);
-				$this->logs[$this->LUT[$i]] = array_reverse($tline); // list()是由右至左代入的
+				$line = $this->logs[$this->LUT[$i]]; if($line=='') continue;
+				$this->logs[$this->LUT[$i]] = $this->_AnalysisLogs($line);
 			}
 			$posts[] = $this->logs[$this->LUT[$i]];
 		}
@@ -102,7 +100,7 @@ class PIOlogflockp{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.5alpha (b20070829)';
+		return '0.5beta (b20070921)';
 	}
 
 	/* 處理連線字串/連接 */

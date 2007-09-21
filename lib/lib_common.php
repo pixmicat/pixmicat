@@ -234,4 +234,10 @@ function adminAuthenticate($mode){
 			break;
 	}
 }
+
+/* 取得 (Transparent) Proxy 提供之 IP 參數 */
+function getREMOTE_ADDR(){
+	// $_SERVER['HTTP_X_FORWARDED_FOR'];
+	return $_SERVER['REMOTE_ADDR'];
+}
 ?>

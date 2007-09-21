@@ -40,7 +40,7 @@ class PIOmysql{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.5alpha (b20070829)';
+		return '0.5beta (b20070921)';
 	}
 
 	/* 處理連線字串/連接 */

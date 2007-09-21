@@ -1,5 +1,10 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2007/09/21
+-[PIO] PIO 0.5beta: Log 增加要求編號文章是否存在判定
+-[lib_common][pixmicat] 暫實裝 getREMOTE_ADDR() 函式取得使用者 IP (待完成)
+-[pixmicat] 提前容量暫存刪除時機，避免因預覽圖生成失敗未運作造成暫時的容量計算錯誤
+
 2007/09/16
 -[pixmicat][lib_common] 實裝 Session 後端認證功能
 
@@ -22,6 +27,7 @@
 -[pixmicat][PIO] PIO 0.5alpha: 取消 getPostStatus()，修改 setPostStatus()
 -[pixmicat][PIO] PIO 0.5alpha: addPost() 新增 $status 引入
 -[PMS] RegistBeforeCommit 掛載點新增 &$status 引入
+-[lib_common] 修正 GD ImageCreateFormBMP 對 16bit BMP 的支援
 
 2007/07/26
 -[pixmicat] $path 取消 global

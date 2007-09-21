@@ -1,5 +1,5 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.2-dev (b070916)'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.2-dev (b070921)'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -364,7 +364,7 @@ function regist(){
 	if($FTname != 'spammer' || $FTemail != 'foo@foo.bar' || $FTsub != 'DO NOT FIX THIS' || $FTcom != 'EID OG SMAPS' || $FTreply != '') error(_T('regist_nospam'));
 
 	// 封鎖：IP/Hostname/DNSBL 檢查機能
-	$ip = $_SERVER["REMOTE_ADDR"]; $host = gethostbyaddr($ip); $baninfo = '';
+	$ip = getREMOTE_ADDR(); $host = gethostbyaddr($ip); $baninfo = '';
 	if(BanIPHostDNSBLCheck($ip, $host, $baninfo)) error(_T('regist_ipfiltered', $baninfo));
 	// 封鎖：限制出現之文字
 	foreach($BAD_STRING as $value){
@@ -536,7 +536,7 @@ function regist(){
 	$now = gmdate('y/m/d', $time+TIME_ZONE*60*60).'('.(string)$yd.')'.gmdate('H:i', $time+TIME_ZONE*60*60);
 	if(DISP_ID){ // 顯示ID
 		if($email && DISP_ID==1) $now .= ' ID:???';
-		else $now .= ' ID:'.substr(crypt(md5($_SERVER['REMOTE_ADDR'].IDSEED.gmdate('Ymd', $time+TIME_ZONE*60*60)),'id'), -8);
+		else $now .= ' ID:'.substr(crypt(md5(getREMOTE_ADDR().IDSEED.gmdate('Ymd', $time+TIME_ZONE*60*60)),'id'), -8);
 	}
 
 	// 連續投稿 / 相同附加圖檔檢查
@@ -609,7 +609,7 @@ function regist(){
 	// Cookies儲存：密碼與E-mail部分，期限是一週
 	setcookie('pwdc', $pwd, time()+7*24*3600);
 	setcookie('emailc', $email, time()+7*24*3600);
-
+	total_size(true); // 刪除舊容量快取
 	if($dest && is_file($dest)){
 		$destFile = $path.IMG_DIR.$tim.$ext; // 圖檔儲存位置
 		$thumbFile = $path.THUMB_DIR.$tim.'s.jpg'; // 預覽圖儲存位置
@@ -628,9 +628,6 @@ function regist(){
 			if(file_exists($thumbFile)) $FileIO->uploadImage($tim.'s.jpg', $thumbFile, filesize($thumbFile));
 		}
 	}
-
-	// 刪除舊容量快取
-	total_size(true);
 	updatelog();
 
 	// 引導使用者至新頁面
@@ -682,7 +679,7 @@ function usrdel(){
 
 	if($pwd=='' && $pwdc!='') $pwd = $pwdc;
 	$pwd_md5 = substr(md5($pwd),2,8);
-	$host = gethostbyaddr($_SERVER['REMOTE_ADDR']);
+	$host = gethostbyaddr(getREMOTE_ADDR());
 	$search_flag = $delflag = false;
 	$delno = array();
 	reset($_POST);
