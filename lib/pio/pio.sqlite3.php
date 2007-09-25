@@ -358,11 +358,21 @@ class PIOsqlite3{
 		return new FlagHelper($status); // 回傳 FlagHelper 物件
 	}
 
-	/* 設定文章狀態 */
-	public function setPostStatus($no, $newStatus){
+	/* 更新文章 */
+	public function updatePost($no, $newValues){
 		if(!$this->prepared) $this->dbPrepare();
 
-		if(!$this->con->exec('UPDATE '.$this->tablename." SET status = '$newStatus' WHERE no = $no")) $this->_error_handler('Update the status of the post failed', __LINE__);
+		$chk = array('resto', 'md5chksum', 'category', 'tim', 'ext', 'imgw', 'imgh', 'imgsize', 'tw', 'th', 'pwd', 'now', 'name', 'email', 'sub', 'com', 'host', 'status');
+
+		foreach($chk as $c)
+			if(isset($newValues[$c]))
+				if(!$this->con->exec('UPDATE '.$this->tablename." SET $c = '".$this->con->quote($newValues[$c])." WHERE no = $no")) $this->_error_handler('Update the field of the post failed', __LINE__); // 更新討論串屬性
 	}
+	
+	/* 設定文章屬性 */
+	public function setPostStatus($no, $newStatus){
+		$this->updatePost($no, array('status' => $newStatus));
+	}
+
 }
 ?>

@@ -507,12 +507,21 @@ class PIOlogflockp{
 		return new FlagHelper($status); // 回傳 FlagHelper 物件
 	}
 
-	/* 設定文章屬性 */
-	function setPostStatus($no, $newStatus){
+	/* 更新文章 */
+	function updatePost($no, $newValues){
 		if(!$this->prepared) $this->dbPrepare();
 
+		$chk = array('resto', 'md5chksum', 'category', 'tim', 'ext', 'imgw', 'imgh', 'imgsize', 'tw', 'th', 'pwd', 'now', 'name', 'email', 'sub', 'com', 'host', 'status');
+
 		$this->_ArrangeArrayStructure($no); // 將資料變成陣列
-		$this->logs[$this->LUT[$no]]['status'] = $newStatus; // 修改狀態
+		foreach($chk as $c)
+			if(isset($newValues[$c]))
+				$this->logs[$this->LUT[$no]][$c] = $newValues[$c]; // 修改數值
+	}
+	
+	/* 設定文章屬性 */
+	function setPostStatus($no, $newStatus){
+		$this->updatePost($no, array('status' => $newStatus));
 	}
 
 	/* 檔案鎖定/解鎖處理 */

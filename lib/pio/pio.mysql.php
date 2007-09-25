@@ -409,11 +409,21 @@ class PIOmysql{
 		return new FlagHelper($status); // 回傳 FlagHelper 物件
 	}
 
-	/* 設定文章狀態 */
-	function setPostStatus($no, $newStatus){
+	/* 更新文章 */
+	function updatePost($no, $newValues){
 		if(!$this->prepared) $this->dbPrepare();
 
-		if(!$this->_mysql_call('UPDATE '.$this->tablename." SET status = '$newStatus', root = root WHERE no = $no")) $this->_error_handler('Update the status of the post failed', __LINE__); // 更新討論串屬性
+		$chk = array('resto', 'md5chksum', 'category', 'tim', 'ext', 'imgw', 'imgh', 'imgsize', 'tw', 'th', 'pwd', 'now', 'name', 'email', 'sub', 'com', 'host', 'status');
+
+		foreach($chk as $c)
+			if(isset($newValues[$c]))
+				if(!$this->_mysql_call('UPDATE '.$this->tablename." SET $c = '".mysql_real_escape_string($newValues[$c]).", root = root WHERE no = $no")) $this->_error_handler('Update the field of the post failed', __LINE__); // 更新討論串屬性
 	}
+	
+	/* 設定文章屬性 */
+	function setPostStatus($no, $newStatus){
+		$this->updatePost($no, array('status' => $newStatus));
+	}
+
 }
 ?>
