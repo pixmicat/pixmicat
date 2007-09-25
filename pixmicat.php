@@ -938,6 +938,15 @@ function search(){
 		$resultlist = '';
 		foreach($hitPosts as $post){
 			extract($post);
+			if(USE_CATEGORY){
+				$ary_category = explode(',', str_replace('&#44;', ',', $category)); $ary_category = array_map('trim', $ary_category);
+				$ary_category_count = count($ary_category);
+				$ary_category2 = array();
+				for($p = 0; $p < $ary_category_count; $p++){
+					if($c = $ary_category[$p]) $ary_category2[] = '<a href="'.PHP_SELF.'?mode=category&amp;c='.urlencode($c).'">'.$c.'</a>';
+				}
+				$category = implode(', ', $ary_category2);
+			}else $category = '';
 			$arrLabels = array('{$NO}'=>$no, '{$SUB}'=>$sub, '{$NAME}'=>$name, '{$NOW}'=>$now, '{$COM}'=>$com, '{$CATEGORY}'=>$category, '{$NAME_TEXT}'=>_T('post_name'), '{$CATEGORY_TEXT}'=>_T('post_category'));
 			$resultlist .= $PTE->ParseBlock('SEARCHRESULT',$arrLabels);
 		}
