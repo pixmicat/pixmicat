@@ -34,26 +34,26 @@ function head(&$dat,$resno=0){
 }
 
 /* 發表用表單輸出 */
-function form(&$dat, $resno){
+function form(&$dat, $resno, $retURL=PHP_SELF, $name='', $mail='', $sub='', $com='', $cat='', $editmode=false){
 	global $PTE, $PMS, $ADDITION_INFO, $language;
-	$pte_vals = array('{$SELF}'=>PHP_SELF, '{$FORMTOP}'=>'');
-	if($resno){
+	$pte_vals = array('{$SELF}'=>$retURL, '{$FORMTOP}'=>'');
+	if($resno && !$editmode){
 		$links = '[<a href="'.PHP_SELF2.'?'.time().'">'._T('return').'</a>]';
 		$PMS->useModuleMethods('LinksAboveBar', array(&$links,'reply',$resno)); // "LinksAboveBar" Hook Point
 		$pte_vals['{$FORMTOP}'] = $links.'<div class="bar_reply">'._T('form_top').'</div>';
 	}
-	if(USE_FLOATFORM && !$resno) $pte_vals['{$FORMTOP}'] .= "\n".'[<span id="show" class="hide" onmouseover="showform();" onclick="showform();">'._T('form_showpostform').'</span><span id="hide" class="show" onmouseover="hideform();" onclick="hideform();">'._T('form_hidepostform').'</span>]';
+	if(USE_FLOATFORM && !$resno && !$editmode) $pte_vals['{$FORMTOP}'] .= "\n".'[<span id="show" class="hide" onmouseover="showform();" onclick="showform();">'._T('form_showpostform').'</span><span id="hide" class="show" onmouseover="hideform();" onclick="hideform();">'._T('form_hidepostform').'</span>]';
 	$pte_vals += array('{$MAX_FILE_SIZE}' => MAX_KB * 1024,
 		'{$RESTO}' => $resno ? '<input type="hidden" name="resto" value="'.$resno.'" />' : '',
 		'{$FORM_NAME_TEXT}' => _T('form_name'),
-		'{$FORM_NAME_FIELD}' => '<input class="hide" type="text" name="name" value="spammer" /><input type="text" name="'.FT_NAME.'" id="fname" size="28" />',
+		'{$FORM_NAME_FIELD}' => '<input class="hide" type="text" name="name" value="spammer" /><input type="text" name="'.FT_NAME.'" id="fname" size="28" value="'.$name.'" />',
 		'{$FORM_EMAIL_TEXT}' => _T('form_email'),
-		'{$FORM_EMAIL_FIELD}' => '<input type="text" name="'.FT_EMAIL.'" id="femail" size="28" /><input type="text" class="hide" name="email" value="foo@foo.bar" />',
+		'{$FORM_EMAIL_FIELD}' => '<input type="text" name="'.FT_EMAIL.'" id="femail" size="28" value="'.$mail.'" /><input type="text" class="hide" name="email" value="foo@foo.bar" />',
 		'{$FORM_TOPIC_TEXT}' => _T('form_topic'),
-		'{$FORM_TOPIC_FIELD}' => '<input class="hide" value="DO NOT FIX THIS" type="text" name="sub" /><input type="text" name="'.FT_SUBJECT.'" id="fsub" size="28" />',
+		'{$FORM_TOPIC_FIELD}' => '<input class="hide" value="DO NOT FIX THIS" type="text" name="sub" /><input type="text" name="'.FT_SUBJECT.'" id="fsub" size="28" value="'.$sub.'" />',
 		'{$FORM_SUBMIT}' => '<input type="submit" name="sendbtn" value="'._T('form_submit_btn').'" />',
 		'{$FORM_COMMENT_TEXT}' => _T('form_comment'),
-		'{$FORM_COMMENT_FIELD}' => '<textarea name="'.FT_COMMENT.'" id="fcom" cols="48" rows="4" style="width: 400px; height: 80px;"></textarea><textarea name="com" class="hide" cols="48" rows="4">EID OG SMAPS</textarea>',
+		'{$FORM_COMMENT_FIELD}' => '<textarea name="'.FT_COMMENT.'" id="fcom" cols="48" rows="4" style="width: 400px; height: 80px;">'.$com.'</textarea><textarea name="com" class="hide" cols="48" rows="4">EID OG SMAPS</textarea>',
 		'{$FORM_DELETE_PASSWORD_FIELD}' => '<input type="password" name="pwd" size="8" maxlength="8" value="" />',
 		'{$FORM_DELETE_PASSWORD_TEXT}' => _T('form_delete_password'),
 		'{$FORM_DELETE_PASSWORD_NOTICE}' => _T('form_delete_password_notice'),
@@ -62,8 +62,10 @@ function form(&$dat, $resno){
 		'{$HOOKPOSTINFO}' => '',
 		'{$ADDITION_INFO}' => $ADDITION_INFO,
 		'{$FORM_NOTICE_NOSCRIPT}' => _T('form_notice_noscript'));
+	if(isset($_GET['mode']) && $_GET['mode'] == 'module') $pte_vals['{$RESTO}'] .= '<input type="hidden" name="mode" value="module" />'; // $_POST[mode]會蓋掉$_GET[mode], ugly hack fix here
+	else  $pte_vals['{$RESTO}'] .= '<input type="hidden" name="mode" value="edit" />'; // 蓋掉上面的mode=regist, 只是為了完整性
 	$PMS->useModuleMethods('PostForm', array(&$pte_vals['{$FORM_EXTRA_COLUMN}'])); // "PostForm" Hook Point
-	if(RESIMG || !$resno){
+	if(!$editmode && (RESIMG || !$resno)){
 		$pte_vals += array('{$FORM_ATTECHMENT_TEXT}' => _T('form_attechment'),
 			'{$FORM_ATTECHMENT_FIELD}' => '<input type="file" name="upfile" id="fupfile" size="25" /><input class="hide" type="checkbox" name="reply" value="yes" />',
 			'{$FORM_NOATTECHMENT_TEXT}' => _T('form_noattechment'),
@@ -74,14 +76,14 @@ function form(&$dat, $resno){
 		}
 	}
 	if(USE_CATEGORY) {
-		$pte_vals += array('{$FORM_CATEGORY_FIELD}' => '<input type="text" name="category" size="28" />',
+		$pte_vals += array('{$FORM_CATEGORY_FIELD}' => '<input type="text" name="category" size="28" value="'.$cat.'" />',
 			'{$FORM_CATEGORY_TEXT}' => _T('form_category'),
 			'{$FORM_CATEGORY_NOTICE}' => _T('form_category_notice'));
 	}
 	if(STORAGE_LIMIT) $pte_vals['{$FORM_NOTICE_STORAGE_LIMIT}'] = _T('form_notice_storage_limit',total_size(),STORAGE_MAX);
 	$PMS->useModuleMethods('PostInfo', array(&$pte_vals['{$HOOKPOSTINFO}'])); // "PostInfo" Hook Point
 
-	if(USE_FLOATFORM && !$resno) $pte_vals['{$FORMBOTTOM}'] = '<script type="text/javascript">hideform();</script>';
+	if(USE_FLOATFORM && !$resno && !$editmode) $pte_vals['{$FORMBOTTOM}'] = '<script type="text/javascript">hideform();</script>';
 	$dat .= $PTE->ParseBlock('POSTFORM',$pte_vals);
 }
 
