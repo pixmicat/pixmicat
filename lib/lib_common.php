@@ -239,7 +239,10 @@ function adminAuthenticate($mode){
 
 /* 取得 (Transparent) Proxy 提供之 IP 參數 */
 function getREMOTE_ADDR(){
-	// $_SERVER['HTTP_X_FORWARDED_FOR'];
+	if(isset($_SERVER['HTTP_X_FORWARDED_FOR'])){
+		$tmp = preg_split('/[ ,]+/', $_SERVER['HTTP_X_FORWARDED_FOR']);
+		return $tmp[0];
+	}
 	return $_SERVER['REMOTE_ADDR'];
 }
 ?>
