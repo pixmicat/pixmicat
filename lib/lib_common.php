@@ -63,7 +63,7 @@ function form(&$dat, $resno, $retURL=PHP_SELF, $name='', $mail='', $sub='', $com
 		'{$ADDITION_INFO}' => $ADDITION_INFO,
 		'{$FORM_NOTICE_NOSCRIPT}' => _T('form_notice_noscript'));
 	if(isset($_GET['mode']) && $_GET['mode'] == 'module') $pte_vals['{$RESTO}'] .= '<input type="hidden" name="mode" value="module" />'; // $_POST[mode]會蓋掉$_GET[mode], ugly hack fix here
-	else  $pte_vals['{$RESTO}'] .= '<input type="hidden" name="mode" value="edit" />'; // 蓋掉上面的mode=regist, 只是為了完整性
+	elseif($editmode) $pte_vals['{$RESTO}'] .= '<input type="hidden" name="mode" value="edit" />'; // 蓋掉上面的mode=regist, 只是為了完整性
 	$PMS->useModuleMethods('PostForm', array(&$pte_vals['{$FORM_EXTRA_COLUMN}'])); // "PostForm" Hook Point
 	if(!$editmode && (RESIMG || !$resno)){
 		$pte_vals += array('{$FORM_ATTECHMENT_TEXT}' => _T('form_attechment'),
