@@ -1,5 +1,8 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2007/09/29
+-[config] 去除使用 $_SERVER['PHP_SELF'] (有 XSS 潛在危機)
+
 2007/09/21
 -[PIO] PIO 0.5beta: Log 增加要求編號文章是否存在判定
 -[lib_common][pixmicat] 暫實裝 getREMOTE_ADDR() 函式取得使用者 IP (待完成)
