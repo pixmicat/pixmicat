@@ -2,6 +2,7 @@
 ----------------------
 2007/09/29
 -[config] 去除使用 $_SERVER['PHP_SELF'] (有 XSS 潛在危機)
+-[lib_common][FileIO] 修正 fullURL() / _getAbsoluteURL() 使用 $_SERVER['PHP_SELF'] 之 XSS 潛在危機
 
 2007/09/21
 -[PIO] PIO 0.5beta: Log 增加要求編號文章是否存在判定

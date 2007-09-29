@@ -12,7 +12,7 @@ if(is_file($fileio_file)) include_once($fileio_file);
 class FileIOWrapper extends FileIO{
 	var $absoluteURL; // 伺服器絕對位置
 	function _getAbsoluteURL(){
-		return 'http://'.$_SERVER['HTTP_HOST'].preg_replace('/(.*)\/.+$/', '$1/', $_SERVER['PHP_SELF']);
+		return 'http://'.$_SERVER['HTTP_HOST'].substr($_SERVER['PHP_SELF'], 0, strpos($_SERVER['PHP_SELF'], PHP_SELF));
 	}
 	function getImageLocalURL($imgname){
 		if(!isset($this->absoluteURL)) $this->absoluteURL = $this->_getAbsoluteURL();
