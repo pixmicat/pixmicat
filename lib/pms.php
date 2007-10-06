@@ -33,19 +33,14 @@ class PMS{
 
 	// 模組載入相關
 	/* 進行初始化 */
-	function init($specificModule=false){
-		if($specificModule!==false){ // 有指定載入模組
-			// 搜尋載入模組列表有沒有，沒有就直接取消程式
-			if(array_search($specificModule, $this->ENV['MODULE.LOADLIST'])===false) return false;
-		}
-		$this->loadModules($specificModule);
+	function init(){
+		$this->loadModules();
 		return true;
 	}
 
-	
 	/* 載入擴充模組 */
-	function loadModules($specificModule=false){
-		$loadlist = $specificModule ? array($specificModule) : $this->ENV['MODULE.LOADLIST'];
+	function loadModules(){
+		$loadlist = $this->ENV['MODULE.LOADLIST'];
 		foreach($loadlist as $f){
 			$mpath = $this->ENV['MODULE.PATH'].$f.'.php';
 			if(is_file($mpath)){

@@ -1,5 +1,5 @@
 <!--&THEMENAME-->futaba Theme<!--/&THEMENAME-->
-<!--&THEMEVER-->v20070712<!--/&THEMEVER-->
+<!--&THEMEVER-->v20071006<!--/&THEMEVER-->
 <!--&THEMEAUTHOR-->Pixmicat! Development Team<!--/&THEMEAUTHOR-->
 
 <!--&HEADER--><?xml version="1.0" encoding="UTF-8"?>
@@ -46,7 +46,7 @@ var ext="{$ALLOW_UPLOAD_EXT}".toUpperCase().split("|");
 <form action="{$SELF}" method="post" enctype="multipart/form-data" onsubmit="return c();" id="postform_main">
 <div id="postform">
 <!--&IF($FORMTOP,'{$FORMTOP}','')-->
-<input type="hidden" name="mode" value="regist" />
+<input type="hidden" name="mode" value="{$MODE}" />
 <input type="hidden" name="MAX_FILE_SIZE" value="{$MAX_FILE_SIZE}" />
 <input type="hidden" name="upfile_path" value="" />
 <!--&IF($RESTO,'{$RESTO}','')-->
@@ -103,7 +103,7 @@ var ext="{$ALLOW_UPLOAD_EXT}".toUpperCase().split("|");
 
 
 <!--&THREAD-->
-<div class="threadpost">
+<div class="threadpost" id="r{$NO}">
 {$IMG_BAR}<!--&IF($IMG_BAR,'<br />','')-->{$IMG_SRC}<input type="checkbox" name="{$NO}" value="delete" /><span class="title">{$SUB}</span>
 {$NAME_TEXT}<span class="name">{$NAME}</span> [{$NOW}] {$QUOTEBTN}&nbsp;{$REPLYBTN}
 <div class="quote">{$COM}</div>

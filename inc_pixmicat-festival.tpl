@@ -1,6 +1,6 @@
 <!-- Theme Description -->
 <!--&THEMENAME-->Pixmicat!-Festival Theme<!--/&THEMENAME-->
-<!--&THEMEVER-->v20070618<!--/&THEMEVER-->
+<!--&THEMEVER-->v20071006<!--/&THEMEVER-->
 <!--&THEMEAUTHOR-->Pixmicat! Development Team<!--/&THEMEAUTHOR-->
 
 <!-- Theme Settings -->
@@ -70,7 +70,7 @@ var boxclicked=0;
 <form action="{$SELF}" method="post" enctype="multipart/form-data" onsubmit="return c();" id="postform_main">
 <div id="postform">
 <!--&IF($FORMTOP,'{$FORMTOP}','')-->
-<input type="hidden" name="mode" value="regist" />
+<input type="hidden" name="mode" value="{$MODE}" />
 <input type="hidden" name="MAX_FILE_SIZE" value="{$MAX_FILE_SIZE}" />
 <input type="hidden" name="upfile_path" value="" />
 <!--&IF($RESTO,'{$RESTO}','')-->
@@ -134,7 +134,7 @@ var boxclicked=0;
 
 <!--&THREAD-->
 <!--&IF($RESTO,'','<!--&THREAD_CLICKENTER/-->')-->
-<div class="threadpost"><input type="checkbox" name="{$NO}" value="delete" onclick="boxclicked=1;" /><span class="title">{$SUB}</span>
+<div class="threadpost" id="r{$NO}"><input type="checkbox" name="{$NO}" value="delete" onclick="boxclicked=1;" /><span class="title">{$SUB}</span>
 {$NAME_TEXT}<span class="name">{$NAME}</span> [{$NOW}] {$QUOTEBTN} {$REPLYBTN}</div>
 {$IMG_BAR}<!--&IF($RESTO,'<!--&IMG_LEFT/-->','<!--&IMGARRANGE/-->')-->
 {$WARN_OLD}{$WARN_BEKILL}{$WARN_ENDREPLY}{$WARN_HIDEPOST}

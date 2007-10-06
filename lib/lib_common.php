@@ -34,15 +34,16 @@ function head(&$dat,$resno=0){
 }
 
 /* 發表用表單輸出 */
-function form(&$dat, $resno, $retURL=PHP_SELF, $name='', $mail='', $sub='', $com='', $cat='', $editmode=false){
+function form(&$dat, $resno, $iscollapse=true, $retURL=PHP_SELF, $name='', $mail='', $sub='', $com='', $cat='', $mode='regist'){
 	global $PTE, $PMS, $ADDITION_INFO, $language;
-	$pte_vals = array('{$SELF}'=>$retURL, '{$FORMTOP}'=>'');
-	if($resno && !$editmode){
+	$pte_vals = array('{$SELF}'=>$retURL, '{$FORMTOP}'=>'', '{$MODE}'=>$mode);
+	$isedit = ($mode == 'edit'); // 是否為編輯模式
+	if($resno && !$isedit){
 		$links = '[<a href="'.PHP_SELF2.'?'.time().'">'._T('return').'</a>]';
 		$PMS->useModuleMethods('LinksAboveBar', array(&$links,'reply',$resno)); // "LinksAboveBar" Hook Point
 		$pte_vals['{$FORMTOP}'] = $links.'<div class="bar_reply">'._T('form_top').'</div>';
 	}
-	if(USE_FLOATFORM && !$resno && !$editmode) $pte_vals['{$FORMTOP}'] .= "\n".'[<span id="show" class="hide" onmouseover="showform();" onclick="showform();">'._T('form_showpostform').'</span><span id="hide" class="show" onmouseover="hideform();" onclick="hideform();">'._T('form_hidepostform').'</span>]';
+	if(USE_FLOATFORM && !$resno && $iscollapse) $pte_vals['{$FORMTOP}'] .= "\n".'[<span id="show" class="hide" onmouseover="showform();" onclick="showform();">'._T('form_showpostform').'</span><span id="hide" class="show" onmouseover="hideform();" onclick="hideform();">'._T('form_hidepostform').'</span>]';
 	$pte_vals += array('{$MAX_FILE_SIZE}' => MAX_KB * 1024,
 		'{$RESTO}' => $resno ? '<input type="hidden" name="resto" value="'.$resno.'" />' : '',
 		'{$FORM_NAME_TEXT}' => _T('form_name'),
@@ -62,10 +63,8 @@ function form(&$dat, $resno, $retURL=PHP_SELF, $name='', $mail='', $sub='', $com
 		'{$HOOKPOSTINFO}' => '',
 		'{$ADDITION_INFO}' => $ADDITION_INFO,
 		'{$FORM_NOTICE_NOSCRIPT}' => _T('form_notice_noscript'));
-	if(isset($_GET['mode']) && $_GET['mode'] == 'module') $pte_vals['{$RESTO}'] .= '<input type="hidden" name="mode" value="module" />'; // $_POST[mode]會蓋掉$_GET[mode], ugly hack fix here
-	elseif($editmode) $pte_vals['{$RESTO}'] .= '<input type="hidden" name="mode" value="edit" />'; // 蓋掉上面的mode=regist, 只是為了完整性
 	$PMS->useModuleMethods('PostForm', array(&$pte_vals['{$FORM_EXTRA_COLUMN}'])); // "PostForm" Hook Point
-	if(!$editmode && (RESIMG || !$resno)){
+	if(!$isedit && (RESIMG || !$resno)){
 		$pte_vals += array('{$FORM_ATTECHMENT_TEXT}' => _T('form_attechment'),
 			'{$FORM_ATTECHMENT_FIELD}' => '<input type="file" name="upfile" id="fupfile" size="25" /><input class="hide" type="checkbox" name="reply" value="yes" />',
 			'{$FORM_NOATTECHMENT_TEXT}' => _T('form_noattechment'),
@@ -83,7 +82,7 @@ function form(&$dat, $resno, $retURL=PHP_SELF, $name='', $mail='', $sub='', $com
 	if(STORAGE_LIMIT) $pte_vals['{$FORM_NOTICE_STORAGE_LIMIT}'] = _T('form_notice_storage_limit',total_size(),STORAGE_MAX);
 	$PMS->useModuleMethods('PostInfo', array(&$pte_vals['{$HOOKPOSTINFO}'])); // "PostInfo" Hook Point
 
-	if(USE_FLOATFORM && !$resno && !$editmode) $pte_vals['{$FORMBOTTOM}'] = '<script type="text/javascript">hideform();</script>';
+	if(USE_FLOATFORM && !$resno && $iscollapse) $pte_vals['{$FORMBOTTOM}'] = '<script type="text/javascript">hideform();</script>';
 	$dat .= $PTE->ParseBlock('POSTFORM',$pte_vals);
 }
 

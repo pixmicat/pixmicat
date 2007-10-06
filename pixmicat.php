@@ -1,5 +1,5 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.2-dev (b070921)'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.2 RC1 (b071006)'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -154,7 +154,6 @@ function updatelog($resno=0,$page_num=0){
 			'{$DEL_PASS_TEXT}' => _T('del_pass'),
 			'{$DEL_PASS_FIELD}' => '<input type="password" name="pwd" size="8" value="" />',
 			'{$DEL_SUBMIT_BTN}' => '<input type="submit" value="'._T('del_btn').'" />');
-
 		$pte_vals['{$PAGENAV}'] = '<div id="page_switch">';
 
 		// 換頁判斷
@@ -261,12 +260,14 @@ function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $
 		$com = quoteLight($com);
 		if(USE_QUOTESYSTEM && $i){ // 啟用引用瀏覽系統
 			if(preg_match_all('/((?:&gt;|＞)+)(?:No\.)?(\d+)/i', $com, $matches, PREG_SET_ORDER)){ // 找尋>>No.xxx
+				$tree_cut = array_flip($tree_cut); // array_flip + isset 搜尋法
+				$tree_clone = array_flip($tree);
 				foreach($matches as $val){
-					if($r_page=array_search($val[2], $tree)){ // $r_page !==0 (首篇) 就算找到
-						// 在顯示區間內，輸出錨點即可
-						// $tree_cut 目前頁面顯示文章+回應
-						if(array_search($val[2], $tree_cut)) $com = str_replace($val[0], '<a class="qlink" href="#r'.$val[2].'" onclick="replyhl('.$val[2].');">'.$val[0].'</a>', $com);
-						// 非顯示區間，輸出頁面導引及錨點
+					if(isset($tree_clone[$val[2]])){
+						$r_page = $tree_clone[$val[2]]; // 引用回應在整體討論串中的位置
+						// 在此頁顯示區間內，輸出錨點即可
+						if(isset($tree_cut[$val[2]])) $com = str_replace($val[0], '<a class="qlink" href="#r'.$val[2].'" onclick="replyhl('.$val[2].');">'.$val[0].'</a>', $com);
+						// 非此頁顯示區間，輸出完整頁面位置
 						else $com = str_replace($val[0], '<a class="qlink" href="'.PHP_SELF.'?res='.$tree[0].(RE_PAGE_DEF ? '&amp;page_num='.floor(($r_page - 1) / RE_PAGE_DEF) : '').'#r'.$val[2].'">'.$val[0].'</a>', $com);
 					}
 				}
@@ -709,14 +710,12 @@ function valid(){
 	$pass = isset($_POST['pass']) ? $_POST['pass'] : ''; // 管理者密碼
 	$haveperm = false;
 	$isCheck = adminAuthenticate('check'); // 登入是否正確
-	if(!$isCheck){
-		if($pass) {
-			if(!($haveperm = ($pass == ADMIN_PASS))) {
-				$PMS->useModuleMethods('Authenticate', array($pass,'admin',&$haveperm));
-				if(!$haveperm) error(_T('admin_wrongpassword'));
-			}
-			if($haveperm){ adminAuthenticate('login'); $isCheck = true; }
+	if(!$isCheck && $pass){
+		if(!($haveperm = ($pass == ADMIN_PASS))){
+			$PMS->useModuleMethods('Authenticate', array($pass,'admin',&$haveperm));
+			if(!$haveperm) error(_T('admin_wrongpassword'));
 		}
+		if($haveperm){ adminAuthenticate('login'); $isCheck = true; }
 	}
 	$dat = '';
 	head($dat);
@@ -738,7 +737,7 @@ function valid(){
 </div>
 </form>';
 		die("\n</body>\n</html>");
-	} else if(!isset($_REQUEST['admin'])) {
+	}elseif(!isset($_REQUEST['admin'])){
 		echo '<br />
 <input type="radio" name="admin" value="del" checked="checked" />'._T('admin_manageposts').'
 <input type="radio" name="admin" value="opt" />'._T('admin_optimize').'
@@ -773,7 +772,7 @@ function admindel(){
 		$FileIO->deleteImage($files);
 		deleteCache($delno);
 		total_size(true); // 刪除容量快取
-		$is_modified = TRUE;
+		$is_modified = true;
 	}
 	// 討論串停止區塊
 	if($thsflag){
@@ -960,18 +959,18 @@ function search(){
 function searchCategory(){
 	global $PTE, $PIO, $PMS, $FileIO, $language;
 	$category = isset($_GET['c']) ? strtolower(strip_tags(trim($_GET['c']))) : ''; // 搜尋之類別標籤
-	$category_enc = urlencode($category); // URL 編碼後字串
-	$page = isset($_GET['p']) ? @intval($_GET['p']) : 1; // 目前瀏覽頁數
-	$isrecache = isset($_GET['recache']) ? true : false; // 是否強制重新生成快取
-	if($page < 1) $page = 1;
 	if(!$category) error(_T('category_nokeyword'));
+	$category_enc = urlencode($category); $category_md5 = md5($category);
+	$page = isset($_GET['p']) ? @intval($_GET['p']) : 1; if($page < 1) $page = 1; // 目前瀏覽頁數
+	$isrecache = isset($_GET['recache']); // 是否強制重新生成快取
 
 	// 利用Session快取類別標籤出現篇別以減少負擔
 	session_start(); // 啟動Session
-	if(!isset($_SESSION['loglist_'.$category]) || $isrecache){
+	if(!isset($_SESSION['loglist_'.$category_md5]) || $isrecache){
 		$loglist = $PIO->searchCategory($category);
-		$_SESSION['loglist_'.$category] = serialize($loglist);
-	}else $loglist = unserialize($_SESSION['loglist_'.$category]);
+		$_SESSION['loglist_'.$category_md5] = serialize($loglist);
+	}else $loglist = unserialize($_SESSION['loglist_'.$category_md5]);
+
 	$loglist_count = count($loglist);
 	if(!$loglist_count) error(_T('category_notfound'));
 	$page_max = ceil($loglist_count / PAGE_DEF); if($page > $page_max) $page = $page_max; // 總頁數
@@ -1021,16 +1020,12 @@ function listModules(){
 ';
 	/* Module Loaded */
 	$dat .= _T('module_loaded').'<ul>'."\n";
-	foreach($PMS->getLoadedModules() as $m){
-		$dat .= '<li>'.$m."</li>\n";
-	}
+	foreach($PMS->getLoadedModules() as $m) $dat .= '<li>'.$m."</li>\n";
 	$dat .= "</ul><hr />\n";
 
 	/* Module Infomation */
 	$dat .= _T('module_info').'<ul>'."\n";
-	foreach($PMS->moduleInstance as $m){
-		$dat .= '<li>'.$m->getModuleName().'<div style="padding-left:2em;">'.$m->getModuleVersionInfo()."</div></li>\n";
-	}
+	foreach($PMS->moduleInstance as $m) $dat .= '<li>'.$m->getModuleName().'<div style="padding-left:2em;">'.$m->getModuleVersionInfo()."</div></li>\n";
 	$dat .= '</ul><hr />
 </div>
 
@@ -1041,9 +1036,7 @@ function listModules(){
 
 /* 刪除舊頁面快取檔 */
 function deleteCache($no){
-	foreach($no as $n){
-		foreach(glob('./cache/'.$n.'-*') as $oldCache) @unlink($oldCache);
-	}
+	foreach($no as $n){ foreach(glob('./cache/'.$n.'-*') as $oldCache) @unlink($oldCache); }
 }
 
 /* 顯示系統各項資訊 */
@@ -1132,8 +1125,8 @@ function init(){
 	global $PIO, $FileIO, $language;
 	if(!is_writable(realpath('./'))) error(_T('init_permerror'));
 
-	$chkfolder = array(IMG_DIR, THUMB_DIR);
-	// 逐一自動建置IMG_DIR和THUMB_DIR
+	$chkfolder = array(IMG_DIR, THUMB_DIR, 'cache/');
+	// 逐一自動建置資料夾
 	foreach($chkfolder as $value) if(!is_dir($value)){ mkdir($value); @chmod($value, 0777); }  // 沒有就建立
 
 	$PIO->dbInit(); // PIO Init
@@ -1144,8 +1137,8 @@ function init(){
 
 /*-----------程式各項功能主要判斷-------------*/
 if(GZIP_COMPRESS_LEVEL && ($Encoding = CheckSupportGZip())){ ob_start(); ob_implicit_flush(0); } // 支援且開啟Gzip壓縮就設緩衝區
-$mode = isset($_REQUEST['mode']) ? $_REQUEST['mode'] : ''; // 目前執行模式
-if($mode != 'module'){ $PMS->init(); } // 載入所有模組
+$mode = isset($_GET['mode']) ? $_GET['mode'] : (isset($_POST['mode']) ? $_POST['mode'] : ''); // 目前執行模式 (GET, POST)
+$PMS->init(); // 載入所有模組
 
 //init(); // ←■■！程式環境初始化，跑過一次後請刪除此行！■■
 switch($mode){
@@ -1178,12 +1171,8 @@ switch($mode){
 		break;
 	case 'module':
 		$loadModule = isset($_GET['load']) ? $_GET['load'] : '';
-		// 僅載入指定模組
-		if($PMS->init($loadModule) && array_search($loadModule, $PMS->hookPoints['ModulePage'])!==false){
-			$PMS->moduleInstance[$loadModule]->ModulePage();
-		}else{
-			echo '404 Not Found';
-		}
+		if(array_search($loadModule, $PMS->hookPoints['ModulePage'])!==false) $PMS->moduleInstance[$loadModule]->ModulePage();
+		else echo '404 Not Found';
 		break;
 	case 'moduleloaded':
 		listModules();
