@@ -100,7 +100,7 @@ class PIOlog{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.5beta (b20070921)';
+		return '0.5 (v20071013)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -510,11 +510,10 @@ class PIOlog{
 			if(isset($newValues[$c]))
 				$this->logs[$this->LUT[$no]][$c] = $newValues[$c]; // 修改數值
 	}
-	
+
 	/* 設定文章屬性 */
 	function setPostStatus($no, $newStatus){
 		$this->updatePost($no, array('status' => $newStatus));
 	}
-
 }
 ?>

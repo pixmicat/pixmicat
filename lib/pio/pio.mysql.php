@@ -40,7 +40,7 @@ class PIOmysql{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.5beta (b20070921)';
+		return '0.5 (v20071013)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -149,7 +149,6 @@ class PIOmysql{
 	mysql_real_escape_string($line[17], $this->con).'\',\''.
 	mysql_real_escape_string($line[18], $this->con).'\',\''.
 	$line[19].'\')';
-			//echo $SQL."<BR>\n";
 			if(!$this->_mysql_call($SQL)) $this->_error_handler('Insert a new post failed', __LINE__);
 		}
 		$this->dbCommit(); // 送交
@@ -417,13 +416,12 @@ class PIOmysql{
 
 		foreach($chk as $c)
 			if(isset($newValues[$c]))
-				if(!$this->_mysql_call('UPDATE '.$this->tablename." SET $c = '".mysql_real_escape_string($newValues[$c]).", root = root WHERE no = $no")) $this->_error_handler('Update the field of the post failed', __LINE__); // 更新討論串屬性
+				if(!$this->_mysql_call('UPDATE '.$this->tablename." SET $c = '".mysql_real_escape_string($newValues[$c])."', root = root WHERE no = $no")) $this->_error_handler('Update the field of the post failed', __LINE__); // 更新討論串屬性
 	}
-	
+
 	/* 設定文章屬性 */
 	function setPostStatus($no, $newStatus){
 		$this->updatePost($no, array('status' => $newStatus));
 	}
-
 }
 ?>

@@ -184,12 +184,18 @@ function BanIPHostDNSBLCheck($IP, $HOST, &$baninfo){
 	global $BANPATTERN, $DNSBLservers, $DNSBLWHlist;
 
 	// IP/Hostname Check
-	$HOST = strtolower($HOST);
+	$HOST = strtolower($HOST); $IPbin = ip2bin($IP);
 	$checkTwice = ($IP != $HOST); // 是否需檢查第二次
 	$IsBanned = false;
 	foreach($BANPATTERN as $pattern){
-		if(substr_count($pattern, '/')==2){ // RegExp
+		$slash = substr_count($pattern, '/');
+		if($slash==2){ // RegExp
 			$pattern .= 'i';
+		}elseif($slash==1){ // CIDR Notation
+			$slashpos = strpos($pattern, '/');
+			$cidr = substr(ip2bin(substr($pattern, 0, $slashpos)), 0, substr($pattern, $slashpos + 1));
+			if(preg_match('/^'.$cidr.'/', $IPbin)){ $IsBanned = true; break; }
+			continue;
 		}elseif(strpos($pattern, '*')!==false || strpos($pattern, '?')!==false){ // Wildcard
 			$pattern = '/^'.str_replace(array('.', '*', '?'), array('\.', '.*', '.?'), $pattern).'$/i';
 		}else{ // Full-text
@@ -213,6 +219,11 @@ function BanIPHostDNSBLCheck($IP, $HOST, &$baninfo){
 	}
 	if($isListed){ $baninfo = _T('ip_dnsbl_banned',$isListed); return true; }
 	return false;
+}
+function ip2bin($ip){
+	$ipbin = '';
+	foreach(explode('.', $ip) as $part) $ipbin .= str_pad(decbin($part), 8, '0', STR_PAD_LEFT);
+	return $ipbin;
 }
 
 /* 後端登入權限管理 */

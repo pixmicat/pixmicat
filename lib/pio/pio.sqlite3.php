@@ -27,7 +27,7 @@ class PIOsqlite3{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.5beta (b20070921)';
+		return '0.5 (v20071013)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -129,7 +129,6 @@ class PIOsqlite3{
 	$this->con->quote($line[17]).','.
 	$this->con->quote($line[18]).',\''.
 	$line[19].'\')';
-			//echo $SQL."<BR>\n";
 			if(!$this->con->exec($SQL)) $this->_error_handler('Insert a new post failed', __LINE__);
 		}
 		$this->dbCommit(); // 送交
@@ -366,13 +365,12 @@ class PIOsqlite3{
 
 		foreach($chk as $c)
 			if(isset($newValues[$c]))
-				if(!$this->con->exec('UPDATE '.$this->tablename." SET $c = '".$this->con->quote($newValues[$c])." WHERE no = $no")) $this->_error_handler('Update the field of the post failed', __LINE__); // 更新討論串屬性
+				if(!$this->con->exec('UPDATE '.$this->tablename." SET $c = ".$this->con->quote($newValues[$c])." WHERE no = $no")) $this->_error_handler('Update the field of the post failed', __LINE__); // 更新討論串屬性
 	}
-	
+
 	/* 設定文章屬性 */
 	public function setPostStatus($no, $newStatus){
 		$this->updatePost($no, array('status' => $newStatus));
 	}
-
 }
 ?>

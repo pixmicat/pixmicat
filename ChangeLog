@@ -1,6 +1,10 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
-2007/10/06
+2007/10/13
+-[PIO] PIO 0.5 正式版 (修正 updatePost() 掉引號造成失敗問題)
+-[lib_common] 封鎖設定黑名單支援 CIDR Notation 模式 (ex: 192.168.0.1/16)
+
+2007/10/06: 4th.Release.2 RC1 (b071006)
 -[PMS] 模組單載入功能取消 (當其他套件未載入可能造成功能上的錯誤)
 -[pixmicat] 引用瀏覽系統捨棄array_search()、開放引用首篇，對應修正樣板
 -[pixmicat] 修改樣板 POSTFORM 部分，去除 Ugly hack fix 新增 {$MODE} 修改模式
