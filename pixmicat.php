@@ -1,5 +1,5 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.2 RC1 (b071006)'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.2 RC2 (b071014)'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -1138,7 +1138,6 @@ function init(){
 /*-----------程式各項功能主要判斷-------------*/
 if(GZIP_COMPRESS_LEVEL && ($Encoding = CheckSupportGZip())){ ob_start(); ob_implicit_flush(0); } // 支援且開啟Gzip壓縮就設緩衝區
 $mode = isset($_GET['mode']) ? $_GET['mode'] : (isset($_POST['mode']) ? $_POST['mode'] : ''); // 目前執行模式 (GET, POST)
-$PMS->init(); // 載入所有模組
 
 //init(); // ←■■！程式環境初始化，跑過一次後請刪除此行！■■
 switch($mode){
@@ -1171,7 +1170,7 @@ switch($mode){
 		break;
 	case 'module':
 		$loadModule = isset($_GET['load']) ? $_GET['load'] : '';
-		if(array_search($loadModule, $PMS->hookPoints['ModulePage'])!==false) $PMS->moduleInstance[$loadModule]->ModulePage();
+		if($PMS->onlyLoad($loadModule)) $PMS->moduleInstance[$loadModule]->ModulePage();
 		else echo '404 Not Found';
 		break;
 	case 'moduleloaded':
