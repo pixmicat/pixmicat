@@ -11,7 +11,7 @@
 
 class PIOpgsql{
 	var $ENV, $username, $password, $server, $port, $dbname, $tablename; // Local Constant
-	var $con, $prepared; // Local Global
+	var $con, $prepared, $useTransaction; // Local Global
 
 	function PIOpgsql($connstr='', $ENV){
 		$this->ENV = $ENV;
@@ -65,7 +65,7 @@ class PIOpgsql{
 	CREATE TABLE ".$this->tablename." (
 	\"no\" int NOT NULL DEFAULT nextval('".$this->tablename."_no_seq'),
 	\"resto\" int NOT NULL,
-	\"root\" timestamp NULL DEFAULT '1970-00-00 00:00:00',
+	\"root\" timestamp NULL DEFAULT '1980-01-01 00:00:00',
 	\"time\" int NOT NULL,
 	\"md5chksum\" varchar(32) NOT NULL,
 	\"category\" varchar(255) NOT NULL,
@@ -97,7 +97,9 @@ class PIOpgsql{
 	function dbPrepare($transaction=true){
 		if($this->prepared) return true;
 
-		if(@!$this->con=pg_pconnect('host='.$this->server.' port='.$this->port.' dbname='.$this->dbname.' user='.$this->username.' password='.$this->password)) $this->_error_handler('Open database failed', __LINE__);
+		$this->con=pg_pconnect("host='".$this->server."' port=".$this->port." dbname='".$this->dbname."' user='".$this->username."' password='".$this->password."'");
+		if(!$this->con) $this->_error_handler('Open database failed', __LINE__);
+		$this->useTransaction = $transaction;
 		if($transaction) @pg_query($this->con, 'START TRANSACTION;'); // 啟動交易性能模式 (據說會降低效能，但可防止資料寫入不一致)
 
 		$this->prepared = 1;
@@ -107,7 +109,7 @@ class PIOpgsql{
 	function dbCommit(){
 		if(!$this->prepared) return false;
 
-		@pg_query($this->con, 'COMMIT;'); // 交易性能模式提交
+		if($this->useTransaction) @pg_query($this->con, 'COMMIT;'); // 交易性能模式提交
 	}
 
 	/* 優化資料表 */
@@ -127,7 +129,7 @@ class PIOpgsql{
 		$replaceComma = create_function('$txt', 'return str_replace("&#44;", ",", $txt);');
 		for($i = 0; $i < $data_count; $i++){
 			$line = array_map($replaceComma, explode(',', $data[$i])); // 取代 &#44; 為 ,
-			if($line[2]=='0') $line[2] = '1970-00-00 00:00:00'; // 零值
+			if($line[2]=='0') $line[2] = '1980-01-01 00:00:00'; // 零值
 			$SQL = 'INSERT INTO '.$this->tablename.' (no,resto,root,time,md5chksum,category,tim,ext,imgw,imgh,imgsize,tw,th,pwd,now,name,email,sub,com,host,status) VALUES ('.
 	$line[0].','.
 	$line[1].',\''.
@@ -144,7 +146,7 @@ class PIOpgsql{
 	pg_escape_string($line[16]).'\',\''.
 	pg_escape_string($line[17]).'\',\''.
 	pg_escape_string($line[18]).'\',\''.
-	$line[19].'\')';
+	$line[19].'\');';
 			if(!$this->_pgsql_call($SQL)) $this->_error_handler('Insert a new post failed', __LINE__);
 		}
 		$this->dbCommit(); // 送交
@@ -160,7 +162,7 @@ class PIOpgsql{
 		while($row=pg_fetch_array($line, null, PGSQL_ASSOC)){
 			unset($row['time']); // 非必要欄位
 			$row = array_map($replaceComma, $row); // 取代 , 為 &#44;
-			if($row['root']=='1970-00-00 00:00:00') $row['root'] = '0'; // 初始值設為 0
+			if($row['root']=='1980-01-01 00:00:00') $row['root'] = '0'; // 初始值設為 0
 			$data .= implode(',', $row).",\r\n";
 		}
 		pg_free_result($line);
@@ -309,16 +311,16 @@ class PIOpgsql{
 		$time = (int)substr($tim, 0, -3); // 13位數的數字串是檔名，10位數的才是時間數值
 		$updatetime = gmdate('Y-m-d H:i:s'); // 更動時間 (UTC)
 		if($resto){ // 新增回應
-			$root = '1970-00-00 00:00:00';
+			$root = '1980-01-01 00:00:00';
 			if($age){ // 推文
-				$query = 'UPDATE '.$this->tablename.' SET root = "'.$updatetime.'" WHERE no = '.$resto; // 將被回應的文章往上移動
+				$query = 'UPDATE '.$this->tablename.' SET root = \''.$updatetime.'\' WHERE no = '.$resto; // 將被回應的文章往上移動
 				if(!$result=$this->_pgsql_call($query)) $this->_error_handler('Push the post failed', __LINE__);
 			}
 		}else $root = $updatetime; // 新增討論串, 討論串最後被更新時間
 
 		$query = 'INSERT INTO '.$this->tablename.' (resto,root,time,md5chksum,category,tim,ext,imgw,imgh,imgsize,tw,th,pwd,now,name,email,sub,com,host,status) VALUES ('.
-	(int)$resto.',"'. // 回應編號
-	$root.'",'. // 最後更新時間
+	(int)$resto.",'". // 回應編號
+	$root."',". // 最後更新時間
 	$time.','. // 發文時間數值
 	"'$md5chksum',". // 附加檔案md5
 	"'".pg_escape_string($category)."',". // 分類標籤
@@ -330,7 +332,7 @@ class PIOpgsql{
 	"'".pg_escape_string($email)."',".
 	"'".pg_escape_string($sub)."',".
 	"'".pg_escape_string($com)."',".
-	"'".pg_escape_string($host)."', '".pg_escape_string($status)."')";
+	"'".pg_escape_string($host)."', '".pg_escape_string($status)."');";
 		if(!$result=$this->_pgsql_call($query)) $this->_error_handler('Insert a new post failed', __LINE__);
 	}
 
