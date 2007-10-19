@@ -1,5 +1,5 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.2 RC2 (b071014)'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.2 RC3 (b071019)'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -240,6 +240,8 @@ function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $
 
 	$thdat = ''; // 討論串輸出碼
 	$posts_count = count($posts); // 迴圈次數
+	$tree_cut = array_flip($tree_cut); // array_flip + isset 搜尋法
+	$tree_clone = array_flip($tree);
 	// $i = 0 (首篇), $i = 1～n (回應)
 	for($i = 0; $i < $posts_count; $i++){
 		$imgsrc = $img_thumb = $imgwh_bar = '';
@@ -260,8 +262,6 @@ function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $
 		$com = quoteLight($com);
 		if(USE_QUOTESYSTEM && $i){ // 啟用引用瀏覽系統
 			if(preg_match_all('/((?:&gt;|＞)+)(?:No\.)?(\d+)/i', $com, $matches, PREG_SET_ORDER)){ // 找尋>>No.xxx
-				$tree_cut = array_flip($tree_cut); // array_flip + isset 搜尋法
-				$tree_clone = array_flip($tree);
 				foreach($matches as $val){
 					if(isset($tree_clone[$val[2]])){
 						$r_page = $tree_clone[$val[2]]; // 引用回應在整體討論串中的位置
