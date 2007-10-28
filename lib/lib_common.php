@@ -12,7 +12,6 @@
 /* 輸出表頭 */
 function head(&$dat,$resno=0){
 	global $PTE, $PMS, $language;
-	header('Content-Type: '.((strpos($_SERVER['HTTP_ACCEPT'],'application/xhtml+xml')!==FALSE) ? 'application/xhtml+xml' : 'text/html').'; charset=utf-8'); // 如果瀏覽器支援XHTML標準MIME就輸出
 	$pte_vals = array('{$TITLE}'=>TITLE,'{$RESTO}'=>$resno?$resno:'');
 	$dat .= $PTE->ParseBlock('HEADER',$pte_vals);
 	$PMS->useModuleMethods('Head', array(&$dat,$resno)); // "Head" Hook Point

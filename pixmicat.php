@@ -1,5 +1,5 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.2 RC3 (b071019)'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.2 RC4 (b071027)'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -240,8 +240,8 @@ function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $
 
 	$thdat = ''; // 討論串輸出碼
 	$posts_count = count($posts); // 迴圈次數
-	$tree_cut = array_flip($tree_cut); // array_flip + isset 搜尋法
-	$tree_clone = array_flip($tree);
+	if(gettype($tree_cut) == 'array') $tree_cut = array_flip($tree_cut); // array_flip + isset 搜尋法
+	if(gettype($tree) == 'array') $tree_clone = array_flip($tree);
 	// $i = 0 (首篇), $i = 1～n (回應)
 	for($i = 0; $i < $posts_count; $i++){
 		$imgsrc = $img_thumb = $imgwh_bar = '';
@@ -986,7 +986,7 @@ function searchCategory(){
 	$dat .= "<div>$links</div>\n";
 	for($i = 0; $i < $loglist_cut_count; $i++){
 		$posts = $PIO->fetchPosts($loglist_cut[$i]); // 取得文章內容
-		$dat .= arrangeThread($PTE, 0, 0, $posts, 0, $loglist_cut[$i], 0, 0, 0, 0, false); // 逐個輸出 (引用連結不顯示)
+		$dat .= arrangeThread($PTE, null, null, $posts, 0, $loglist_cut[$i], array(), array(), false, false, false); // 逐個輸出 (引用連結不顯示)
 	}
 
 	$dat .= '<table border="1"><tr>';
@@ -1197,6 +1197,8 @@ switch($mode){
 			header('Location: '.fullURL().PHP_SELF2.'?'.time());
 		}
 }
+// 如果瀏覽器支援XHTML標準MIME就輸出
+header('Content-Type: '.((USE_XHTML && strpos($_SERVER['HTTP_ACCEPT'],'application/xhtml+xml')!==FALSE) ? 'application/xhtml+xml' : 'text/html').'; charset=utf-8');
 if(GZIP_COMPRESS_LEVEL && $Encoding){ // 有啟動Gzip
 	if(!ob_get_length()) exit; // 沒內容不必壓縮
 	header('Content-Encoding: '.$Encoding);

@@ -72,6 +72,7 @@ define("USE_QUOTESYSTEM", 1); // 是否打開引用瀏覽系統 [自動轉換>>N
 define("SHOW_IMGWH", 1); // 是否顯示附加圖檔之原檔長寬尺寸 (是：1 否：0)
 define("USE_CATEGORY", 1); // 是否開啟使用類別標籤分類功能 (是：1 否：0)
 define("USE_RE_CACHE", 1); // 是否使用回應頁面顯示快取功能 (是：1 否：0)
+define("USE_XHTML", 1); // 是否回傳 XHTML 檔頭讓瀏覽器以更嚴格的方式解析 [僅限瀏覽器支援者] (是：1 否：0)
 
 // 模組載入
 $ModuleList = array();

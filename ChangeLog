@@ -1,6 +1,10 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
-2007/10/19
+2007/10/27: 4th.Release.2 RC4 (b071027)
+-[pixmicat] 修正類別標籤顯示頁面呼叫 arrangeThread() 傳入參數不合問題
+-[lib_common][config][pixmicat] 新增 USE_XHTML 選項能夠指定是否回傳 XHTML 檔頭
+
+2007/10/19: 4th.Release.2 RC3 (b071019)
 -[pixmicat] 修正引用瀏覽系統不斷 array_flip 造成搜尋對應文章失敗的問題
 
 2007/10/13,14: 4th.Release.2 RC2 (b071014)
