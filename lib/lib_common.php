@@ -135,10 +135,11 @@ function error($mes, $dest=''){
 function CleanStr($str, $IsAdmin=false){
 	$str = trim($str); // 去除前後多餘空白
 	if(get_magic_quotes_gpc()) $str = stripslashes($str); // "\"斜線符號去除
-	if(!($IsAdmin && CAP_ISHTML)) $str = preg_replace('/&(#[0-9]+|[a-z]+);/i', "&$1;", htmlspecialchars($str)); // 非管理員或管理員自己取消HTML使用：HTML標籤禁用
-	else{ // 管理員開啟HTML
-		$str = str_replace('>', '&gt;', $str); // 先將每個 > 都轉碼
-		$str = preg_replace('/(<.*?)&gt;/', '$1>', $str); // 如果有<...&gt;則轉回<...>成為正常標籤
+	// XML 1.1 Second Edition: 部分避免用字 (http://www.w3.org/TR/2006/REC-xml11-20060816/#charsets)
+	$str = preg_replace('/([\x1-\x8\xB-\xC\xE-\x1F\x7F-\x84\x86-\x9F\x{FDD0}-\x{FDDF}])/u', '', htmlspecialchars($str));
+
+	if($IsAdmin && CAP_ISHTML){ // 管理員開啟HTML
+		$str = preg_replace('/&lt;(.*?)&gt;/', '<$1>', $str); // 如果有&lt;...&gt;則轉回<...>成為正常標籤
 	}
 	return $str;
 }
@@ -219,7 +220,7 @@ function BanIPHostDNSBLCheck($IP, $HOST, &$baninfo){
 }
 function matchCIDR($addr, $cidr) {
 	list($ip, $mask) = explode('/', $cidr);
-	return (ip2long($addr) >> (32 - $mask) == ip2long($ip.str_repeat(".0", 3 - substr_count($ip, "."))) >> (32 - $mask));
+	return (ip2long($addr) >> (32 - $mask) == ip2long($ip.str_repeat('.0', 3 - substr_count($ip, '.'))) >> (32 - $mask));
 }
 
 /* 後端登入權限管理 */

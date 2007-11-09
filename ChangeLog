@@ -1,5 +1,9 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2007/11/09
+-[lib_common] 修改 CIDR Notation 分析函式
+-[lib_common] 修改 CleanStr() 刪除 XML 1.1 SE 規範之避免用字
+
 2007/10/27: 4th.Release.2 RC4 (b071027)
 -[pixmicat] 修正類別標籤顯示頁面呼叫 arrangeThread() 傳入參數不合問題
 -[lib_common][config][pixmicat] 新增 USE_XHTML 選項能夠指定是否回傳 XHTML 檔頭
