@@ -42,7 +42,7 @@ class PMS{
 		// 搜尋載入模組列表有沒有，沒有就直接取消程式
 		if(array_search($specificModule, $this->ENV['MODULE.LOADLIST'])===false) return false;
 		$this->loadModules($specificModule);
-		return true;
+		return isset($this->hookPoints['ModulePage']);
 	}
 
 	/* 載入擴充模組 */

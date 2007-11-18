@@ -1,10 +1,11 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
-2007/11/09
+2007/11/09,18
 -[lib_common] 修改 CIDR Notation 分析函式
 -[lib_common] 修改 CleanStr() 刪除 XML 1.1 SE 規範之避免用字
 -[pixmicat] 更改回傳 XHTML 檔頭時機
 -[PIO] 修正 Log 後端 updatePost() 時未處理逗號造成資料移位兼毀損問題
+-[PMS] 修正當載入模組未有掛載 ModulePage 方法仍試圖執行模組頁面造成錯誤
 
 2007/10/27: 4th.Release.2 RC4 (b071027)
 -[pixmicat] 修正類別標籤顯示頁面呼叫 arrangeThread() 傳入參數不合問題
