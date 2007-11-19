@@ -1,6 +1,6 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
-2007/11/09,18
+2007/11/09,18: 4th.Release.2 (v071120)
 -[lib_common] 修改 CIDR Notation 分析函式
 -[lib_common] 修改 CleanStr() 刪除 XML 1.1 SE 規範之避免用字
 -[pixmicat] 更改回傳 XHTML 檔頭時機
