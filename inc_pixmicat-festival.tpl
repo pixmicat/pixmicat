@@ -102,6 +102,7 @@ var boxclicked=0;
 <hr />
 </div>
 </form>
+<div style="clear:both"></div>
 <!--&IF($FORMBOTTOM,'{$FORMBOTTOM}','')-->
 <!--/&POSTFORM-->
 
