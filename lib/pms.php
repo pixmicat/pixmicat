@@ -80,6 +80,7 @@ class PMS{
 	/* 自動掛載相關模組方法於掛載點並回傳掛載點 (Return by Reference) */
 	function &__autoHookMethods($hookPoint){
 		if(isset($this->hooks[$hookPoint]) && !isset($this->hookPoints[$hookPoint])){ // 尚未掛載
+			$this->hookPoints[$hookPoint] = array();
 			foreach($this->moduleLists as $m){
 				if(method_exists($this->moduleInstance[$m], 'autoHook'.$hookPoint)){
 					$this->hookModuleMethod($hookPoint, array(&$this->moduleInstance[$m], 'autoHook'.$hookPoint));
@@ -92,7 +93,10 @@ class PMS{
 	/* 將模組方法掛載於特定掛載點 */
 	function hookModuleMethod($hookPoint, $methodObject){
 		if(!isset($this->hooks[$hookPoint])) return false;
-		if(!isset($this->hookPoints[$hookPoint])) $this->hookPoints[$hookPoint] = array();
+		if(!isset($this->hookPoints[$hookPoint])){
+			if(!$this->loaded) $this->init();
+			$this->__autoHookMethods($hookPoint);
+		}
 		$this->hookPoints[$hookPoint][] = $methodObject;
 	}
 

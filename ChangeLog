@@ -1,5 +1,9 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2007/12/16
+-[PMS] 修正在未初始化前 hookModuleMethod 的話會造成 autoHookXXXX 沒動作
+-[pixmicat] 修正在不支援緩衝區的情況下修改 XHTML MIME 動作會發生錯誤
+
 2007/11/09,18: 4th.Release.2 (v071120)
 -[lib_common] 修改 CIDR Notation 分析函式
 -[lib_common] 修改 CleanStr() 刪除 XML 1.1 SE 規範之避免用字
