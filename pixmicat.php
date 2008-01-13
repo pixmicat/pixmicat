@@ -1,5 +1,5 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.2 (v071120)'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.3-dev (b080113)'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -116,7 +116,7 @@ function updatelog($resno=0,$page_num=0){
 	}
 	$tmp_total_size = total_size(); // 目前附加圖檔使用量
 	$tmp_STORAGE_MAX = STORAGE_MAX * (($tmp_total_size >= STORAGE_MAX) ? 1 : 0.95); // 預估上限值
-	if(STORAGE_LIMIT && ($tmp_total_size >= $tmp_STORAGE_MAX)){
+	if(STORAGE_LIMIT && STORAGE_MAX > 0 && ($tmp_total_size >= $tmp_STORAGE_MAX)){
 		$kill_sensor = true; // 標記打開
 		$arr_kill = $PIO->delOldAttachments($tmp_total_size, $tmp_STORAGE_MAX); // 過舊附檔陣列
 	}
@@ -313,7 +313,7 @@ function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $
 			$ary_category_count = count($ary_category);
 			$ary_category2 = array();
 			for($p = 0; $p < $ary_category_count; $p++){
-				if($c = $ary_category[$p]) $ary_category2[] = '<a href="'.PHP_SELF.'?mode=category&amp;c='.urlencode($c).'">'.$c.'</a>';
+				if($c = $ary_category[$p]) $ary_category2[] = '<a href="'.PHP_SELF.'?mode=category&amp;c='.urlencode($c).'">'.htmlentities($c).'</a>';
 			}
 			$category = implode(', ', $ary_category2);
 		}else $category = '';
@@ -559,7 +559,7 @@ function regist(){
 	}
 
 	// 附加圖檔容量限制功能啟動：刪除過大檔
-	if(STORAGE_LIMIT){
+	if(STORAGE_LIMIT && STORAGE_MAX > 0){
 		$tmp_total_size = total_size(); // 取得目前附加圖檔使用量
 		if($tmp_total_size >= STORAGE_MAX){
 			$files = $PIO->delOldAttachments($tmp_total_size, STORAGE_MAX, false);
@@ -942,11 +942,11 @@ function search(){
 				$ary_category_count = count($ary_category);
 				$ary_category2 = array();
 				for($p = 0; $p < $ary_category_count; $p++){
-					if($c = $ary_category[$p]) $ary_category2[] = '<a href="'.PHP_SELF.'?mode=category&amp;c='.urlencode($c).'">'.$c.'</a>';
+					if($c = $ary_category[$p]) $ary_category2[] = '<a href="'.PHP_SELF.'?mode=category&amp;c='.urlencode($c).'">'.htmlentities($c).'</a>';
 				}
 				$category = implode(', ', $ary_category2);
 			}else $category = '';
-			$arrLabels = array('{$NO}'=>'<a href="'.PHP_SELF.'?res='.($resto?$resto:$no).'">'.$no.'</a>', '{$SUB}'=>$sub, '{$NAME}'=>$name, '{$NOW}'=>$now, '{$COM}'=>$com, '{$CATEGORY}'=>$category, '{$NAME_TEXT}'=>_T('post_name'), '{$CATEGORY_TEXT}'=>_T('post_category'));
+			$arrLabels = array('{$NO}'=>'<a href="'.PHP_SELF.'?res='.($resto?$resto.'#r'.$no:$no).'">'.$no.'</a>', '{$SUB}'=>$sub, '{$NAME}'=>$name, '{$NOW}'=>$now, '{$COM}'=>$com, '{$CATEGORY}'=>$category, '{$NAME_TEXT}'=>_T('post_name'), '{$CATEGORY_TEXT}'=>_T('post_category'));
 			$resultlist .= $PTE->ParseBlock('SEARCHRESULT',$arrLabels);
 		}
 		echo $resultlist ? $resultlist : '<div style="text-align: center">'._T('search_notfound').'<br/><a href="?mode=search">'._T('search_back').'</a></div>';
@@ -1045,7 +1045,7 @@ function showstatus(){
 	$countline = $PIO->postCount(); // 計算投稿文字記錄檔目前資料筆數
 	$counttree = $PIO->threadCount(); // 計算樹狀結構記錄檔目前資料筆數
 	$tmp_total_size = total_size(); // 附加圖檔使用量總大小
-	$tmp_ts_ratio = $tmp_total_size / STORAGE_MAX; // 附加圖檔使用量
+	$tmp_ts_ratio = STORAGE_MAX > 0 ? $tmp_total_size / STORAGE_MAX : 0; // 附加圖檔使用量
 
 	// 決定「附加圖檔使用量」提示文字顏色
   	if($tmp_ts_ratio < 0.3 ) $clrflag_sl = '235CFF';
@@ -1188,6 +1188,8 @@ switch($mode){
 		header('Location: '.fullURL().PHP_SELF2.'?'.time());
 		break;
 	default:
+		// 如果瀏覽器支援XHTML標準MIME就輸出
+		header('Content-Type: '.((USE_XHTML && strpos($_SERVER['HTTP_ACCEPT'],'application/xhtml+xml')!==FALSE) ? 'application/xhtml+xml' : 'text/html').'; charset=utf-8');
 		$res = isset($_GET['res']) ? $_GET['res'] : 0; // 欲回應編號
 		if($res){ // 回應模式輸出
 			$page = isset($_GET['page_num']) ? $_GET['page_num'] : 'RE_PAGE_MAX';
@@ -1200,8 +1202,6 @@ switch($mode){
 			header('HTTP/1.1 302 Moved Temporarily');
 			header('Location: '.fullURL().PHP_SELF2.'?'.time());
 		}
-		// 如果瀏覽器支援XHTML標準MIME就輸出
-		header('Content-Type: '.((USE_XHTML && strpos($_SERVER['HTTP_ACCEPT'],'application/xhtml+xml')!==FALSE) ? 'application/xhtml+xml' : 'text/html').'; charset=utf-8');
 }
 if(GZIP_COMPRESS_LEVEL && $Encoding){ // 有啟動Gzip
 	if(!ob_get_length()) exit; // 沒內容不必壓縮

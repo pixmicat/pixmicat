@@ -1,5 +1,11 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2008/01/13
+-[pixmicat] 搜尋結果增加連結至原討論串連結
+-[pixmicat] 系統資訊可查看目前使用之文章自動刪除機制名稱
+-[pixmicat] 修正當 STORAGE_MAX 設為 0 之程式非預期錯誤情況 (一般情況此值請設定 > 0)
+-[pixmicat] 修正類別標籤可能發生 XSS 的情況
+
 2007/12/16
 -[PMS] 修正在未初始化前 hookModuleMethod 的話會造成 autoHookXXXX 沒動作
 -[pixmicat] 修正在不支援緩衝區的情況下修改 XHTML MIME 動作會發生錯誤
