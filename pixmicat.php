@@ -946,7 +946,7 @@ function search(){
 				}
 				$category = implode(', ', $ary_category2);
 			}else $category = '';
-			$arrLabels = array('{$NO}'=>$no, '{$SUB}'=>$sub, '{$NAME}'=>$name, '{$NOW}'=>$now, '{$COM}'=>$com, '{$CATEGORY}'=>$category, '{$NAME_TEXT}'=>_T('post_name'), '{$CATEGORY_TEXT}'=>_T('post_category'));
+			$arrLabels = array('{$NO}'=>'<a href="'.PHP_SELF.'?res='.($resto?$resto:$no).'">'.$no.'</a>', '{$SUB}'=>$sub, '{$NAME}'=>$name, '{$NOW}'=>$now, '{$COM}'=>$com, '{$CATEGORY}'=>$category, '{$NAME_TEXT}'=>_T('post_name'), '{$CATEGORY_TEXT}'=>_T('post_category'));
 			$resultlist .= $PTE->ParseBlock('SEARCHRESULT',$arrLabels);
 		}
 		echo $resultlist ? $resultlist : '<div style="text-align: center">'._T('search_notfound').'<br/><a href="?mode=search">'._T('search_back').'</a></div>';
