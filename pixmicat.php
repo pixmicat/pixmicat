@@ -1,5 +1,5 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.3-dev (b071216)'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.2 (v071120)'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -1041,7 +1041,7 @@ function deleteCache($no){
 
 /* 顯示系統各項資訊 */
 function showstatus(){
-	global $PTE, $PIO, $FileIO, $PMS, $language;
+	global $PTE, $PIO, $FileIO, $PMS, $language, $LIMIT_SENSOR;
 	$countline = $PIO->postCount(); // 計算投稿文字記錄檔目前資料筆數
 	$counttree = $PIO->threadCount(); // 計算樹狀結構記錄檔目前資料筆數
 	$tmp_total_size = total_size(); // 附加圖檔使用量總大小
@@ -1066,6 +1066,10 @@ function showstatus(){
 		unset($thObj);
 	}
 
+	// PIOSensor
+	if(count($LIMIT_SENSOR))
+		$piosensorInfo=nl2br(PIOSensor::info($LIMIT_SENSOR));
+
 	$dat = '';
 	head($dat);
 	$links = '[<a href="'.PHP_SELF2.'?'.time().'">'._T('return').'</a>] [<a href="'.PHP_SELF.'?mode=moduleloaded">'._T('module_info_top').'</a>]';
@@ -1077,41 +1081,41 @@ function showstatus(){
 	$dat .= '
 <div id="status-table" style="text-align: center;">
 <table border="1" style="margin: 0px auto; text-align: left;">
-<tr><td align="center" colspan="3">'._T('info_basic').'</td></tr>
-<tr><td style="width: 240px;">'._T('info_basic_ver').'</td><td colspan="2"> '.PIXMICAT_VER.' </td></tr>
-<tr><td>'._T('info_basic_pio').'</td><td colspan="2"> '.PIXMICAT_BACKEND.' : '.$PIO->pioVersion().'</td></tr>
-<tr><td>'._T('info_basic_threadsperpage').'</td><td colspan="2"> '.PAGE_DEF.' '._T('info_basic_threads').'</td></tr>
-<tr><td>'._T('info_basic_postsperpage').'</td><td colspan="2"> '.RE_DEF.' '._T('info_basic_posts').'</td></tr>
-<tr><td>'._T('info_basic_postsinthread').'</td><td colspan="2"> '.RE_PAGE_DEF.' '._T('info_basic_posts').' '._T('info_basic_posts_showall').'</td></tr>
-<tr><td>'._T('info_basic_bumpposts').'</td><td colspan="2"> '.MAX_RES.' '._T('info_basic_posts').' '._T('info_basic_0disable').'</td></tr>
-<tr><td>'._T('info_basic_bumphours').'</td><td colspan="2"> '.MAX_AGE_TIME.' '._T('info_basic_hours').' '._T('info_basic_0disable').'</td></tr>
-<tr><td>'._T('info_basic_urllinking').'</td><td colspan="2"> '.AUTO_LINK.' '._T('info_0no1yes').'</td></tr>
-<tr><td>'._T('info_basic_com_limit').'</td><td colspan="2"> '.COMM_MAX._T('info_basic_com_after').'</td></tr>
-<tr><td>'._T('info_basic_anonpost').'</td><td colspan="2"> '.ALLOW_NONAME.' '._T('info_basic_anonpost_opt').'</td></tr>
-<tr><td>'._T('info_basic_del_incomplete').'</td><td colspan="2"> '.KILL_INCOMPLETE_UPLOAD.' '._T('info_0no1yes').'</td></tr>
-<tr><td>'._T('info_basic_use_sample',THUMB_Q).'</td><td colspan="2"> '.USE_THUMB.' '._T('info_0notuse1use').'</td></tr>
-<tr><td>'._T('info_basic_useblock').'</td><td colspan="2"> '.BAN_CHECK.' '._T('info_0disable1enable').'</td></tr>
-<tr><td>'._T('info_basic_showid').'</td><td colspan="2"> '.DISP_ID.' '._T('info_basic_showid_after').'</td></tr>
-<tr><td>'._T('info_basic_cr_limit').'</td><td colspan="2"> '.BR_CHECK._T('info_basic_cr_after').'</td></tr>
-<tr><td>'._T('info_basic_timezone').'</td><td colspan="2"> GMT '.TIME_ZONE.'</td></tr>
-<tr><td>'._T('info_basic_theme').'</td><td colspan="2"> '.$PTE->BlockValue('THEMENAME').' '.$PTE->BlockValue('THEMEVER').'<br/>by '.$PTE->BlockValue('THEMEAUTHOR').'</td></tr>
-<tr><td align="center" colspan="3">'._T('info_dsusage_top').'</td></tr>
-<tr align="center"><td>'._T('info_basic_threadcount').'</td><td colspan="2"> '.$counttree.' '._T('info_basic_threads').'</td></tr>
-<tr align="center"><td>'._T('info_dsusage_count').'</td><td colspan="2">'.$countline.'</td></tr>
-<tr><td align="center" colspan="3">'._T('info_fileusage_top').STORAGE_LIMIT.' '._T('info_0disable1enable').'</td></tr>';
+<tr><td align="center" colspan="4">'._T('info_basic').'</td></tr>
+<tr><td style="width: 240px;">'._T('info_basic_ver').'</td><td colspan="3"> '.PIXMICAT_VER.' </td></tr>
+<tr><td>'._T('info_basic_pio').'</td><td colspan="3"> '.PIXMICAT_BACKEND.' : '.$PIO->pioVersion().'</td></tr>
+<tr><td>'._T('info_basic_threadsperpage').'</td><td colspan="3"> '.PAGE_DEF.' '._T('info_basic_threads').'</td></tr>
+<tr><td>'._T('info_basic_postsperpage').'</td><td colspan="3"> '.RE_DEF.' '._T('info_basic_posts').'</td></tr>
+<tr><td>'._T('info_basic_postsinthread').'</td><td colspan="3"> '.RE_PAGE_DEF.' '._T('info_basic_posts').' '._T('info_basic_posts_showall').'</td></tr>
+<tr><td>'._T('info_basic_bumpposts').'</td><td colspan="3"> '.MAX_RES.' '._T('info_basic_posts').' '._T('info_basic_0disable').'</td></tr>
+<tr><td>'._T('info_basic_bumphours').'</td><td colspan="3"> '.MAX_AGE_TIME.' '._T('info_basic_hours').' '._T('info_basic_0disable').'</td></tr>
+<tr><td>'._T('info_basic_urllinking').'</td><td colspan="3"> '.AUTO_LINK.' '._T('info_0no1yes').'</td></tr>
+<tr><td>'._T('info_basic_com_limit').'</td><td colspan="3"> '.COMM_MAX._T('info_basic_com_after').'</td></tr>
+<tr><td>'._T('info_basic_anonpost').'</td><td colspan="3"> '.ALLOW_NONAME.' '._T('info_basic_anonpost_opt').'</td></tr>
+<tr><td>'._T('info_basic_del_incomplete').'</td><td colspan="3"> '.KILL_INCOMPLETE_UPLOAD.' '._T('info_0no1yes').'</td></tr>
+<tr><td>'._T('info_basic_use_sample',THUMB_Q).'</td><td colspan="3"> '.USE_THUMB.' '._T('info_0notuse1use').'</td></tr>
+<tr><td>'._T('info_basic_useblock').'</td><td colspan="3"> '.BAN_CHECK.' '._T('info_0disable1enable').'</td></tr>
+<tr><td>'._T('info_basic_showid').'</td><td colspan="3"> '.DISP_ID.' '._T('info_basic_showid_after').'</td></tr>
+<tr><td>'._T('info_basic_cr_limit').'</td><td colspan="3"> '.BR_CHECK._T('info_basic_cr_after').'</td></tr>
+<tr><td>'._T('info_basic_timezone').'</td><td colspan="3"> GMT '.TIME_ZONE.'</td></tr>
+<tr><td>'._T('info_basic_theme').'</td><td colspan="3"> '.$PTE->BlockValue('THEMENAME').' '.$PTE->BlockValue('THEMEVER').'<br/>by '.$PTE->BlockValue('THEMEAUTHOR').'</td></tr>
+<tr><td align="center" colspan="4">'._T('info_dsusage_top').'</td></tr>
+<tr align="center"><td>'._T('info_basic_threadcount').'</td><td colspan="'.(isset($piosensorInfo)?'2':'3').'"> '.$counttree.' '._T('info_basic_threads').'</td>'.(isset($piosensorInfo)?'<td rowspan="2">'.$piosensorInfo.'</td>':'').'</tr>
+<tr align="center"><td>'._T('info_dsusage_count').'</td><td colspan="'.(isset($piosensorInfo)?'2':'3').'">'.$countline.'</td></tr>
+<tr><td align="center" colspan="4">'._T('info_fileusage_top').STORAGE_LIMIT.' '._T('info_0disable1enable').'</td></tr>';
 
 	if(STORAGE_LIMIT){
 		$dat .= '
-<tr align="center"><td>'._T('info_fileusage_limit').'</td><td>'.STORAGE_MAX.' KB</td><td rowspan="2">'._T('info_dsusage_usage').'<br /><span style="color: #'.$clrflag_sl.'">'.substr(($tmp_ts_ratio * 100), 0, 6).'</span> %</td></tr>
-<tr align="center"><td>'._T('info_fileusage_count').'</td><td><span style="color: #'.$clrflag_sl.'">'.$tmp_total_size.' KB</span></td></tr>';
+<tr align="center"><td>'._T('info_fileusage_limit').'</td><td colspan="2">'.STORAGE_MAX.' KB</td><td rowspan="2">'._T('info_dsusage_usage').'<br /><span style="color: #'.$clrflag_sl.'">'.substr(($tmp_ts_ratio * 100), 0, 6).'</span> %</td></tr>
+<tr align="center"><td>'._T('info_fileusage_count').'</td><td colspan="2"><span style="color: #'.$clrflag_sl.'">'.$tmp_total_size.' KB</span></td></tr>';
 	}else{
 		$dat .= '
 <tr align="center"><td>'._T('info_fileusage_count').'</td><td>'.$tmp_total_size.' KB</td><td>'._T('info_dsusage_usage').'<br /><span style="color: green;">'._T('info_fileusage_unlimited').'</span></td></tr>';
 	}
 
 	$dat .= '
-<tr><td align="center" colspan="3">'._T('info_server_top').'</td></tr>
-<tr align="center"><td colspan="2">'.$func_thumbInfo.'</td><td>'.$func_thumbWork.'</td></tr>
+<tr><td align="center" colspan="4">'._T('info_server_top').'</td></tr>
+<tr align="center"><td colspan="3">'.$func_thumbInfo.'</td><td>'.$func_thumbWork.'</td></tr>
 </table>
 <hr />
 </div>'."\n";
@@ -1184,8 +1188,6 @@ switch($mode){
 		header('Location: '.fullURL().PHP_SELF2.'?'.time());
 		break;
 	default:
-		// 如果瀏覽器支援XHTML標準MIME就輸出
-		header('Content-Type: '.((USE_XHTML && strpos($_SERVER['HTTP_ACCEPT'],'application/xhtml+xml')!==FALSE) ? 'application/xhtml+xml' : 'text/html').'; charset=utf-8');
 		$res = isset($_GET['res']) ? $_GET['res'] : 0; // 欲回應編號
 		if($res){ // 回應模式輸出
 			$page = isset($_GET['page_num']) ? $_GET['page_num'] : 'RE_PAGE_MAX';
@@ -1198,6 +1200,8 @@ switch($mode){
 			header('HTTP/1.1 302 Moved Temporarily');
 			header('Location: '.fullURL().PHP_SELF2.'?'.time());
 		}
+		// 如果瀏覽器支援XHTML標準MIME就輸出
+		header('Content-Type: '.((USE_XHTML && strpos($_SERVER['HTTP_ACCEPT'],'application/xhtml+xml')!==FALSE) ? 'application/xhtml+xml' : 'text/html').'; charset=utf-8');
 }
 if(GZIP_COMPRESS_LEVEL && $Encoding){ // 有啟動Gzip
 	if(!ob_get_length()) exit; // 沒內容不必壓縮

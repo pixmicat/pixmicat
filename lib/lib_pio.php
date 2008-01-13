@@ -99,6 +99,14 @@ class PIOSensor{
 		sort($tmparray); // 由舊排到新 (小到大)
 		return array_unique($tmparray);
 	}
+
+	/*public static */function info($condobj){
+		$sensorinfo='';
+		foreach($condobj as $i => $j){
+			$sensorinfo .= call_user_func_array(array($i, 'info'), array($j))."\n";
+		}
+		return $sensorinfo;
+	}
 }
 
 // 分析連線字串

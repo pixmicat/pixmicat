@@ -20,6 +20,11 @@ class ByPostCountCondition{
 		global $PIO;
 		return $PIO->fetchPostList(0, intval($limit * ($type=='predict' ? 0.95 : 1)) - 1, $limit);
 	}
+
+	/*public static */function info($limit){
+		global $PIO;
+		return "ByPostCountCondition: ".($pcnt=$PIO->postCount()).'/'.$limit.sprintf(' (%.2f%%)',($pcnt/$limit*100));
+	}
 }
 
 /* 以總討論串數作為刪除判斷 */
@@ -32,6 +37,11 @@ class ByThreadCountCondition{
 	/*public static */function listee($type, $limit){
 		global $PIO;
 		return $PIO->fetchThreadList(intval($limit * ($type=='predict' ? 0.95 : 1)), $limit);
+	}
+
+	/*public static */function info($limit){
+		global $PIO;
+		return "ByThreadCountCondition: ".($tcnt=$PIO->threadCount()).'/'.$limit.sprintf(' (%.2f%%)',($tcnt/$limit*100));
 	}
 }
 
@@ -56,6 +66,10 @@ class ByThreadAliveTimeCondition{
 		}
 		if(count($ThreadNo)===$i){ $i--; } // 保留最新的一篇避免全部刪除
 		return array_slice($ThreadNo, 0, $i);
+	}
+
+	/*public static */function info($limit){
+		return "ByThreadAliveTimeCondition: ".$limit.' day(s)';
 	}
 }
 ?>
