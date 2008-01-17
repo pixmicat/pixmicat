@@ -514,7 +514,7 @@ function regist(){
 		$name = str_replace(_T('admin'), '"'._T('admin').'"', $name);
 		$name = str_replace(_T('deletor'), '"'._T('deletor').'"', $name);
 	}
-	$name = str_replace('&◆', '&amp;◆', $name); // 避免 &#xxxx; 後面被視為 Trip 留下 & 造成解析錯誤
+	$name = str_replace('&'._T('trip_pre'), '&amp;'._T('trip_pre'), $name); // 避免 &#xxxx; 後面被視為 Trip 留下 & 造成解析錯誤
 	// 內文修整
 	if((strlen($com) > COMM_MAX) && !$is_admin) error(_T('regist_commenttoolong'), $dest);
 	$com = CleanStr($com, $is_admin); // 引入$is_admin參數是因為當管理員キャップ啟動時，允許管理員依config設定是否使用HTML
