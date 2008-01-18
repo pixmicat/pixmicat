@@ -1,5 +1,5 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.3-dev (b080113)'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.3-dev (b080118)'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -313,7 +313,7 @@ function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $
 			$ary_category_count = count($ary_category);
 			$ary_category2 = array();
 			for($p = 0; $p < $ary_category_count; $p++){
-				if($c = $ary_category[$p]) $ary_category2[] = '<a href="'.PHP_SELF.'?mode=category&amp;c='.urlencode($c).'">'.htmlentities($c).'</a>';
+				if($c = $ary_category[$p]) $ary_category2[] = '<a href="'.PHP_SELF.'?mode=category&amp;c='.urlencode($c).'">'.htmlentities($c, ENT_NOQUOTES, 'UTF-8').'</a>';
 			}
 			$category = implode(', ', $ary_category2);
 		}else $category = '';
@@ -343,13 +343,13 @@ function regist(){
 
 	if($_SERVER['REQUEST_METHOD'] != 'POST') error(_T('regist_notpost')); // 非正規POST方式
 
-	$name = isset($_POST[FT_NAME]) ? $_POST[FT_NAME] : '';
-	$email = isset($_POST[FT_EMAIL]) ? $_POST[FT_EMAIL] : '';
-	$sub = isset($_POST[FT_SUBJECT]) ? $_POST[FT_SUBJECT] : '';
+	$name = isset($_POST[FT_NAME]) ? CleanStr($_POST[FT_NAME]) : '';
+	$email = isset($_POST[FT_EMAIL]) ? CleanStr($_POST[FT_EMAIL]) : '';
+	$sub = isset($_POST[FT_SUBJECT]) ? CleanStr($_POST[FT_SUBJECT]) : '';
 	$com = isset($_POST[FT_COMMENT]) ? $_POST[FT_COMMENT] : '';
 	$pwd = isset($_POST['pwd']) ? $_POST['pwd'] : '';
 	$category = isset($_POST['category']) ? $_POST['category'] : '';
-	$resto = isset($_POST['resto']) ? $_POST['resto'] : 0;
+	$resto = isset($_POST['resto']) ? intval($_POST['resto']) : 0;
 	$upfile = isset($_FILES['upfile']['tmp_name']) ? $_FILES['upfile']['tmp_name'] : '';
 	$upfile_path = isset($_POST['upfile_path']) ? $_POST['upfile_path'] : '';
 	$upfile_name = isset($_FILES['upfile']['name']) ? $_FILES['upfile']['name'] : false;
@@ -471,27 +471,18 @@ function regist(){
 			$W = ceil($W * $key);
 			$H = ceil($H * $key);
 		}
-		$mes = _T('regist_uploaded',CleanStr($upfile_name));
+		$mes = _T('regist_uploaded', CleanStr($upfile_name));
 	}
 
 	// 檢查表單欄位內容並修整
-	if(!$name || ereg("^[ |　|]*$", $name)){
-		if(ALLOW_NONAME) $name = DEFAULT_NONAME;
-		else error(_T('regist_withoutname'), $dest);
-	}
-	if(!$com && $upfile_status==4) error(_T('regist_withoutcomment'));
-	if(!$com || ereg("^[ |　|\t]*$", $com)) $com = DEFAULT_NOCOMMENT;
-	if(!$sub || ereg("^[ |　|]*$", $sub)) $sub = DEFAULT_NOTITLE;
 	if(strlen($name) > 100) error(_T('regist_nametoolong'), $dest);
 	if(strlen($email) > 100) error(_T('regist_emailtoolong'), $dest);
 	if(strlen($sub) > 100) error(_T('regist_topictoolong'), $dest);
 	if(strlen($resto) > 10) error(_T('regist_longthreadnum'), $dest);
 
-	$email = CleanStr($email); $email = str_replace("\r\n", '', $email);
-	$sub = CleanStr($sub); $sub = str_replace("\r\n", '', $sub);
-	$resto = CleanStr($resto); $resto = str_replace("\r\n", '', $resto);
+	// E-mail / 標題修整
+	$email = str_replace("\r\n", '', $email); $sub = str_replace("\r\n", '', $sub);
 	// 名稱修整
-	$name = CleanStr($name);
 	$name = str_replace(_T('trip_pre'), _T('trip_pre_fake'), $name); // 防止トリップ偽造
 	$name = str_replace(CAP_SUFFIX, _T('cap_char_fake'), $name); // 防止管理員キャップ偽造
 	$name = str_replace("\r\n", '', $name);
@@ -518,12 +509,19 @@ function regist(){
 	// 內文修整
 	if((strlen($com) > COMM_MAX) && !$is_admin) error(_T('regist_commenttoolong'), $dest);
 	$com = CleanStr($com, $is_admin); // 引入$is_admin參數是因為當管理員キャップ啟動時，允許管理員依config設定是否使用HTML
-	$com = str_replace("\r\n","\n", $com);
-	$com = str_replace("\r","\n", $com);
-	$com = ereg_replace("\n((　| )*\n){3,}", "\n", $com);
+	if(!$com && $upfile_status==4) error(_T('regist_withoutcomment'));
+	$com = str_replace(array("\r\n", "\r"), "\n", $com); $com = ereg_replace("\n((　| )*\n){3,}", "\n", $com);
 	if(!BR_CHECK || substr_count($com,"\n") < BR_CHECK) $com = nl2br($com); // 換行字元用<br />代替
-	$com = str_replace("\n",'', $com); // 若還有\n換行字元則取消換行
-	if($category && USE_CATEGORY){ // 修整標籤樣式
+	$com = str_replace("\n", '', $com); // 若還有\n換行字元則取消換行
+	// 預設的內容
+	if(!$name || ereg("^[ |　|]*$", $name)){
+		if(ALLOW_NONAME) $name = DEFAULT_NONAME;
+		else error(_T('regist_withoutname'), $dest);
+	}
+	if(!$sub || ereg("^[ |　|]*$", $sub)) $sub = DEFAULT_NOTITLE;
+	if(!$com || ereg("^[ |　|\t]*$", $com)) $com = DEFAULT_NOCOMMENT;
+	// 修整標籤樣式
+	if($category && USE_CATEGORY){
 		$category = explode(',', $category); // 把標籤拆成陣列
 		$category = ','.implode(',', array_map('trim', $category)).','; // 去空白再合併為單一字串 (左右含,便可以直接以,XX,形式搜尋)
 	}else{ $category = ''; }
@@ -942,7 +940,7 @@ function search(){
 				$ary_category_count = count($ary_category);
 				$ary_category2 = array();
 				for($p = 0; $p < $ary_category_count; $p++){
-					if($c = $ary_category[$p]) $ary_category2[] = '<a href="'.PHP_SELF.'?mode=category&amp;c='.urlencode($c).'">'.htmlentities($c).'</a>';
+					if($c = $ary_category[$p]) $ary_category2[] = '<a href="'.PHP_SELF.'?mode=category&amp;c='.urlencode($c).'">'.htmlentities($c, ENT_NOQUOTES, 'UTF-8').'</a>';
 				}
 				$category = implode(', ', $ary_category2);
 			}else $category = '';
