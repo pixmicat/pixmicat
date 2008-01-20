@@ -19,7 +19,7 @@ http://pixmicat.openfoundry.org/
 */
 /*---- Part 1：程式基本設定 ----*/
 // 伺服器常態設定
-define("PHP_SELF", basename($_SERVER['SCRIPT_FILENAME'])); // 此程式名 (此欄不需修改)
+define("PHP_SELF", 'pixmicat.php'); // 主程式名 (若是修改了主程式名，請配合修改)
 define("TIME_ZONE", '+8'); // 時區設定 (GMT時區，參照 http://wwp.greenwichmeantime.com/ )
 define("PIXMICAT_LANGUAGE", 'zh_TW'); // 語系語定
 define("HTTP_UPLOAD_DIFF", 50); // HTTP上傳所有位元組與實際位元組之允許誤差值

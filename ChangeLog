@@ -1,8 +1,9 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
-2008/01/18
+2008/01/18, 20
 -[pixmicat] 修正當欄位只填 XHTML 非法字元時會被系統清除而沒有任何內容卻也沒填預設值的錯誤
 -[pixmicat] 修正類別標籤字元 htmlentities() 後變成亂碼的問題
+-[config] 部分伺服器不相容$_SERVER['SCRIPT_FILENAME']，修改為常數方式
 
 2008/01/13
 -[pixmicat] 搜尋結果增加連結至原討論串連結
