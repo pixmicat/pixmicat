@@ -1,9 +1,9 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.3-dev (b080118)'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.3-dev (b080120)'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
-版權所有 © 2005-2007 Pixmicat! Development Team
+版權所有 © 2005-2008 Pixmicat! Development Team
 
 版權聲明：
 此程式是基於レッツPHP!<http://php.s3.to/>的gazou.php、
@@ -342,6 +342,13 @@ function regist(){
 	$path = realpath('.').DIRECTORY_SEPARATOR; // 此目錄的絕對位置
 
 	if($_SERVER['REQUEST_METHOD'] != 'POST') error(_T('regist_notpost')); // 非正規POST方式
+	// 欄位陷阱
+	$FTname = isset($_POST['name']) ? $_POST['name'] : '';
+	$FTemail = isset($_POST['email']) ? $_POST['email'] : '';
+	$FTsub = isset($_POST['sub']) ? $_POST['sub'] : '';
+	$FTcom = isset($_POST['com']) ? $_POST['com'] : '';
+	$FTreply = isset($_POST['reply']) ? $_POST['reply'] : '';
+	if($FTname != 'spammer' || $FTemail != 'foo@foo.bar' || $FTsub != 'DO NOT FIX THIS' || $FTcom != 'EID OG SMAPS' || $FTreply != '') error(_T('regist_nospam'));
 
 	$name = isset($_POST[FT_NAME]) ? CleanStr($_POST[FT_NAME]) : '';
 	$email = isset($_POST[FT_EMAIL]) ? CleanStr($_POST[FT_EMAIL]) : '';
@@ -356,14 +363,6 @@ function regist(){
 	$upfile_status = isset($_FILES['upfile']['error']) ? $_FILES['upfile']['error'] : 4;
 	$pwdc = isset($_COOKIE['pwdc']) ? $_COOKIE['pwdc'] : '';
 
-	// 欄位陷阱
-	$FTname = isset($_POST['name']) ? $_POST['name'] : '';
-	$FTemail = isset($_POST['email']) ? $_POST['email'] : '';
-	$FTsub = isset($_POST['sub']) ? $_POST['sub'] : '';
-	$FTcom = isset($_POST['com']) ? $_POST['com'] : '';
-	$FTreply = isset($_POST['reply']) ? $_POST['reply'] : '';
-	if($FTname != 'spammer' || $FTemail != 'foo@foo.bar' || $FTsub != 'DO NOT FIX THIS' || $FTcom != 'EID OG SMAPS' || $FTreply != '') error(_T('regist_nospam'));
-
 	// 封鎖：IP/Hostname/DNSBL 檢查機能
 	$ip = getREMOTE_ADDR(); $host = gethostbyaddr($ip); $baninfo = '';
 	if(BanIPHostDNSBLCheck($ip, $host, $baninfo)) error(_T('regist_ipfiltered', $baninfo));
@@ -376,8 +375,7 @@ function regist(){
 	$PMS->useModuleMethods('RegistBegin', array(&$name, &$email, &$sub, &$com, array('file'=>&$upfile, 'path'=>&$upfile_path, 'name'=>&$upfile_name, 'status'=>&$upfile_status), array('ip'=>$ip, 'host'=>$host))); // "RegistBegin" Hook Point
 
 	// 檢查是否輸入櫻花日文假名
-	$chkanti = array($name, $email, $sub, $com);
-	foreach($chkanti as $anti) if(anti_sakura($anti)) error(_T('regist_sakuradetected'));
+	foreach(array($name, $email, $sub, $com) as $anti) if(anti_sakura($anti)) error(_T('regist_sakuradetected'));
 
 	// 時間
 	$time = time();
