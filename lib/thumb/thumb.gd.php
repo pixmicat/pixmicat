@@ -79,62 +79,124 @@ class ThumbWrapper{
 			if($BMP['colors'] == 65536) $mask = array(array(0x7C00,0x3E0,0x1F),array(10,5,0),array(3,3,3));
 		}
 
-		// 第四步：變換每一個畫素
-		// 尚不支援8bit with RLE8, 4bit with RLE4等格式
+		// 第四步：關閉檔案，變換每一個畫素
 		$IMG = fread($f1, $BMP['size_bitmap']);
+		fclose($f1);
 		$VIDE = chr(0);
 
 		$res = ImageCreateTrueColor($BMP['width'], $BMP['height']);
 		$P = 0;
 		$Y = $BMP['height'] - 1;
-		while($Y >= 0){
-			$X = 0;
-			while($X < $BMP['width']){
-				switch($BMP['bits_per_pixel']){
-					case 32: 
-						$COLOR = unpack('V', substr($IMG, $P, 4));
-						$COLOR[1] &= 0xFFFFFF; // 不處理Alpha
-						break;
-					case 24: $COLOR = unpack('V', substr($IMG, $P, 3).$VIDE); break;
-					case 16:
-						$COLOR = unpack("v",substr($IMG,$P,2));
-						$COLOR[1] = (((($COLOR[1] & $mask[0][0])>>$mask[1][0])<<$mask[2][0])<<16) |
-							(((($COLOR[1] & $mask[0][1])>>$mask[1][1])<<$mask[2][1])<<8) |
-							((($COLOR[1] & $mask[0][2])>>$mask[1][2])<<$mask[2][2]);
-						break;
-					case 8:	$COLOR = unpack('n', $VIDE.substr($IMG, $P, 1)); break;
-					case 4:
-						$COLOR = unpack('n', $VIDE.substr($IMG, floor($P), 1));
-						if(($P*2)%2==0) $COLOR[1] = ($COLOR[1] >> 4);
-						else $COLOR[1] = ($COLOR[1] & 0x0F);
-						break;
-					case 1:
-						$COLOR = unpack('n', $VIDE.substr($IMG, floor($P), 1));
-						switch(($P * 8) % 8){
-							case 0: $COLOR[1] = $COLOR[1] >> 7; break;
-							case 1: $COLOR[1] = ($COLOR[1] & 0x40) >> 6; break;
-							case 2: $COLOR[1] = ($COLOR[1] & 0x20) >> 5; break;
-							case 3: $COLOR[1] = ($COLOR[1] & 0x10) >> 4; break;
-							case 4: $COLOR[1] = ($COLOR[1] & 0x8) >> 3; break;
-							case 5: $COLOR[1] = ($COLOR[1] & 0x4) >> 2; break;
-							case 6: $COLOR[1] = ($COLOR[1] & 0x2) >> 1; break;
-							case 7: $COLOR[1] = ($COLOR[1] & 0x1);
-						}
-						break;
-					default:
-						return FALSE;
+
+		if($BMP['colors'] == 256 || $BMP['compression'] == 1) { // BI_RLE8
+			$imgDataLen=strlen($IMG);
+			$RLEData='';
+			while(true) {
+				$prefix=ord(substr($IMG, floor($P++), 1));
+				$suffix=ord(substr($IMG, floor($P++), 1));
+
+				if(($prefix==0)and($suffix==1)) break; // end of RLE stream
+				if($P>=$imgDataLen) break;
+
+				while(!(($prefix==0)&&($suffix==0))){ // ! end of RLE line
+					if($prefix==0){ // Command
+						$RLEData.=substr($IMG, floor($P), $suffix);
+						$P+=$suffix;
+						if($P%2==1) $P++;
+					} elseif($prefix>0){ // Repeat
+						for($r=0;$r<$prefix;$r++)
+							$RLEData.=chr($suffix);
+					}
+					$prefix=ord(substr($IMG, floor($P++), 1));
+					$suffix=ord(substr($IMG, floor($P++), 1));
 				}
-				if($BMP['bits_per_pixel']<16) $COLOR[1] = $PALETTE[$COLOR[1]+1];
-				ImageSetPixel($res, $X, $Y, $COLOR[1]);
-				$X++;
-				$P += $BMP['bytes_per_pixel'];
+				for($X=0;$X<strlen($RLEData);$X++) // Write
+					ImageSetPixel($res, $X, $Y, $PALETTE[ord($RLEData[$X])+1]);
+				$RLEData='';
+				$Y--;
 			}
-			$Y--;
-			$P += $BMP['decal'];
+		} elseif($BMP['colors'] == 16 || $BMP['compression'] == 2) { // BI_RLE4
+			$imgDataLen=strlen($IMG);
+			$RLEData='';
+			while(true) {
+				$prefix=ord(substr($IMG, floor($P++), 1));
+				$suffix=ord(substr($IMG, floor($P++), 1));
+
+				if(($prefix==0)&&($suffix==1)) break; // end of RLE stream
+				if($P>=$imgDataLen) break;
+
+				while(!(($prefix==0)&&($suffix==0))){ // ! end of RLE line
+					if($prefix==0){ // Command
+						for($h=0;$h<$suffix;$h++) {
+							$COLOR = ord(substr($IMG, floor($P), 1));
+							$RLEData.=($h%2==0)?chr($COLOR >> 4):chr($COLOR & 0x0F);
+							$P += $BMP['bytes_per_pixel'];
+						}
+						$P=ceil($P);
+						if($P%2==1) $P++;
+					} elseif($prefix>0){ // Repeat
+						for($r=0;$r<$prefix;$r++)
+							$RLEData.=($r%2==0)?chr($suffix >> 4):chr($suffix & 0x0F);
+					}
+					$prefix=ord(substr($IMG, floor($P++), 1));
+					$suffix=ord(substr($IMG, floor($P++), 1));
+				}
+
+				for($X=0;$X<strlen($RLEData);$X++) // Write
+					ImageSetPixel($res, $X, $Y, $PALETTE[ord($RLEData[$X])+1]);
+				$RLEData='';
+				$Y--;
+
+			}
+		} else {
+			while($Y >= 0){
+				$X = 0;
+				while($X < $BMP['width']){
+					switch($BMP['bits_per_pixel']){
+						case 32: 
+							$COLOR = unpack('V', substr($IMG, $P, 4));
+							$COLOR[1] &= 0xFFFFFF; // 不處理Alpha
+							break;
+						case 24: $COLOR = unpack('V', substr($IMG, $P, 3).$VIDE); break;
+						case 16:
+							$COLOR = unpack("v",substr($IMG,$P,2));
+							$COLOR[1] = (((($COLOR[1] & $mask[0][0])>>$mask[1][0])<<$mask[2][0])<<16) |
+								(((($COLOR[1] & $mask[0][1])>>$mask[1][1])<<$mask[2][1])<<8) |
+								((($COLOR[1] & $mask[0][2])>>$mask[1][2])<<$mask[2][2]);
+							break;
+						case 8:	$COLOR = unpack('n', $VIDE.substr($IMG, $P, 1)); break;
+						case 4:
+							$COLOR = unpack('n', $VIDE.substr($IMG, floor($P), 1));
+							if(($P*2)%2==0) $COLOR[1] = ($COLOR[1] >> 4);
+							else $COLOR[1] = ($COLOR[1] & 0x0F);
+							break;
+						case 1:
+							$COLOR = unpack('n', $VIDE.substr($IMG, floor($P), 1));
+							switch(($P * 8) % 8){
+								case 0: $COLOR[1] = $COLOR[1] >> 7; break;
+								case 1: $COLOR[1] = ($COLOR[1] & 0x40) >> 6; break;
+								case 2: $COLOR[1] = ($COLOR[1] & 0x20) >> 5; break;
+								case 3: $COLOR[1] = ($COLOR[1] & 0x10) >> 4; break;
+								case 4: $COLOR[1] = ($COLOR[1] & 0x8) >> 3; break;
+								case 5: $COLOR[1] = ($COLOR[1] & 0x4) >> 2; break;
+								case 6: $COLOR[1] = ($COLOR[1] & 0x2) >> 1; break;
+								case 7: $COLOR[1] = ($COLOR[1] & 0x1);
+							}
+							break;
+						default:
+							return FALSE;
+					}
+					if($BMP['bits_per_pixel']<16) $COLOR[1] = $PALETTE[$COLOR[1]+1];
+					ImageSetPixel($res, $X, $Y, $COLOR[1]);
+					$X++;
+					$P += $BMP['bytes_per_pixel'];
+				}
+				$Y--;
+				$P += $BMP['decal'];
+			}
 		}
 
-		// 終章：關閉檔案，回傳新圖像
-		fclose($f1);
+		// 終章：回傳新圖像
 		return $res;
 	}
 
@@ -165,6 +227,7 @@ class ThumbWrapper{
 				$im_in = @ImageCreateFromGIF($this->sourceFile); break;
 			case '.png':
 				$im_in = @ImageCreateFromPNG($this->sourceFile); break;
+			case '.rle':
 			case '.bmp':
 				$im_in = $this->_ImageCreateFromBMP($this->sourceFile); break;
 			default:
