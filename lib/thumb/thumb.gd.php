@@ -95,7 +95,7 @@ class ThumbWrapper{
 				$prefix=ord(substr($IMG, floor($P++), 1));
 				$suffix=ord(substr($IMG, floor($P++), 1));
 
-				if(($prefix==0)and($suffix==1)) break; // end of RLE stream
+				if(($prefix==0)&&($suffix==1)) break; // end of RLE stream
 				if($P>=$imgDataLen) break;
 
 				while(!(($prefix==0)&&($suffix==0))){ // ! end of RLE line
