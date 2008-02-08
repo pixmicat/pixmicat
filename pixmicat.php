@@ -1,5 +1,5 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.3-dev (b080120)'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.3-dev (b080208)'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -548,7 +548,7 @@ function regist(){
 		$delarr = PIOSensor::listee('delete', $LIMIT_SENSOR);
 		if(count($delarr)){
 			deleteCache($delarr);
-			$PMS->useModuleMethods('UsageExceed', array($delarr)); // "UsageExceed" Hook Point
+			$PMS->useModuleMethods('PostOnDeletion', array($delarr)); // "PostOnDeletion" Hook Point
 			$files = $PIO->removePosts($delarr);
 			if(count($files)) $FileIO->deleteImage($files);
 		}
@@ -602,6 +602,8 @@ function regist(){
 	// 正式寫入儲存
 	$PIO->addPost($no,$resto,$md5chksum,$category,$tim,$ext,$imgW,$imgH,$imgsize,$W,$H,$pass,$now,$name,$email,$sub,$com,$host,$age,$status);
 	$PIO->dbCommit();
+	$lastno = $PIO->getLastPostNo('afterCommit'); // 取得此新文章編號
+	$PMS->useModuleMethods('RegistAfterCommit', array($lastno, $resto, $name, $email, $sub, $com)); // "RegistAfterCommit" Hook Point
 
 	// Cookies儲存：密碼與E-mail部分，期限是一週
 	setcookie('pwdc', $pwd, time()+7*24*3600);
@@ -632,7 +634,6 @@ function regist(){
 	if(isset($_POST['up_series'])){ // 勾選連貼機能
 		if($resto) $RedirURL = PHP_SELF.'?res='.$resto.'&amp;upseries=1'; // 回應後繼續轉回此主題下
 		else{
-			$lastno = $PIO->getLastPostNo('afterCommit'); // 取得此新文章編號
 			$RedirURL = PHP_SELF.'?res='.$lastno.'&amp;upseries=1'; // 新增主題後繼續轉到此主題下
 		}
 	}
@@ -692,6 +693,7 @@ function usrdel(){
 		}
 	}
 	if($search_flag){
+		if(!$onlyimgdel) $PMS->useModuleMethods('PostOnDeletion', array($delposts)); // "PostOnDeletion" Hook Point
 		$files = $onlyimgdel ? $PIO->removeAttachments($delposts) : $PIO->removePosts($delposts);
 		$FileIO->deleteImage($files);
 		deleteCache($delposts);
@@ -764,6 +766,7 @@ function admindel(){
 		if(!adminAuthenticate('check')) error(_T('admin_wrongpassword'));
 
 		$delno = array_merge($delno, $_POST['delete']);
+		if($onlyimgdel != 'on') $PMS->useModuleMethods('PostOnDeletion', array($delno)); // "PostOnDeletion" Hook Point
 		$files = ($onlyimgdel != 'on') ? $PIO->removePosts($delno) : $PIO->removeAttachments($delno);
 		$FileIO->deleteImage($files);
 		deleteCache($delno);

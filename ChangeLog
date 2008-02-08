@@ -1,5 +1,8 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2008/02/06, 08
+-[pixmicat][PMS] 新增掛載點 PostOnDeletion, RegistAfterCommit，移除掛載點 UsageExceed
+
 2008/01/18, 20
 -[pixmicat] 修正當欄位只填 XHTML 非法字元時會被系統清除而沒有任何內容卻也沒填預設值的錯誤
 -[pixmicat] 修正類別標籤字元 htmlentities() 後變成亂碼的問題

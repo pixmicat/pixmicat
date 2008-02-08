@@ -21,7 +21,7 @@ class PMS{
 		$this->ENV = $ENV; // 環境變數
 		$this->hooks = array_flip(array('Head', 'Toplink', 'LinksAboveBar', 'PostInfo', 'PostForm',
 			'ThreadFront', 'ThreadRear', 'ThreadPost', 'ThreadReply',
-			'Foot', 'ModulePage', 'RegistBegin', 'RegistBeforeCommit', 'UsageExceed',
+			'Foot', 'ModulePage', 'RegistBegin', 'RegistBeforeCommit', 'RegistAfterCommit', 'PostOnDeletion',
 			'AdminList', 'Authenticate'
 		));
 		$this->hookPoints = array(); // 掛載點
