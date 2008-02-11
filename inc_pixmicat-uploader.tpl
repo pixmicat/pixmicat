@@ -1,5 +1,5 @@
 <!-- Theme Description -->
-<!--&THEMENAME-->Pixmicat!-Uploaded0liked Theme<!--/&THEMENAME-->
+<!--&THEMENAME-->Pixmicat! Uploader-liked Theme<!--/&THEMENAME-->
 <!--&THEMEVER-->v20080211<!--/&THEMEVER-->
 <!--&THEMEAUTHOR-->Pixmicat! Development Team<!--/&THEMEAUTHOR-->
 
