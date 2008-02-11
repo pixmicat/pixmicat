@@ -1,7 +1,17 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2008/02/11
+-[pixmicat][PTE] 讓 PTE MAIN block 能存取 {$RESTO}
+-[inc_pixmicat-uploader] 新增 uploader-liked theme
+
 2008/02/06, 08
 -[pixmicat][PMS] 新增掛載點 PostOnDeletion, RegistAfterCommit，移除掛載點 UsageExceed
+
+2008/01/31
+-[thumb][GD] _ImageCreateFromBMP 支援 RLE4/RLE8, 副檔名支援 '.rle'
+
+2008/01/27
+-[pixmicat][Language] 修正{$FORM_NOTICE}未與ALLOW_UPLOAD_EXT同步問題
 
 2008/01/18, 20
 -[pixmicat] 修正當欄位只填 XHTML 非法字元時會被系統清除而沒有任何內容卻也沒填預設值的錯誤
@@ -18,6 +28,7 @@
 2007/12/16
 -[PMS] 修正在未初始化前 hookModuleMethod 的話會造成 autoHookXXXX 沒動作
 -[pixmicat] 修正在不支援緩衝區的情況下修改 XHTML MIME 動作會發生錯誤
+-[PTE][inc_pixmicat-festival] festival theme的post form下需要clear:both
 
 2007/11/09,18: 4th.Release.2 (v071120)
 -[lib_common] 修改 CIDR Notation 分析函式
