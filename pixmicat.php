@@ -57,6 +57,7 @@ function updatelog($resno=0,$page_num=0){
 	$kill_sensor = $old_sensor = false; // 預測系統啟動旗標
 	$arr_kill = $arr_old = array(); // 過舊編號陣列
 	$pte_vals = array('{$THREADFRONT}'=>'','{$THREADREAR}'=>'','{$SELF}'=>PHP_SELF);
+	if($resno) $pte_vals['{$RESTO}']=$resno;
 
 	if(!$resno){
 		if($page_num==0){ // remake模式 (PHP動態輸出多頁份)
