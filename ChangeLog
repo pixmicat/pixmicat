@@ -1,5 +1,8 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2008/02/19
+-[PMS] 修改模組單載入後手動掛載 ModulePage 掛載點造成多載入啟動、重複載入模組並作用的問題
+
 2008/02/11
 -[pixmicat][PTE] 讓 PTE MAIN block 能存取 {$RESTO}
 -[inc_pixmicat-uploader] 新增 uploader-liked theme

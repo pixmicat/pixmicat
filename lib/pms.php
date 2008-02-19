@@ -50,10 +50,10 @@ class PMS{
 		$loadlist = $specificModule ? array($specificModule) : $this->ENV['MODULE.LOADLIST'];
 		foreach($loadlist as $f){
 			$mpath = $this->ENV['MODULE.PATH'].$f.'.php';
-			if(is_file($mpath) && !isset($this->moduleInstance[$f])){
+			if(is_file($mpath) && array_search($f, $this->moduleLists)===false){
 				include_once($mpath);
-				$this->moduleInstance[$f] = new $f();
 				$this->moduleLists[] = $f;
+				$this->moduleInstance[$f] = new $f();
 			}
 		}
 	}
@@ -93,7 +93,7 @@ class PMS{
 	/* 將模組方法掛載於特定掛載點 */
 	function hookModuleMethod($hookPoint, $methodObject){
 		if(!isset($this->hooks[$hookPoint])) return false;
-		if(!isset($this->hookPoints[$hookPoint])){
+		if(!isset($this->hookPoints[$hookPoint]) && $hookPoint != 'ModulePage'){
 			if(!$this->loaded) $this->init();
 			$this->__autoHookMethods($hookPoint);
 		}
