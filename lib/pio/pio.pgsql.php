@@ -112,13 +112,29 @@ class PIOpgsql{
 		if($this->useTransaction) @pg_query($this->con, 'COMMIT;'); // 交易性能模式提交
 	}
 
-	/* 優化資料表 */
-	function dbOptimize($doit=false){
-		if($doit){
-			$this->dbPrepare(false);
-			if($this->_pgsql_call('VACUUM '.$this->tablename)) return true;
-			else return false;
-		}else return true; // 支援最佳化資料表
+	/* 資料表維護 */
+	function dbMaintanence($action,$doit=false){
+		switch($action) {
+			case 'optimize':
+				if($doit){
+					$this->dbPrepare(false);
+					if($this->_pgsql_call('VACUUM '.$this->tablename)) return true;
+					else return false;
+				}else return true; // 支援最佳化資料表
+				break;
+			case 'export':
+				if($doit){
+					$this->dbPrepare(false);
+					$gp = gzopen('piodata.log.gz', 'w9');
+					gzwrite($gp, $PIO->dbExport());
+					gzclose($gp);
+					return '<a href="piodata.log.gz">下載 piodata.log.gz 中介檔案</a>';
+				}else return true; // 支援匯出資料
+				break;
+			case 'check':
+			case 'repair':
+			default: return false; // 不支援
+		}
 	}
 
 	/* 匯入資料來源 */

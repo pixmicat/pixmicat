@@ -115,13 +115,51 @@ class PIOmysql{
 		//@mysql_query('COMMIT'); // 交易性能模式提交
 	}
 
-	/* 優化資料表 */
-	function dbOptimize($doit=false){
-		if($doit){
-			$this->dbPrepare(false);
-			if($this->_mysql_call('OPTIMIZE TABLES '.$this->tablename)) return true;
-			else return false;
-		}else return true; // 支援最佳化資料表
+	/* 資料表維護 */
+	function dbMaintanence($action,$doit=false){
+		switch($action) {
+			case 'optimize':
+				if($doit){
+					$this->dbPrepare(false);
+					if($this->_mysql_call('OPTIMIZE TABLES '.$this->tablename)) return true;
+					else return false;
+				}else return true; // 支援最佳化資料表
+				break;
+			case 'check':
+				if($doit){
+					$this->dbPrepare(false);
+					if($rs=$this->_mysql_call('CHECK TABLE '.$this->tablename)){
+						mysql_data_seek($rs, mysql_num_rows($rs)-1);
+						$row = mysql_fetch_assoc($rs);
+						if ($row['Msg_type'] != "status")
+							return "Table {$row_status['Table']}: {$row_status['Msg_type']} = {$row_status['Msg_text']}";
+					}
+					else return false;
+				}else return true; // 支援檢查資料表
+				break;
+			case 'repair':
+				if($doit){
+					$this->dbPrepare(false);
+					if($rs=$this->_mysql_call('REPAIR TABLE '.$this->tablename)){
+						mysql_data_seek($rs, mysql_num_rows($rs)-1);
+						$row = mysql_fetch_assoc($rs);
+						if ($row['Msg_type'] != "status")
+							return "Table {$row_status['Table']}: {$row_status['Msg_type']} = {$row_status['Msg_text']}";
+					}
+					else return false;
+				}else return true; // 支援修復資料表
+				break;
+			case 'export':
+				if($doit){
+					$this->dbPrepare(false);
+					$gp = gzopen('piodata.log.gz', 'w9');
+					gzwrite($gp, $PIO->dbExport());
+					gzclose($gp);
+					return '<a href="piodata.log.gz">下載 piodata.log.gz 中介檔案</a>';
+				}else return true; // 支援匯出資料
+				break;
+			default: return false; // 不支援
+		}
 	}
 
 	/* 匯入資料來源 */

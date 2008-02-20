@@ -1158,8 +1158,8 @@ switch($mode){
 			header('Location: '.fullURL().PHP_SELF2.'?'.time());
 		}
 		if($admin=='opt'){
-			if(!$PIO->dbOptimize()) echo _T('action_opt_notsupport');
-			else echo _T('action_opt_optimize').($PIO->dbOptimize(true)?_T('action_opt_success'):_T('action_opt_failed'));
+			if(!$PIO->dbMaintanence('optimize')) echo _T('action_opt_notsupport');
+			else echo _T('action_opt_optimize').($PIO->dbMaintanence('optimize',true)?_T('action_opt_success'):_T('action_opt_failed'));
 			die("</div></form></body>\n</html>");
 		}
 		break;

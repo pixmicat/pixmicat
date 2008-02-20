@@ -95,13 +95,29 @@ class PIOsqlite3{
 		$this->con->commit();
 	}
 
-	/* 優化資料表 */
-	public function dbOptimize($doit=false){
-		if($doit){
-			$this->dbPrepare(false);
-			if($this->con->exec('VACUUM '.$this->tablename)) return true;
-			else return false;
-		}else return true; // 支援最佳化資料表
+	/* 資料表維護 */
+	public function dbMaintanence($action,$doit=false){
+		switch($action) {
+			case 'optimize':
+				if($doit){
+					$this->dbPrepare(false);
+					if($this->con->exec('VACUUM '.$this->tablename)) return true;
+					else return false;
+				}else return true; // 支援最佳化資料表
+				break;
+			case 'export':
+				if($doit){
+					$this->dbPrepare(false);
+					$gp = gzopen('piodata.log.gz', 'w9');
+					gzwrite($gp, $PIO->dbExport());
+					gzclose($gp);
+					return '<a href="piodata.log.gz">下載 piodata.log.gz 中介檔案</a>';
+				}else return true; // 支援匯出資料
+				break;
+			case 'check':
+			case 'repair':
+			default: return false; // 不支援
+		}
 	}
 
 	/* 匯入資料來源 */
