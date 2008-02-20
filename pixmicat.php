@@ -48,7 +48,7 @@ include_once('./lib/lib_pte.php'); // 引入PTE外部函式庫
 $PTE = new PTELibrary(TEMPLATE_FILE); // PTE Library
 
 /* 更新記錄檔檔案／輸出討論串 */
-function updatelog($resno=0,$page_num=0){
+function updatelog($resno=0,$page_num=0,$single_page=false){
 	global $PIO, $FileIO, $PTE, $PMS, $language, $LIMIT_SENSOR;
 
 	$page_start = $page_end = 0; // 靜態頁面編號
@@ -210,7 +210,7 @@ function updatelog($resno=0,$page_num=0){
 		foot($dat);
 
 		// 存檔 / 輸出
-		if(!$page_num && !$resno){ // 靜態快取頁面生成
+		if($single_page || (!$page_num && !$resno)){ // 靜態快取頁面生成
 			if($page==0) $logfilename = PHP_SELF2;
 			else $logfilename = $page.PHP_EXT;
 			$fp = fopen($logfilename, 'w');
