@@ -88,7 +88,7 @@ class ThumbWrapper{
 		$P = 0;
 		$Y = $BMP['height'] - 1;
 
-		if($BMP['colors'] == 256 && $BMP['compression'] == 1) { // BI_RLE8
+		if($BMP['compression'] == 1 && $BMP['colors'] == 256) { // BI_RLE8
 			$imgDataLen=strlen($IMG);
 			$RLEData='';
 			while(true) {
@@ -115,7 +115,7 @@ class ThumbWrapper{
 				$RLEData='';
 				$Y--;
 			}
-		} elseif($BMP['colors'] == 16 && $BMP['compression'] == 2) { // BI_RLE4
+		} elseif($BMP['compression'] == 2 && $BMP['colors'] == 16) { // BI_RLE4
 			$imgDataLen=strlen($IMG);
 			$RLEData='';
 			while(true) {

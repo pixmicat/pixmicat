@@ -2,6 +2,7 @@
 ----------------------
 2008/02/22
 -[pixmicat][PMS] 新增掛載點 ThreadOrder
+-[thumb][GD] GD 支援 RLE4/8 判斷式稍作修改，如果沒壓縮就不必再判斷
 
 2008/02/20
 -[thumb][GD] _ImageCreateFromBMP 修正 RLE4/RLE8 可能誤判的問題
