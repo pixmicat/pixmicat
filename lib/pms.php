@@ -22,7 +22,7 @@ class PMS{
 		$this->hooks = array_flip(array('Head', 'Toplink', 'LinksAboveBar', 'PostInfo', 'PostForm',
 			'ThreadFront', 'ThreadRear', 'ThreadPost', 'ThreadReply',
 			'Foot', 'ModulePage', 'RegistBegin', 'RegistBeforeCommit', 'RegistAfterCommit', 'PostOnDeletion',
-			'AdminList', 'Authenticate'
+			'AdminList', 'Authenticate', 'ThreadOrder'
 		));
 		$this->hookPoints = array(); // 掛載點
 		$this->moduleInstance = array(); // 存放各模組實體

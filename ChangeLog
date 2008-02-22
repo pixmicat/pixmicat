@@ -1,5 +1,8 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2008/02/22
+-[pixmicat][PMS] 新增掛載點 ThreadOrder
+
 2008/02/20
 -[thumb][GD] _ImageCreateFromBMP 修正 RLE4/RLE8 可能誤判的問題
 -[pixmicat] 讓 updatelog() 支援單頁生成 .htm 快取

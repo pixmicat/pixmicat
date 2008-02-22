@@ -62,6 +62,7 @@ function updatelog($resno=0,$page_num=0,$single_page=false){
 	if(!$resno){
 		if($page_num==0){ // remake模式 (PHP動態輸出多頁份)
 			$threads = $PIO->fetchThreadList(); // 取得全討論串列表
+			$PMS->useModuleMethods('ThreadOrder', array($resno,$page_num,$single_page,&$threads)); // "ThreadOrder" Hook Point
 			$threads_count = count($threads);
 			$inner_for_count = $threads_count > PAGE_DEF ? PAGE_DEF : $threads_count;
 			$page_end = ceil($threads_count / PAGE_DEF) - 1; // 頁面編號最後值
@@ -70,6 +71,7 @@ function updatelog($resno=0,$page_num=0,$single_page=false){
 			if($page_num < 0 || ($page_num * PAGE_DEF) >= $threads_count) error(_T('page_not_found')); // $page_num超過範圍
 			$page_start = $page_end = $page_num; // 設定靜態頁面編號
 			$threads = $PIO->fetchThreadList($page_num * PAGE_DEF, PAGE_DEF); // 取出分頁後的討論串首篇列表
+			$PMS->useModuleMethods('ThreadOrder', array($resno,$page_num,$single_page,&$threads)); // "ThreadOrder" Hook Point
 			$inner_for_count = count($threads); // 討論串個數就是迴圈次數
 		}
 	}else{
