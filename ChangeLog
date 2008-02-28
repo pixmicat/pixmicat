@@ -1,5 +1,8 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2008/02/28
+-[PMS] 新增取得模組實體函式 getModuleInstance($module)
+
 2008/02/22
 -[pixmicat][PMS] 新增掛載點 ThreadOrder
 -[thumb][GD] GD 支援 RLE4/8 判斷式稍作修改，如果沒壓縮就不必再判斷

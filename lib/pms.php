@@ -64,6 +64,11 @@ class PMS{
 		return $this->moduleLists;
 	}
 
+	/* 取得模組實體 */
+	function getModuleInstance($module){
+		return isset($this->moduleInstance[$module])?$this->moduleInstance[$module]:null;
+	}
+
 	/* 取得特定模組方法列表 */
 	function getModuleMethods($module){
 		if(!$this->loaded) $this->init();
