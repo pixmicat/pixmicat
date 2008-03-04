@@ -1,5 +1,8 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2008/03/04
+-[PMS][pixmicat] 試驗性新增 AdminFunction 掛載點
+
 2008/02/28
 -[PMS] 新增取得模組實體函式 getModuleInstance($module)
 

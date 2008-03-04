@@ -1,5 +1,5 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.3-dev (b080208)'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.3-dev (b080304)'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -760,15 +760,18 @@ function admindel(){
 	$onlyimgdel = isset($_POST['onlyimgdel']) ? $_POST['onlyimgdel'] : ''; // 只刪圖
 	$modFunc = '';
 	$delno = $thsno = array();
-	$delflag = isset($_POST['delete']); // 是否有「刪除」勾選
+	$delflag = isset($_POST['func']) && ($_POST['func'] == 'delete'); //isset($_POST['delete']); // 是否有「刪除」勾選
 	$thsflag = isset($_POST['stop']); // 是否有「停止」勾選
 	$is_modified = false; // 是否改寫檔案
+	$message = ''; // 操作後顯示訊息
+
+	if(isset($_POST['func'])) $PMS->useModuleMethods('AdminFunction', array('run', $_POST['clist'], $_POST['func'], &$message)); // "AdminFunction" Hook Point
 
 	// 刪除文章區塊
 	if($delflag){
 		if(!adminAuthenticate('check')) error(_T('admin_wrongpassword'));
 
-		$delno = array_merge($delno, $_POST['delete']);
+		$delno = array_merge($delno, $_POST['clist']);
 		if($onlyimgdel != 'on') $PMS->useModuleMethods('PostOnDeletion', array($delno)); // "PostOnDeletion" Hook Point
 		$files = ($onlyimgdel != 'on') ? $PIO->removePosts($delno) : $PIO->removeAttachments($delno);
 		$FileIO->deleteImage($files);
@@ -798,7 +801,7 @@ function admindel(){
 	echo '<input type="hidden" name="mode" value="admin" />
 <input type="hidden" name="admin" value="del" />
 <div style="text-align: left;">'._T('admin_notices').'</div>
-<p><input type="submit" value="'._T('admin_submit_btn').'" /> <input type="reset" value="'._T('admin_reset_btn').'" /> [<input type="checkbox" name="onlyimgdel" id="onlyimgdel" value="on" /><label for="onlyimgdel">'._T('del_img_only').'</label>]</p>
+<div>'.$message.'</div>
 <table border="1" cellspacing="0" style="margin: 0px auto;">
 <tr style="background-color: #6080f6;">'._T('admin_list_header').'</tr>
 ';
@@ -836,13 +839,23 @@ function admindel(){
 		// 印出介面
 		echo <<< _ADMINEOF_
 <tr class="$bg" align="left">
-<th align="center">$modFunc</th><th align="center">$THstop</th><th><input type="checkbox" name="delete[]" value="$no" />$no</th><td><small>$now</small></td><td>$sub</td><td><b>$name</b></td><td><small>$com</small></td><td>$host</td><td align="center">$clip ($size)<br />$md5chksum</td>
+<th align="center">$modFunc</th><th align="center">$THstop</th><th><input type="checkbox" name="clist[]" value="$no" />$no</th><td><small>$now</small></td><td>$sub</td><td><b>$name</b></td><td><small>$com</small></td><td>$host</td><td align="center">$clip ($size)<br />$md5chksum</td>
 </tr>
 
 _ADMINEOF_;
 	}
 	echo '</table>
-<p><input type="submit" value="'._T('admin_submit_btn').'" /> <input type="reset" value="'._T('admin_reset_btn').'" /></p>
+<p>
+<select name="func">
+<option value="delete">'.'刪除文章'.'</option>
+';
+	$funclist = array();
+	$PMS->useModuleMethods('AdminFunction', array('add', &$funclist)); // "AdminFunction" Hook Point
+	foreach($funclist as $f){
+		echo '<option value="'.$f[0].'">'.$f[1].'</option>'."\n";
+	}
+	echo '</select>
+<input type="submit" value="'._T('admin_submit_btn').'" /> <input type="reset" value="'._T('admin_reset_btn').'" /> [<input type="checkbox" name="onlyimgdel" id="onlyimgdel" value="on" /><label for="onlyimgdel">'._T('del_img_only').'</label>]</p>
 <p>'._T('admin_totalsize',total_size()).'</p>
 </div>
 </form>
