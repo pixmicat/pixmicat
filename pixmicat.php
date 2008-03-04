@@ -731,7 +731,10 @@ function valid(){
 	if(!$isCheck){
 		echo '<br />
 <input type="radio" name="admin" value="del" checked="checked" />'._T('admin_manageposts').'
-<input type="radio" name="admin" value="opt" />'._T('admin_optimize').'<p />
+<input type="radio" name="admin" value="optimize" />'._T('admin_optimize').'
+<input type="radio" name="admin" value="check" />'._T('admin_check').'
+<input type="radio" name="admin" value="repair" />'._T('admin_repair').'
+<input type="radio" name="admin" value="export" />'._T('admin_export').'<p />
 <input type="hidden" name="mode" value="admin" />
 <input type="password" name="pass" size="8" />
 <input type="submit" value="'._T('admin_verify_btn').'" />
@@ -741,7 +744,10 @@ function valid(){
 	}elseif(!isset($_REQUEST['admin'])){
 		echo '<br />
 <input type="radio" name="admin" value="del" checked="checked" />'._T('admin_manageposts').'
-<input type="radio" name="admin" value="opt" />'._T('admin_optimize').'
+<input type="radio" name="admin" value="optimize" />'._T('admin_optimize').'
+<input type="radio" name="admin" value="check" />'._T('admin_check').'
+<input type="radio" name="admin" value="repair" />'._T('admin_repair').'
+<input type="radio" name="admin" value="export" />'._T('admin_export').'
 <input type="radio" name="admin" value="logout" />'._T('admin_logout').'<p />
 <input type="hidden" name="mode" value="admin" />
 <input type="submit" value="'._T('admin_submit_btn').'" />
@@ -1166,16 +1172,22 @@ switch($mode){
 	case 'admin':
 		$admin = isset($_REQUEST['admin']) ? $_REQUEST['admin'] : ''; // 管理者執行模式
 		valid();
-		if($admin=='del') admindel();
-		if($admin=='logout'){
-			adminAuthenticate('logout');
-			header('HTTP/1.1 302 Moved Temporarily');
-			header('Location: '.fullURL().PHP_SELF2.'?'.time());
-		}
-		if($admin=='opt'){
-			if(!$PIO->dbMaintanence('optimize')) echo _T('action_opt_notsupport');
-			else echo _T('action_opt_optimize').($PIO->dbMaintanence('optimize',true)?_T('action_opt_success'):_T('action_opt_failed'));
-			die("</div></form></body>\n</html>");
+		switch($admin){
+			case 'del': admindel(); break;
+			case 'logout':
+				adminAuthenticate('logout');
+				header('HTTP/1.1 302 Moved Temporarily');
+				header('Location: '.fullURL().PHP_SELF2.'?'.time());
+				break;
+			case 'optimize':
+			case 'check':
+			case 'repair':
+			case 'export':
+				if(!$PIO->dbMaintanence($admin)) echo _T('action_main_notsupport');
+				else echo _T('action_main_'.$admin).(($mret = $PIO->dbMaintanence($admin,true))?_T('action_main_success'):_T('action_main_failed')).(is_bool($mret)?'':'<br/>'.$mret);
+				die("</div></form></body>\n</html>");
+				break;
+			default:
 		}
 		break;
 	case 'search':

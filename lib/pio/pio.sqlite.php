@@ -127,7 +127,7 @@ class PIOsqlite{
 				if($doit){
 					$this->dbPrepare(false);
 					$gp = gzopen('piodata.log.gz', 'w9');
-					gzwrite($gp, $PIO->dbExport());
+					gzwrite($gp, $this->dbExport());
 					gzclose($gp);
 					return '<a href="piodata.log.gz">下載 piodata.log.gz 中介檔案</a>';
 				}else return true; // 支援匯出資料

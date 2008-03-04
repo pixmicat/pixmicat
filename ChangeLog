@@ -2,6 +2,9 @@
 ----------------------
 2008/03/04
 -[PMS][pixmicat] 試驗性新增 AdminFunction 掛載點
+-[PIO] 修正 dbMaintanence('export',true) 出錯問題
+-[pixmicat] valid() 加入其他 dbMaintanence 功能
+-[language] action_opt_* 廢止，改為 action_main_* 並加入其他 dbMaintanence 功能
 
 2008/02/28
 -[PMS] 新增取得模組實體函式 getModuleInstance($module)
