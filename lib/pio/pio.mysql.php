@@ -131,8 +131,7 @@ class PIOmysql{
 					if($rs=$this->_mysql_call('CHECK TABLE '.$this->tablename)){
 						mysql_data_seek($rs, mysql_num_rows($rs)-1);
 						$row = mysql_fetch_assoc($rs);
-						if ($row['Msg_type'] != "status")
-							return "Table {$row_status['Table']}: {$row_status['Msg_type']} = {$row_status['Msg_text']}";
+						return 'Table '.$row['Table'].': '.$row['Msg_type'].' = '.$row['Msg_text'];
 					}
 					else return false;
 				}else return true; // 支援檢查資料表
@@ -143,8 +142,7 @@ class PIOmysql{
 					if($rs=$this->_mysql_call('REPAIR TABLE '.$this->tablename)){
 						mysql_data_seek($rs, mysql_num_rows($rs)-1);
 						$row = mysql_fetch_assoc($rs);
-						if ($row['Msg_type'] != "status")
-							return "Table {$row_status['Table']}: {$row_status['Msg_type']} = {$row_status['Msg_text']}";
+						return 'Table '.$row['Table'].': '.$row['Msg_type'].' = '.$row['Msg_text'];
 					}
 					else return false;
 				}else return true; // 支援修復資料表

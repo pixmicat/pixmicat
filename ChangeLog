@@ -1,5 +1,8 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2008/03/06
+-[PIO.mysql] 修正 dbMaintanence()
+
 2008/03/04
 -[PMS][pixmicat] 試驗性新增 AdminFunction 掛載點
 -[PIO] 修正 dbMaintanence('export',true) 出錯問題
