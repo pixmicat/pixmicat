@@ -1,5 +1,8 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2008/03/09
+-[inc_pixmicat-uploader] 更改 uploader-liked theme <table>的擺放位置
+
 2008/03/06
 -[PIO.mysql] 修正 dbMaintanence()
 

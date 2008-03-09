@@ -87,7 +87,6 @@ var boxclicked=0;
 </div>
 </form>
 <!--&IF($FORMBOTTOM,'{$FORMBOTTOM}','')-->
-<!--&IF($RESTO,'','<table width="100%"><tr><th>Del</th><th>No.</th><th>Name</th><th>Title</th><th>Date/ID</th><th>File</th><th>Reply</th></tr>')-->
 <!--/&POSTFORM-->
 
 <!--&FOOTER-->
@@ -158,7 +157,6 @@ var boxclicked=0;
 <!--/&REALSEPARATE-->
 
 <!--&DELFORM-->
-<!--&IF($RESTO,'','</table>')-->
 <div id="del">
 <table style="float: right;">
 <tr><td align="center" style="white-space: nowrap;">
@@ -174,7 +172,9 @@ var boxclicked=0;
 <form action="{$SELF}" method="POST">
 <div id="threads">
 {$THREADFRONT}
+<!--&IF($RESTO,'','<table width="100%" style="clear:both"><tr><th>Del</th><th>No.</th><th>Name</th><th>Title</th><th>Date/ID</th><th>File</th><th>Reply</th></tr>')-->
 {$THREADS}
+<!--&IF($RESTO,'','</table>')-->
 {$THREADREAR}
 </div>
 <div style="clear:both"></div>
