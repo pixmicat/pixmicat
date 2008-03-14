@@ -1,5 +1,5 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.3-dev (b080304)'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.3-dev (b080314)'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -48,19 +48,34 @@ include_once('./lib/lib_pte.php'); // 引入PTE外部函式庫
 $PTE = new PTELibrary(TEMPLATE_FILE); // PTE Library
 
 /* 更新記錄檔檔案／輸出討論串 */
-function updatelog($resno=0,$page_num=0,$single_page=false){
+function updatelog($resno=0,$page_num=-1,$single_page=false){
 	global $PIO, $FileIO, $PTE, $PMS, $language, $LIMIT_SENSOR;
 
+	$adminMode = adminAuthenticate('check') && $page_num != -1 && !$single_page; // 前端管理模式
+	$adminFunc = ''; // 前端管理選擇
+	if($adminMode){
+		$adminFunc = '<select name="func"><option value="delete">'._T('admin_delete').'</option>';
+		$funclist = array();
+		$PMS->useModuleMethods('AdminFunction', array('add', &$funclist)); // "AdminFunction" Hook Point
+		foreach($funclist as $f) $adminFunc .= '<option value="'.$f[0].'">'.$f[1].'</option>'."\n";
+		$adminFunc .= '</select>';
+	}
 	$page_start = $page_end = 0; // 靜態頁面編號
 	$inner_for_count = 1; // 內部迴圈執行次數
 	$RES_start = $RES_amount = $hiddenReply = $tree_count = 0;
 	$kill_sensor = $old_sensor = false; // 預測系統啟動旗標
 	$arr_kill = $arr_old = array(); // 過舊編號陣列
-	$pte_vals = array('{$THREADFRONT}'=>'','{$THREADREAR}'=>'','{$SELF}'=>PHP_SELF);
-	if($resno) $pte_vals['{$RESTO}']=$resno;
+	$pte_vals = array('{$THREADFRONT}'=>'','{$THREADREAR}'=>'','{$SELF}'=>PHP_SELF,
+		'{$DEL_HEAD_TEXT}' => '<input type="hidden" name="mode" value="usrdel" />'._T('del_head'),
+		'{$DEL_IMG_ONLY_FIELD}' => '<input type="checkbox" name="onlyimgdel" id="onlyimgdel" value="on" />',
+		'{$DEL_IMG_ONLY_TEXT}' => _T('del_img_only'),
+		'{$DEL_PASS_TEXT}' => ($adminMode ? $adminFunc : '')._T('del_pass'),
+		'{$DEL_PASS_FIELD}' => '<input type="password" name="pwd" size="8" value="" />',
+		'{$DEL_SUBMIT_BTN}' => '<input type="submit" value="'._T('del_btn').'" />');
+	if($resno) $pte_vals['{$RESTO}'] = $resno;
 
 	if(!$resno){
-		if($page_num==0){ // remake模式 (PHP動態輸出多頁份)
+		if($page_num==-1){ // remake模式 (PHP動態輸出多頁份)
 			$threads = $PIO->fetchThreadList(); // 取得全討論串列表
 			$PMS->useModuleMethods('ThreadOrder', array($resno,$page_num,$single_page,&$threads)); // "ThreadOrder" Hook Point
 			$threads_count = count($threads);
@@ -94,7 +109,7 @@ function updatelog($resno=0,$page_num=0,$single_page=false){
 		}elseif($page_num > 0) error(_T('page_not_found')); // 沒有回應的情況只允許page_num = 0 或負數
 		else{ $RES_start = 1; $RES_amount = $tree_count; $page_num = 0; } // 輸出全部回應
 
-		if(USE_RE_CACHE){ // 檢查快取是否仍可使用 / 頁面有無更動
+		if(!$adminMode && USE_RE_CACHE){ // 檢查快取是否仍可使用 / 頁面有無更動
 			$cacheETag = md5(($AllRes ? 'all' : $page_num).'-'.$tree_count); // 最新狀態快取用 ETag
 			$cacheFile = './cache/'.$resno.'-'.($AllRes ? 'all' : $page_num).'.'; // 暫存快取檔位置
 			$cacheGzipPrefix = extension_loaded('zlib') ? 'compress.zlib://' : ''; // 支援 Zlib Compression Stream 就使用
@@ -149,14 +164,8 @@ function updatelog($resno=0,$page_num=0,$single_page=false){
 			$tree = $PIO->fetchPostList($tID); // 整個討論串樹狀結構
 			$tree_cut = array_slice($tree, $RES_start, $RES_amount); array_unshift($tree_cut, $tID); // 取出特定範圍回應
 			$posts = $PIO->fetchPosts($tree_cut); // 取得文章架構內容
-			$pte_vals['{$THREADS}'] .= arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno, $arr_kill, $arr_old, $kill_sensor, $old_sensor); // 交給這個函式去搞討論串印出
+			$pte_vals['{$THREADS}'] .= arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno, $arr_kill, $arr_old, $kill_sensor, $old_sensor, true, $adminMode); // 交給這個函式去搞討論串印出
 		}
-		$pte_vals += array('{$DEL_HEAD_TEXT}' => '<input type="hidden" name="mode" value="usrdel" />'._T('del_head'),
-			'{$DEL_IMG_ONLY_FIELD}' => '<input type="checkbox" name="onlyimgdel" id="onlyimgdel" value="on" />',
-			'{$DEL_IMG_ONLY_TEXT}' => _T('del_img_only'),
-			'{$DEL_PASS_TEXT}' => _T('del_pass'),
-			'{$DEL_PASS_FIELD}' => '<input type="password" name="pwd" size="8" value="" />',
-			'{$DEL_SUBMIT_BTN}' => '<input type="submit" value="'._T('del_btn').'" />');
 		$pte_vals['{$PAGENAV}'] = '<div id="page_switch">';
 
 		// 換頁判斷
@@ -182,9 +191,9 @@ function updatelog($resno=0,$page_num=0,$single_page=false){
 		}else{ // 一般分頁
 			$pte_vals['{$PAGENAV}'] .= '<table border="1"><tr>';
 			if($prev >= 0){
-				if($prev==0) $pte_vals['{$PAGENAV}'] .= '<td><form action="'.PHP_SELF2.'" method="get">';
+				if(!$adminMode && $prev==0) $pte_vals['{$PAGENAV}'] .= '<td><form action="'.PHP_SELF2.'" method="get">';
 				else{
-					if((STATIC_HTML_UNTIL != -1) && ($prev > STATIC_HTML_UNTIL)) $pte_vals['{$PAGENAV}'] .= '<td><form action="'.PHP_SELF.'?page_num='.$prev.'" method="post">';
+					if($adminMode || (STATIC_HTML_UNTIL != -1) && ($prev > STATIC_HTML_UNTIL)) $pte_vals['{$PAGENAV}'] .= '<td><form action="'.PHP_SELF.'?page_num='.$prev.'" method="post">';
 					else $pte_vals['{$PAGENAV}'] .= '<td><form action="'.$prev.PHP_EXT.'" method="get">';
 				}
 				$pte_vals['{$PAGENAV}'] .= '<div><input type="submit" value="'._T('prev_page').'" /></div></form></td>';
@@ -193,14 +202,14 @@ function updatelog($resno=0,$page_num=0,$single_page=false){
 			for($i = 0; $i < $threads_count ; $i += PAGE_DEF){
 				if($page==$i/PAGE_DEF) $pte_vals['{$PAGENAV}'] .= "[<b>".$i/PAGE_DEF."</b>] ";
 				else{
-					if($i==0) $pte_vals['{$PAGENAV}'] .= '[<a href="'.PHP_SELF2.'?">0</a>] ';
-					elseif(STATIC_HTML_UNTIL != -1 && $i/PAGE_DEF > STATIC_HTML_UNTIL) $pte_vals['{$PAGENAV}'] .= '[<a href="'.PHP_SELF.'?page_num='.$i/PAGE_DEF.'">'.$i/PAGE_DEF.'</a>] ';
+					if(!$adminMode && $i==0) $pte_vals['{$PAGENAV}'] .= '[<a href="'.PHP_SELF2.'?">0</a>] ';
+					elseif($adminMode || STATIC_HTML_UNTIL != -1 && $i/PAGE_DEF > STATIC_HTML_UNTIL) $pte_vals['{$PAGENAV}'] .= '[<a href="'.PHP_SELF.'?page_num='.$i/PAGE_DEF.'">'.$i/PAGE_DEF.'</a>] ';
 					else $pte_vals['{$PAGENAV}'] .= '[<a href="'.$i/PAGE_DEF.PHP_EXT.'?">'.$i/PAGE_DEF.'</a>] ';
 				}
 			}
 			$pte_vals['{$PAGENAV}'] .= '</td>';
 			if($threads_count > $next * PAGE_DEF){
-				if((STATIC_HTML_UNTIL != -1) && ($next > STATIC_HTML_UNTIL)) $pte_vals['{$PAGENAV}'] .= '<td><form action="'.PHP_SELF.'?page_num='.$next.'" method="post">';
+				if($adminMode || (STATIC_HTML_UNTIL != -1) && ($next > STATIC_HTML_UNTIL)) $pte_vals['{$PAGENAV}'] .= '<td><form action="'.PHP_SELF.'?page_num='.$next.'" method="post">';
 				else $pte_vals['{$PAGENAV}'] .= '<td><form action="'.$next.PHP_EXT.'" method="get">';
 				$pte_vals['{$PAGENAV}'] .= '<div><input type="submit" value="'._T('next_page').'" /></div></form></td>';
 			}else $pte_vals['{$PAGENAV}'] .= '<td style="white-space: nowrap;">'._T('last_page').'</td>';
@@ -212,7 +221,7 @@ function updatelog($resno=0,$page_num=0,$single_page=false){
 		foot($dat);
 
 		// 存檔 / 輸出
-		if($single_page || (!$page_num && !$resno)){ // 靜態快取頁面生成
+		if($single_page || ($page_num == -1 && !$resno)){ // 靜態快取頁面生成
 			if($page==0) $logfilename = PHP_SELF2;
 			else $logfilename = $page.PHP_EXT;
 			$fp = fopen($logfilename, 'w');
@@ -222,7 +231,7 @@ function updatelog($resno=0,$page_num=0,$single_page=false){
 			@chmod($logfilename, 0666);
 			if(STATIC_HTML_UNTIL != -1 && STATIC_HTML_UNTIL==$page) break; // 頁面數目限制
 		}else{ // PHP 輸出 (回應模式/一般動態輸出)
-			if($resno && USE_RE_CACHE){ // 更新快取
+			if(!$adminMode && $resno && USE_RE_CACHE){ // 更新快取
 				foreach(glob($cacheFile.'*') as $oldCache) unlink($oldCache); // 刪除舊快取
 				$fp = fopen($cacheGzipPrefix.$cacheFile.$cacheETag, 'w');
 				fwrite($fp, $dat);
@@ -238,7 +247,7 @@ function updatelog($resno=0,$page_num=0,$single_page=false){
 }
 
 /* 輸出討論串架構 */
-function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $arr_kill, $arr_old, $kill_sensor, $old_sensor, $showquotelink=true){
+function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $arr_kill, $arr_old, $kill_sensor, $old_sensor, $showquotelink=true, $adminMode=false){
 	global $PIO, $FileIO, $PMS, $language;
 
 	$thdat = ''; // 討論串輸出碼
@@ -300,6 +309,11 @@ function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $
 		}else{
 			if(!$i)	$REPLYBTN = '[<a href="'.PHP_SELF.'?res='.$no.'">'._T('reply_btn').'</a>]'; // 首篇
 			$QUOTEBTN = '<a href="'.PHP_SELF.'?res='.$tree[0].'#q'.$no.'" class="qlink">No.'.$no.'</a>';
+		}
+		if($adminMode){ // 前端管理模式
+			$modFunc = '';
+			$PMS->useModuleMethods('AdminList', array(&$modFunc, $posts[$i], $resto)); // "AdminList" Hook Point
+			$QUOTEBTN .= $modFunc;
 		}
 
 		// 設定討論串屬性
@@ -365,9 +379,11 @@ function regist(){
 	$upfile_name = isset($_FILES['upfile']['name']) ? $_FILES['upfile']['name'] : false;
 	$upfile_status = isset($_FILES['upfile']['error']) ? $_FILES['upfile']['error'] : 4;
 	$pwdc = isset($_COOKIE['pwdc']) ? $_COOKIE['pwdc'] : '';
+	$ip = getREMOTE_ADDR(); $host = gethostbyaddr($ip);
 
+	$PMS->useModuleMethods('RegistBegin', array(&$name, &$email, &$sub, &$com, array('file'=>&$upfile, 'path'=>&$upfile_path, 'name'=>&$upfile_name, 'status'=>&$upfile_status), array('ip'=>$ip, 'host'=>$host))); // "RegistBegin" Hook Point
 	// 封鎖：IP/Hostname/DNSBL 檢查機能
-	$ip = getREMOTE_ADDR(); $host = gethostbyaddr($ip); $baninfo = '';
+	$baninfo = '';
 	if(BanIPHostDNSBLCheck($ip, $host, $baninfo)) error(_T('regist_ipfiltered', $baninfo));
 	// 封鎖：限制出現之文字
 	foreach($BAD_STRING as $value){
@@ -375,7 +391,6 @@ function regist(){
 			error(_T('regist_wordfiltered'));
 		}
 	}
-	$PMS->useModuleMethods('RegistBegin', array(&$name, &$email, &$sub, &$com, array('file'=>&$upfile, 'path'=>&$upfile_path, 'name'=>&$upfile_name, 'status'=>&$upfile_status), array('ip'=>$ip, 'host'=>$host))); // "RegistBegin" Hook Point
 
 	// 檢查是否輸入櫻花日文假名
 	foreach(array($name, $email, $sub, $com) as $anti) if(anti_sakura($anti)) error(_T('regist_sakuradetected'));
@@ -675,16 +690,28 @@ function usrdel(){
 	$pwd = isset($_POST['pwd']) ? $_POST['pwd'] : '';
 	$pwdc = isset($_COOKIE['pwdc']) ? $_COOKIE['pwdc'] : '';
 	$onlyimgdel = isset($_POST['onlyimgdel']) ? $_POST['onlyimgdel'] : '';
-	$haveperm = ($pwd==ADMIN_PASS);
+	$delno = array();
+	reset($_POST);
+	while($item = each($_POST)) if($item[1]=='delete') array_push($delno, $item[0]);
+	$haveperm = ($pwd==ADMIN_PASS) || adminAuthenticate('check');
+	if($haveperm && isset($_POST['func'])){ // 前端管理功能
+		$message = '';
+		if($_POST['func'] != 'delete'){
+			$PMS->useModuleMethods('AdminFunction', array('run', $delno, $_POST['func'], &$message)); // "AdminFunction" Hook Point
+			if(isset($_SERVER['HTTP_REFERER'])){
+				header('HTTP/1.1 302 Moved Temporarily');
+				header('Location: '.$_SERVER['HTTP_REFERER']);
+			}
+			exit(); // 僅執行AdminFunction，終止刪除動作
+		}
+	}
 	$PMS->useModuleMethods('Authenticate', array($pwd,'userdel',&$haveperm));
 
 	if($pwd=='' && $pwdc!='') $pwd = $pwdc;
 	$pwd_md5 = substr(md5($pwd),2,8);
 	$host = gethostbyaddr(getREMOTE_ADDR());
 	$search_flag = $delflag = false;
-	$delno = array();
-	reset($_POST);
-	while($item = each($_POST)) if($item[1]=='delete') array_push($delno, $item[0]);
+	
 	if(!count($delno)) error(_T('del_notchecked'));
 
 	$delposts = array(); // 真正符合刪除條件文章
@@ -720,7 +747,7 @@ function valid(){
 	}
 	$dat = '';
 	head($dat);
-	$links = '[<a href="'.PHP_SELF2.'?'.time().'">'._T('return').'</a>] [<a href="'.PHP_SELF.'?mode=remake">'._T('admin_remake').'</a>]';
+	$links = '[<a href="'.PHP_SELF2.'?'.time().'">'._T('return').'</a>] [<a href="'.PHP_SELF.'?mode=remake">'._T('admin_remake').'</a>] [<a href="'.PHP_SELF.'?page_num=0">'._T('admin_frontendmanage').'</a>]';
 	$PMS->useModuleMethods('LinksAboveBar', array(&$links,'admin',$haveperm)); // LinksAboveBar hook point
 	$dat .= '<div id="banner">'.$links.'<div class="bar_admin">'._T('admin_top').'</div>
 </div>
@@ -766,16 +793,17 @@ function admindel(){
 	$onlyimgdel = isset($_POST['onlyimgdel']) ? $_POST['onlyimgdel'] : ''; // 只刪圖
 	$modFunc = '';
 	$delno = $thsno = array();
-	$delflag = isset($_POST['func']) && ($_POST['func'] == 'delete'); //isset($_POST['delete']); // 是否有「刪除」勾選
+	$delflag = isset($_POST['func']) && ($_POST['func'] == 'delete') && isset($_POST['clist']); // 是否有「刪除」勾選
 	$thsflag = isset($_POST['stop']); // 是否有「停止」勾選
 	$is_modified = false; // 是否改寫檔案
 	$message = ''; // 操作後顯示訊息
 
-	if(isset($_POST['func'])) $PMS->useModuleMethods('AdminFunction', array('run', $_POST['clist'], $_POST['func'], &$message)); // "AdminFunction" Hook Point
+	if(isset($_POST['func']) && isset($_POST['clist']))
+		$PMS->useModuleMethods('AdminFunction', array('run', $_POST['clist'], $_POST['func'], &$message)); // "AdminFunction" Hook Point
 
 	// 刪除文章區塊
 	if($delflag){
-		if(!adminAuthenticate('check')) error(_T('admin_wrongpassword'));
+		//if(!adminAuthenticate('check')) error(_T('admin_wrongpassword'));
 
 		$delno = array_merge($delno, $_POST['clist']);
 		if($onlyimgdel != 'on') $PMS->useModuleMethods('PostOnDeletion', array($delno)); // "PostOnDeletion" Hook Point
@@ -787,7 +815,7 @@ function admindel(){
 	}
 	// 討論串停止區塊
 	if($thsflag){
-		if(!adminAuthenticate('check')) error(_T('admin_wrongpassword'));
+		//if(!adminAuthenticate('check')) error(_T('admin_wrongpassword'));
 
 		$thsno = array_merge($thsno, $_POST['stop']);
 		$threads = $PIO->fetchPosts($thsno); // 取得文章
@@ -852,14 +880,10 @@ _ADMINEOF_;
 	}
 	echo '</table>
 <p>
-<select name="func">
-<option value="delete">'.'刪除文章'.'</option>
-';
+<select name="func"><option value="delete">'._T('admin_delete').'</option>';
 	$funclist = array();
 	$PMS->useModuleMethods('AdminFunction', array('add', &$funclist)); // "AdminFunction" Hook Point
-	foreach($funclist as $f){
-		echo '<option value="'.$f[0].'">'.$f[1].'</option>'."\n";
-	}
+	foreach($funclist as $f) echo '<option value="'.$f[0].'">'.$f[1].'</option>';
 	echo '</select>
 <input type="submit" value="'._T('admin_submit_btn').'" /> <input type="reset" value="'._T('admin_reset_btn').'" /> [<input type="checkbox" name="onlyimgdel" id="onlyimgdel" value="on" /><label for="onlyimgdel">'._T('del_img_only').'</label>]</p>
 <p>'._T('admin_totalsize',total_size()).'</p>
@@ -1222,7 +1246,7 @@ switch($mode){
 			$page = isset($_GET['page_num']) ? $_GET['page_num'] : 'RE_PAGE_MAX';
 			if(!($page=='all' || $page=='RE_PAGE_MAX')) $page = intval($_GET['page_num']);
 			updatelog($res, $page); // 實行分頁
-		}elseif(@intval($_GET['page_num']) > 0){ // PHP動態輸出一頁
+		}elseif(@intval($_GET['page_num']) > -1){ // PHP動態輸出一頁
 			updatelog(0, intval($_GET['page_num']));
 		}else{ // 導至靜態庫存頁
 			if(!is_file(PHP_SELF2)) updatelog();
