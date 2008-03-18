@@ -1,5 +1,5 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.3-dev (b080314)'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.3-dev (b080318)'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -692,12 +692,12 @@ function usrdel(){
 	$onlyimgdel = isset($_POST['onlyimgdel']) ? $_POST['onlyimgdel'] : '';
 	$delno = array();
 	reset($_POST);
-	while($item = each($_POST)) if($item[1]=='delete') array_push($delno, $item[0]);
+	while($item = each($_POST)){ if($item[1]=='delete' && $item[0] != 'func') array_push($delno, $item[0]); }
 	$haveperm = ($pwd==ADMIN_PASS) || adminAuthenticate('check');
 	if($haveperm && isset($_POST['func'])){ // 前端管理功能
 		$message = '';
+		$PMS->useModuleMethods('AdminFunction', array('run', $delno, $_POST['func'], &$message)); // "AdminFunction" Hook Point
 		if($_POST['func'] != 'delete'){
-			$PMS->useModuleMethods('AdminFunction', array('run', $delno, $_POST['func'], &$message)); // "AdminFunction" Hook Point
 			if(isset($_SERVER['HTTP_REFERER'])){
 				header('HTTP/1.1 302 Moved Temporarily');
 				header('Location: '.$_SERVER['HTTP_REFERER']);
@@ -711,7 +711,7 @@ function usrdel(){
 	$pwd_md5 = substr(md5($pwd),2,8);
 	$host = gethostbyaddr(getREMOTE_ADDR());
 	$search_flag = $delflag = false;
-	
+
 	if(!count($delno)) error(_T('del_notchecked'));
 
 	$delposts = array(); // 真正符合刪除條件文章
@@ -730,6 +730,13 @@ function usrdel(){
 		total_size(true); // 刪除容量快取
 		$PIO->dbCommit();
 	}else error(_T('del_wrongpwornotfound'));
+	if($_POST['func'] == 'delete'){ // 前端管理刪除文章返回管理頁面
+		if(isset($_SERVER['HTTP_REFERER'])){
+			header('HTTP/1.1 302 Moved Temporarily');
+			header('Location: '.$_SERVER['HTTP_REFERER']);
+		}
+		exit();
+	}
 }
 
 /* 管理員密碼認證 */
@@ -1246,7 +1253,7 @@ switch($mode){
 			$page = isset($_GET['page_num']) ? $_GET['page_num'] : 'RE_PAGE_MAX';
 			if(!($page=='all' || $page=='RE_PAGE_MAX')) $page = intval($_GET['page_num']);
 			updatelog($res, $page); // 實行分頁
-		}elseif(@intval($_GET['page_num']) > -1){ // PHP動態輸出一頁
+		}elseif(isset($_GET['page_num']) && intval($_GET['page_num']) > -1){ // PHP動態輸出一頁
 			updatelog(0, intval($_GET['page_num']));
 		}else{ // 導至靜態庫存頁
 			if(!is_file(PHP_SELF2)) updatelog();

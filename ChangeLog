@@ -1,5 +1,12 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2008/03/18
+-[pixmicat] 修正直接瀏覽 pixmicat.php 出現動態輸出頁面並提示 page_num 未定義錯誤
+-[pixmicat] 修正前台管理刪除文章時處理文章陣列混入 'func' 造成刪除錯誤
+-[pixmicat] 修正前台管理刪除文章後沒有跳回前台管理頁面的問題
+-[pixmicat] 修正 usrdel() 之 AdminFunction 掛載點時機，delete 也可正常抓取
+-[language] 修改 del_btn 文字
+
 2008/03/14
 -[pixmicat] 新增前端管理功能 (以 PHP 動態輸出)，支援 AdminList 跟 AdminFunction 掛載點之管理功能
 -[language] 新增 admin_delete, admin_frontendmanage
