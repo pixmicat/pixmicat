@@ -79,7 +79,7 @@ class PIOsqlite3{
 	}
 
 	/* 準備/讀入 */
-	public function dbPrepare($transaction=true){
+	public function dbPrepare($transaction=false){
 		if($this->prepared) return true;
 
 		($this->con = new PDO($this->DSN, '', '', array(PDO::ATTR_PERSISTENT => true))) or $this->_error_handler('Open database failed', __LINE__);

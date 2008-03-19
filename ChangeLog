@@ -1,5 +1,9 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2008/03/19
+-[pixmicat] 修正 res=XXX 接受非數字的格式造成的 XSS & SQL Injection 問題
+-[PIO.sqlite3] 預設取消交易模式
+
 2008/03/18
 -[pixmicat] 修正直接瀏覽 pixmicat.php 出現動態輸出頁面並提示 page_num 未定義錯誤
 -[pixmicat] 修正前台管理刪除文章時處理文章陣列混入 'func' 造成刪除錯誤
