@@ -1,5 +1,5 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.3-dev (b080326)'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.3-dev (b080331)'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -153,7 +153,7 @@ function updatelog($resno=0,$page_num=-1,$single_page=false){
 			// 取出討論串編號
 			if($resno) $tID = $resno; // 單討論串輸出 (回應模式)
 			else{
-				if($page_num == 0 && ($page * PAGE_DEF + $i) >= $threads_count) break; // remake 超出索引代表已全部完成
+				if($page_num == -1 && ($page * PAGE_DEF + $i) >= $threads_count) break; // remake 超出索引代表已全部完成
 				$tID = ($page_start==$page_end) ? $threads[$i] : $threads[$page * PAGE_DEF + $i]; // 一頁內容 (一般模式) / 多頁內容 (remake模式)
 				$tree_count = $PIO->postCount($tID) - 1; // 討論串回應個數
 				$RES_start = $tree_count - RE_DEF + 1; if($RES_start < 1) $RES_start = 1; // 開始
