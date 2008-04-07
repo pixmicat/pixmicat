@@ -1,5 +1,8 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2008/04/07
+-[PIO] PIO 0.6 alpha: 交易模式支援、SQL Injection 防護等
+
 2008/03/31
 -[pixmicat] 修正版面更新文章 (remake) 過程中頁面超過索引值造成的錯誤
 

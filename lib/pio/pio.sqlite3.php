@@ -11,7 +11,7 @@
 
 class PIOsqlite3{
 	private $ENV, $DSN, $tablename; // Local Constant
-	private $con, $prepared; // Local Global
+	private $con, $prepared, $useTransaction; // Local Global
 
 	public function __construct($connstr='', $ENV){
 		$this->ENV = $ENV;
@@ -21,13 +21,14 @@ class PIOsqlite3{
 
 	/* private 攔截SQL錯誤 */
 	private function _error_handler($errtext, $errline){
-		$err = "Pixmicat! SQL Error: $errtext, debug info: at line $errline";
+		$err = "Pixmicat! SQL Error: $errtext on line $errline";
 		trigger_error($err, E_USER_ERROR);
+		exit();
 	}
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.5 (v20071013)';
+		return '0.6alpha (b20080407)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -83,7 +84,8 @@ class PIOsqlite3{
 		if($this->prepared) return true;
 
 		($this->con = new PDO($this->DSN, '', '', array(PDO::ATTR_PERSISTENT => true))) or $this->_error_handler('Open database failed', __LINE__);
-		if($transaction) $this->con->beginTransaction(); // 啟動交易性能模式
+		$this->useTransaction = $transaction;
+		if($transaction) @$this->con->beginTransaction(); // 啟動交易性能模式
 
 		$this->prepared = true;
 	}
@@ -91,17 +93,16 @@ class PIOsqlite3{
 	/* 提交/儲存 */
 	public function dbCommit(){
 		if(!$this->prepared) return false;
-
-		$this->con->commit();
+		if($this->useTransaction) @$this->con->commit(); // 交易性能模式提交
 	}
 
 	/* 資料表維護 */
-	public function dbMaintanence($action,$doit=false){
+	public function dbMaintanence($action, $doit=false){
 		switch($action) {
 			case 'optimize':
 				if($doit){
 					$this->dbPrepare(false);
-					if($this->con->exec('VACUUM '.$this->tablename)) return true;
+					if($this->con->exec('VACUUM '.$this->tablename)!==false) return true;
 					else return false;
 				}else return true; // 支援最佳化資料表
 				break;
@@ -126,26 +127,34 @@ class PIOsqlite3{
 		$data = explode("\r\n", $data);
 		$data_count = count($data) - 1;
 		$replaceComma = create_function('$txt', 'return str_replace("&#44;", ",", $txt);');
+		$SQL = 'INSERT INTO '.$this->tablename.' (no,resto,root,time,md5chksum,category,tim,ext,imgw,imgh,imgsize,tw,th,pwd,now,name,email,sub,com,host,status) VALUES '
+				.'(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+		$PDOStmt = $this->con->prepare($SQL);
 		for($i = 0; $i < $data_count; $i++){
 			$line = array_map($replaceComma, explode(',', $data[$i])); // 取代 &#44; 為 ,
-			$SQL = 'INSERT INTO '.$this->tablename.' (no,resto,root,time,md5chksum,category,tim,ext,imgw,imgh,imgsize,tw,th,pwd,now,name,email,sub,com,host,status) VALUES ('.
-	$line[0].','.
-	$line[1].',\''.
-	$line[2].'\','.
-	substr($line[5], 0, 10).','.
-	$this->con->quote($line[3]).','.
-	$this->con->quote($line[4]).','.
-	$line[5].','.$this->con->quote($line[6]).','.
-	$line[7].','.$line[8].','.$this->con->quote($line[9]).','.$line[10].','.$line[11].','.
-	$this->con->quote($line[12]).','.
-	$this->con->quote($line[13]).','.
-	$this->con->quote($line[14]).','.
-	$this->con->quote($line[15]).','.
-	$this->con->quote($line[16]).','.
-	$this->con->quote($line[17]).','.
-	$this->con->quote($line[18]).',\''.
-	$line[19].'\')';
-			if(!$this->con->exec($SQL)) $this->_error_handler('Insert a new post failed', __LINE__);
+			$tim = substr($line[5], 0, 10);
+			$PDOStmt->bindValue(1, $line[0], PDO::PARAM_INT);
+			$PDOStmt->bindValue(2, $line[1], PDO::PARAM_INT);
+			$PDOStmt->bindValue(3, $line[2], PDO::PARAM_STR);
+			$PDOStmt->bindValue(4, $tim, PDO::PARAM_INT);
+			$PDOStmt->bindValue(5, $line[3], PDO::PARAM_STR);
+			$PDOStmt->bindValue(6, $line[4], PDO::PARAM_STR);
+			$PDOStmt->bindValue(7, $line[5], PDO::PARAM_INT);
+			$PDOStmt->bindValue(8, $line[6], PDO::PARAM_STR);
+			$PDOStmt->bindValue(9, $line[7], PDO::PARAM_INT);
+			$PDOStmt->bindValue(10, $line[8], PDO::PARAM_INT);
+			$PDOStmt->bindValue(11, $line[9], PDO::PARAM_STR);
+			$PDOStmt->bindValue(12, $line[10], PDO::PARAM_INT);
+			$PDOStmt->bindValue(13, $line[11], PDO::PARAM_INT);
+			$PDOStmt->bindValue(14, $line[12], PDO::PARAM_STR);
+			$PDOStmt->bindValue(15, $line[13], PDO::PARAM_STR);
+			$PDOStmt->bindValue(16, $line[14], PDO::PARAM_STR);
+			$PDOStmt->bindValue(17, $line[15], PDO::PARAM_STR);
+			$PDOStmt->bindValue(18, $line[16], PDO::PARAM_STR);
+			$PDOStmt->bindValue(19, $line[17], PDO::PARAM_STR);
+			$PDOStmt->bindValue(20, $line[18], PDO::PARAM_STR);
+			$PDOStmt->bindValue(21, $line[19], PDO::PARAM_STR);
+			$PDOStmt->execute() or $this->_error_handler('Insert a new post failed', __LINE__);
 		}
 		$this->dbCommit(); // 送交
 		return true;
@@ -169,7 +178,7 @@ class PIOsqlite3{
 		if(!$this->prepared) $this->dbPrepare();
 
 		if($resno){ // 一討論串文章總數目
-			$line = $this->con->query('SELECT COUNT(no) FROM '.$this->tablename.' WHERE resto = '.$resno)->fetch();
+			$line = $this->con->query('SELECT COUNT(no) FROM '.$this->tablename.' WHERE resto = '.intval($resno))->fetch();
 			$countline = $line[0] + 1;
 		}else{ // 文章總數目
 			$line = $this->con->query('SELECT COUNT(no) FROM '.$this->tablename)->fetch();
@@ -200,10 +209,12 @@ class PIOsqlite3{
 	public function fetchPostList($resno=0, $start=0, $amount=0){
 		if(!$this->prepared) $this->dbPrepare();
 
+		$resno = intval($resno);
 		if($resno){ // 輸出討論串的結構 (含自己, EX : 1,2,3,4,5,6)
 			$tmpSQL = 'SELECT no FROM '.$this->tablename.' WHERE no = '.$resno.' OR resto = '.$resno.' ORDER BY no';
 		}else{ // 輸出所有文章編號，新的在前
 			$tmpSQL = 'SELECT no FROM '.$this->tablename.' ORDER BY no DESC';
+			$start = intval($start); $amount = intval($amount);
 			if($amount) $tmpSQL .= " LIMIT {$start}, {$amount}"; // 指定數量
 		}
 		return $this->con->query($tmpSQL)->fetchAll(PDO::FETCH_COLUMN, 0);
@@ -214,6 +225,7 @@ class PIOsqlite3{
 		if(!$this->prepared) $this->dbPrepare();
 
 		$tmpSQL = 'SELECT no FROM '.$this->tablename.' WHERE resto = 0 ORDER BY '.($isDESC ? 'no' : 'root').' DESC';
+		$start = intval($start); $amount = intval($amount);
 		if($amount) $tmpSQL .= " LIMIT {$start}, {$amount}"; // 指定數量
 		return $this->con->query($tmpSQL)->fetchAll(PDO::FETCH_COLUMN, 0);
 	}
@@ -226,7 +238,7 @@ class PIOsqlite3{
 			$pno = implode(', ', $postlist); // ID字串
 			$tmpSQL = 'SELECT * FROM '.$this->tablename.' WHERE no IN ('.$pno.') ORDER BY no';
 			if(count($postlist) > 1){ if($postlist[0] > $postlist[1]) $tmpSQL .= ' DESC'; } // 由大排到小
-		}else $tmpSQL = 'SELECT * FROM '.$this->tablename.' WHERE no = '.$postlist; // 取單串
+		}else $tmpSQL = 'SELECT * FROM '.$this->tablename.' WHERE no = '.intval($postlist); // 取單串
 		$line = $this->con->query($tmpSQL)->fetchAll();
 		return $line;
 	}
@@ -290,22 +302,30 @@ class PIOsqlite3{
 			}
 		}else $root = $updatetime; // 新增討論串, 討論串最後被更新時間
 
-		$query = 'INSERT INTO '.$this->tablename.' (resto,root,time,md5chksum,category,tim,ext,imgw,imgh,imgsize,tw,th,pwd,now,name,email,sub,com,host,status) VALUES ('.
-	(int)$resto.','. // 回應編號
-	"'$root',". // 最後更新時間
-	$time.','. // 發文時間數值
-	"'$md5chksum',". // 附加檔案 MD5
-	$this->con->quote($category).",". // 分類標籤
-	"$tim, '$ext',". // 附檔檔名
-	$imgw.','.$imgh.",'".$imgsize."',".$tw.','.$th.','. // 圖檔長寬及檔案大小；預覽圖長寬
-	$this->con->quote($pwd).','.
-	"'$now',". // 時間(含ID)字串
-	$this->con->quote($name).','.
-	$this->con->quote($email).','.
-	$this->con->quote($sub).','.
-	$this->con->quote($com).','.
-	$this->con->quote($host).','.$this->con->quote($status).')';
-		if(!$this->con->exec($query)) $this->_error_handler('Insert a new post failed', __LINE__);
+		$SQL = 'INSERT INTO '.$this->tablename.' (resto,root,time,md5chksum,category,tim,ext,imgw,imgh,imgsize,tw,th,pwd,now,name,email,sub,com,host,status) VALUES '
+				.'(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+		$PDOStmt = $this->con->prepare($SQL);
+		$PDOStmt->bindValue(1, $resto, PDO::PARAM_INT);
+		$PDOStmt->bindValue(2, $root, PDO::PARAM_STR);
+		$PDOStmt->bindValue(3, $time, PDO::PARAM_INT);
+		$PDOStmt->bindValue(4, $md5chksum, PDO::PARAM_STR);
+		$PDOStmt->bindValue(5, $category, PDO::PARAM_STR);
+		$PDOStmt->bindValue(6, $tim, PDO::PARAM_INT);
+		$PDOStmt->bindValue(7, $ext, PDO::PARAM_STR);
+		$PDOStmt->bindValue(8, $imgw, PDO::PARAM_INT);
+		$PDOStmt->bindValue(9, $imgh, PDO::PARAM_INT);
+		$PDOStmt->bindValue(10, $imgsize, PDO::PARAM_STR);
+		$PDOStmt->bindValue(11, $tw, PDO::PARAM_INT);
+		$PDOStmt->bindValue(12, $th, PDO::PARAM_INT);
+		$PDOStmt->bindValue(13, $pwd, PDO::PARAM_STR);
+		$PDOStmt->bindValue(14, $now, PDO::PARAM_STR);
+		$PDOStmt->bindValue(15, $name, PDO::PARAM_STR);
+		$PDOStmt->bindValue(16, $email, PDO::PARAM_STR);
+		$PDOStmt->bindValue(17, $sub, PDO::PARAM_STR);
+		$PDOStmt->bindValue(18, $com, PDO::PARAM_STR);
+		$PDOStmt->bindValue(19, $host, PDO::PARAM_STR);
+		$PDOStmt->bindValue(20, $status, PDO::PARAM_STR);
+		$PDOStmt->execute() or $this->_error_handler('Insert a new post failed', __LINE__);
 	}
 
 	/* 檢查是否連續投稿 */
@@ -314,8 +334,9 @@ class PIOsqlite3{
 		if(!$this->prepared) $this->dbPrepare();
 
 		if(!$this->ENV['PERIOD.POST']) return false; // 關閉連續投稿檢查
-		$tmpSQL = 'SELECT pwd,host FROM '.$this->tablename.' WHERE time > '.($timestamp - $this->ENV['PERIOD.POST']); // 一般投稿時間檢查
-		if($isupload) $tmpSQL .= ' OR time > '.($timestamp - $this->ENV['PERIOD.IMAGEPOST']); // 附加圖檔的投稿時間檢查 (與下者兩者擇一)
+		$timestamp = intval($timestamp);
+		$tmpSQL = 'SELECT pwd,host FROM '.$this->tablename.' WHERE time > '.($timestamp - (int)$this->ENV['PERIOD.POST']); // 一般投稿時間檢查
+		if($isupload) $tmpSQL .= ' OR time > '.($timestamp - (int)$this->ENV['PERIOD.IMAGEPOST']); // 附加圖檔的投稿時間檢查 (與下者兩者擇一)
 		else $tmpSQL .= " OR md5(com) = '".md5($com)."'"; // 內文一樣的檢查 (與上者兩者擇一)
 		$this->con->sqliteCreateFunction('md5', 'md5', 1); // Register MD5 function
 		($result = $this->con->query($tmpSQL)) or $this->_error_handler('Get the post to check the succession failed', __LINE__);
@@ -331,7 +352,8 @@ class PIOsqlite3{
 		global $FileIO;
 		if(!$this->prepared) $this->dbPrepare();
 
-		$result = $this->con->query('SELECT tim,ext FROM '.$this->tablename.' WHERE ext <> "" AND md5chksum = "'.$md5hash.'" ORDER BY no DESC') or $this->_error_handler('Get the post to check the duplicate attachment failed', __LINE__);
+		($result = $this->con->query('SELECT tim,ext FROM '.$this->tablename.' WHERE ext <> "" AND md5chksum = "'.$md5hash.'" ORDER BY no DESC'))
+			or $this->_error_handler('Get the post to check the duplicate attachment failed', __LINE__);
 		while(list($ltim, $lext) = $result->fetch(PDO::FETCH_NUM)){
 			if($FileIO->imageExists($ltim.$lext)) return true; // 有相同檔案
 		}
@@ -342,7 +364,7 @@ class PIOsqlite3{
 	public function isThread($no){
 		if(!$this->prepared) $this->dbPrepare();
 
-		$result = $this->con->query('SELECT no FROM '.$this->tablename.' WHERE no = '.$no.' AND resto = 0');
+		$result = $this->con->query('SELECT no FROM '.$this->tablename.' WHERE no = '.intval($no).' AND resto = 0');
 		return $result->fetch() ? true : false;
 	}
 
@@ -351,11 +373,10 @@ class PIOsqlite3{
 		if(!$this->prepared) $this->dbPrepare();
 
 		$keyword_cnt = count($keyword);
-		$SearchQuery = 'SELECT * FROM '.$this->tablename." WHERE {$field} LIKE '%".($keyword[0])."%'";
-		if($keyword_cnt > 1) for($i = 1; $i < $keyword_cnt; $i++) $SearchQuery .= " {$method} {$field} LIKE '%".($keyword[$i])."%'"; // 多重字串交集 / 聯集搜尋
+		$SearchQuery = 'SELECT * FROM '.$this->tablename." WHERE {$field} LIKE ".$this->con->quote('%'.$keyword[0].'%')."";
+		if($keyword_cnt > 1) for($i = 1; $i < $keyword_cnt; $i++) $SearchQuery .= " {$method} {$field} LIKE ".$this->con->quote('%'.$keyword[$i].'%'); // 多重字串交集 / 聯集搜尋
 		$SearchQuery .= ' ORDER BY no DESC'; // 按照號碼大小排序
 		($line = $this->con->query($SearchQuery)) or $this->_error_handler('Search the post failed', __LINE__);
-
 		return $line->fetchAll();
 	}
 
@@ -377,11 +398,14 @@ class PIOsqlite3{
 	public function updatePost($no, $newValues){
 		if(!$this->prepared) $this->dbPrepare();
 
+		$no = intval($no);
 		$chk = array('resto', 'md5chksum', 'category', 'tim', 'ext', 'imgw', 'imgh', 'imgsize', 'tw', 'th', 'pwd', 'now', 'name', 'email', 'sub', 'com', 'host', 'status');
-
-		foreach($chk as $c)
-			if(isset($newValues[$c]))
-				if(!$this->con->exec('UPDATE '.$this->tablename." SET $c = ".$this->con->quote($newValues[$c])." WHERE no = $no")) $this->_error_handler('Update the field of the post failed', __LINE__); // 更新討論串屬性
+		foreach($chk as $c){
+			if(isset($newValues[$c])){
+				if(!$this->con->exec('UPDATE '.$this->tablename." SET $c = ".$this->con->quote($newValues[$c]).' WHERE no = '.$no))
+					$this->_error_handler('Update the field of the post failed', __LINE__); // 更新討論串屬性
+			}
+		}
 	}
 
 	/* 設定文章屬性 */

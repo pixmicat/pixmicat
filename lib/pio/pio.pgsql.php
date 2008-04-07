@@ -20,27 +20,30 @@ class PIOpgsql{
 	}
 
 	/* private 攔截SQL錯誤 */
-	function _error_handler($errtext, $errline){
-		$err = "Pixmicat! SQL Error: $errtext, debug info: at line $errline";
+	function _error_handler($errarray){
+		$err = 'Pixmicat! SQL Error: '.$errarray[0].' on line '.$errarray[1];
 		trigger_error($err, E_USER_ERROR);
+		exit();
 	}
 
 	/* private 使用SQL字串和PostgreSQL伺服器要求 */
-	function _pgsql_call($query){
-		return pg_query($this->con, $query);
+	function _pgsql_call($query, $errarray=false){
+		$resource = pg_query($this->con, $query);
+		if(is_array($errarray) && $resource===false) $this->_error_handler($errarray);
+		else return $resource;
 	}
 
 	/* private 由資源輸出陣列 */
 	function _ArrangeArrayStructure($line){
 		$posts = array();
-		while($row=pg_fetch_array($line, null, PGSQL_ASSOC)) $posts[] = $row;
+		while($row = pg_fetch_array($line, null, PGSQL_ASSOC)) $posts[] = $row;
 		pg_free_result($line);
 		return $posts;
 	}
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.5 (v20071013)';
+		return '0.6alpha (b20080407)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -97,10 +100,10 @@ class PIOpgsql{
 	function dbPrepare($transaction=true){
 		if($this->prepared) return true;
 
-		$this->con=pg_pconnect("host='".$this->server."' port=".$this->port." dbname='".$this->dbname."' user='".$this->username."' password='".$this->password."'");
-		if(!$this->con) $this->_error_handler('Open database failed', __LINE__);
+		$this->con = pg_pconnect("host='".$this->server."' port=".$this->port." dbname='".$this->dbname."' user='".$this->username."' password='".$this->password."'");
+		if(!$this->con) $this->_error_handler(array('Open database failed', __LINE__));
 		$this->useTransaction = $transaction;
-		if($transaction) @pg_query($this->con, 'START TRANSACTION;'); // 啟動交易性能模式 (據說會降低效能，但可防止資料寫入不一致)
+		if($transaction) @pg_query($this->con, 'START TRANSACTION;'); // 啟動交易性能模式
 
 		$this->prepared = 1;
 	}
@@ -113,7 +116,7 @@ class PIOpgsql{
 	}
 
 	/* 資料表維護 */
-	function dbMaintanence($action,$doit=false){
+	function dbMaintanence($action, $doit=false){
 		switch($action) {
 			case 'optimize':
 				if($doit){
@@ -162,8 +165,8 @@ class PIOpgsql{
 	pg_escape_string($line[16]).'\',\''.
 	pg_escape_string($line[17]).'\',\''.
 	pg_escape_string($line[18]).'\',\''.
-	$line[19].'\');';
-			if(!$this->_pgsql_call($SQL)) $this->_error_handler('Insert a new post failed', __LINE__);
+	pg_escape_string($line[19]).'\');';
+			$this->_pgsql_call($SQL, array('Insert a new post failed', __LINE__));
 		}
 		$this->dbCommit(); // 送交
 		return true;
@@ -172,11 +175,11 @@ class PIOpgsql{
 	/* 匯出資料來源 */
 	function dbExport(){
 		if(!$this->prepared) $this->dbPrepare();
-		$line = $this->_pgsql_call('SELECT * FROM '.$this->tablename.' ORDER BY no DESC');
+		$line = $this->_pgsql_call('SELECT no,resto,root,md5chksum,category,tim,ext,imgw,imgh,imgsize,tw,th,pwd,now,name,email,sub,com,host,status FROM '.$this->tablename.' ORDER BY no DESC',
+			array('Export posts failed', __LINE__));
 		$data = '';
 		$replaceComma = create_function('$txt', 'return str_replace(",", "&#44;", $txt);');
-		while($row=pg_fetch_array($line, null, PGSQL_ASSOC)){
-			unset($row['time']); // 非必要欄位
+		while($row = pg_fetch_array($line, null, PGSQL_ASSOC)){
 			$row = array_map($replaceComma, $row); // 取代 , 為 &#44;
 			if($row['root']=='1980-01-01 00:00:00') $row['root'] = '0'; // 初始值設為 0
 			$data .= implode(',', $row).",\r\n";
@@ -190,10 +193,11 @@ class PIOpgsql{
 		if(!$this->prepared) $this->dbPrepare();
 
 		if($resno){ // 回傳討論串總文章數目
-			$line = $this->_pgsql_call('SELECT COUNT(no) FROM '.$this->tablename.' WHERE resto = '.$resno);
+			$line = $this->_pgsql_call('SELECT COUNT(no) FROM '.$this->tablename.' WHERE resto = '.intval($resno),
+				array('Fetch count in thread failed', __LINE__));
 			$countline = pg_fetch_result($line, 0, 0) + 1;
 		}else{ // 回傳總文章數目
-			$line = $this->_pgsql_call('SELECT COUNT(no) FROM '.$this->tablename);
+			$line = $this->_pgsql_call('SELECT COUNT(no) FROM '.$this->tablename, array('Fetch count of posts failed', __LINE__));
 			$countline = pg_fetch_result($line, 0, 0);
 		}
 		pg_free_result($line);
@@ -204,7 +208,8 @@ class PIOpgsql{
 	function threadCount(){
 		if(!$this->prepared) $this->dbPrepare();
 
-		$tree = $this->_pgsql_call('SELECT COUNT(no) FROM '.$this->tablename.' WHERE resto = 0');
+		$tree = $this->_pgsql_call('SELECT COUNT(no) FROM '.$this->tablename.' WHERE resto = 0',
+			array('Fetch count of threads failed', __LINE__));
 		$counttree = pg_fetch_result($tree, 0, 0); pg_free_result($tree); // 計算討論串目前資料筆數
 		return $counttree;
 	}
@@ -214,7 +219,7 @@ class PIOpgsql{
 		if(!$this->prepared) $this->dbPrepare();
 
 		if($state=='afterCommit'){ // 送出後的最後文章編號
-			$tree = $this->_pgsql_call('SELECT MAX(no) FROM '.$this->tablename);
+			$tree = $this->_pgsql_call('SELECT MAX(no) FROM '.$this->tablename, array('Get the last No. failed', __LINE__));
 			$lastno = pg_fetch_result($tree, 0, 0); pg_free_result($tree);
 			return $lastno;
 		}else return 0; // 其他狀態沒用
@@ -225,14 +230,16 @@ class PIOpgsql{
 		if(!$this->prepared) $this->dbPrepare();
 
 		$line = array();
+		$resno = intval($resno);
 		if($resno){ // 輸出討論串的結構 (含自己, EX : 1,2,3,4,5,6)
 			$tmpSQL = 'SELECT no FROM '.$this->tablename.' WHERE no = '.$resno.' OR resto = '.$resno.' ORDER BY no';
 		}else{ // 輸出所有文章編號，新的在前
 			$tmpSQL = 'SELECT no FROM '.$this->tablename.' ORDER BY no DESC';
+			$start = intval($start); $amount = intval($amount);
 			if($amount) $tmpSQL .= " LIMIT {$amount} OFFSET {$start}"; // 有指定數量才用 LIMIT
 		}
-		$tree = $this->_pgsql_call($tmpSQL);
-		while($rows=pg_fetch_array($tree)) $line[] = $rows[0]; // 迴圈
+		$tree = $this->_pgsql_call($tmpSQL, array('Fetch post list failed', __LINE__));
+		while($rows = pg_fetch_array($tree)) $line[] = $rows[0]; // 迴圈
 
 		pg_free_result($tree);
 		return $line;
@@ -242,11 +249,12 @@ class PIOpgsql{
 	function fetchThreadList($start=0, $amount=0, $isDESC=false){
 		if(!$this->prepared) $this->dbPrepare();
 
+		$start = intval($start); $amount = intval($amount);
 		$treeline = array();
 		$tmpSQL = 'SELECT no FROM '.$this->tablename.' WHERE resto = 0 ORDER BY '.($isDESC ? 'no' : 'root').' DESC';
 		if($amount) $tmpSQL .= " LIMIT {$amount} OFFSET {$start}"; // 有指定數量才用 LIMIT
-		$tree = $this->_pgsql_call($tmpSQL);
-		while($rows=pg_fetch_array($tree)) $treeline[] = $rows[0]; // 迴圈
+		$tree = $this->_pgsql_call($tmpSQL, array('Fetch thread list failed', __LINE__));
+		while($rows = pg_fetch_array($tree)) $treeline[] = $rows[0]; // 迴圈
 
 		pg_free_result($tree);
 		return $treeline;
@@ -261,8 +269,8 @@ class PIOpgsql{
 			$pno = implode(', ', $postlist); // ID字串
 			$tmpSQL = 'SELECT * FROM '.$this->tablename.' WHERE no IN ('.$pno.') ORDER BY no';
 			if(count($postlist) > 1){ if($postlist[0] > $postlist[1]) $tmpSQL .= ' DESC'; } // 由大排到小
-		}else $tmpSQL = 'SELECT * FROM '.$this->tablename.' WHERE no = '.$postlist; // 取單串
-		$line = $this->_pgsql_call($tmpSQL);
+		}else $tmpSQL = 'SELECT * FROM '.$this->tablename.' WHERE no = '.intval($postlist); // 取單串
+		$line = $this->_pgsql_call($tmpSQL, array('Fetch the post content failed', __LINE__));
 
 		return $this->_ArrangeArrayStructure($line); // 輸出陣列結構
 	}
@@ -273,15 +281,14 @@ class PIOpgsql{
 		if(!$this->prepared) $this->dbPrepare();
 
 		$arr_warn = $arr_kill = array(); // 警告 / 即將被刪除標記陣列
-		if(!$result=$this->_pgsql_call('SELECT no,ext,tim FROM '.$this->tablename." WHERE ext <> '' ORDER BY no")) $this->_error_handler('Get the old post failed', __LINE__);
-		else{
-			while(list($dno, $dext, $dtim)=pg_fetch_array($result)){ // 個別跑舊文迴圈
-				$dfile = $dtim.$dext; // 附加檔案名稱
-				$dthumb = $dtim.'s.jpg'; // 預覽檔案名稱
-				if($FileIO->imageExists($dfile)){ $total_size -= $FileIO->getImageFilesize($dfile) / 1024; $arr_kill[] = $dno; $arr_warn[$dno] = 1; } // 標記刪除
-				if($FileIO->imageExists($dthumb)) $total_size -= $FileIO->getImageFilesize($dthumb) / 1024;
-				if($total_size < $storage_max) break;
-			}
+		$result = $this->_pgsql_call('SELECT no,ext,tim FROM '.$this->tablename." WHERE ext <> '' ORDER BY no",
+			array('Get the old post failed', __LINE__));
+		while(list($dno, $dext, $dtim) = pg_fetch_array($result)){ // 個別跑舊文迴圈
+			$dfile = $dtim.$dext; // 附加檔案名稱
+			$dthumb = $dtim.'s.jpg'; // 預覽檔案名稱
+			if($FileIO->imageExists($dfile)){ $total_size -= $FileIO->getImageFilesize($dfile) / 1024; $arr_kill[] = $dno; $arr_warn[$dno] = 1; } // 標記刪除
+			if($FileIO->imageExists($dthumb)) $total_size -= $FileIO->getImageFilesize($dthumb) / 1024;
+			if($total_size < $storage_max) break;
 		}
 		pg_free_result($result);
 		return $warnOnly ? $arr_warn : $this->removeAttachments($arr_kill);
@@ -293,7 +300,8 @@ class PIOpgsql{
 
 		$files = $this->removeAttachments($posts, true); // 先遞迴取得刪除文章及其回應附件清單
 		$pno = implode(', ', $posts); // ID字串
-		if(!$result=$this->_pgsql_call('DELETE FROM '.$this->tablename.' WHERE no IN ('.$pno.') OR resto IN('.$pno.')')) $this->_error_handler('Delete old posts and replies failed', __LINE__); // 刪掉文章
+		$this->_pgsql_call('DELETE FROM '.$this->tablename.' WHERE no IN ('.$pno.') OR resto IN('.$pno.')',
+			array('Delete old posts and replies failed', __LINE__)); // 刪掉文章
 		return $files;
 	}
 
@@ -307,14 +315,12 @@ class PIOpgsql{
 		if($recursion) $tmpSQL = 'SELECT ext,tim FROM '.$this->tablename.' WHERE (no IN ('.$pno.') OR resto IN('.$pno.")) AND ext <> ''"; // 遞迴取出 (含回應附件)
 		else $tmpSQL = 'SELECT ext,tim FROM '.$this->tablename.' WHERE no IN ('.$pno.") AND ext <> ''"; // 只有指定的編號
 
-		if(!$result=$this->_pgsql_call($tmpSQL)) $this->_error_handler('Get attachments of the post failed', __LINE__);
-		else{
-			while(list($dext, $dtim)=pg_fetch_array($result)){ // 個別跑迴圈
-				$dfile = $dtim.$dext; // 附加檔案名稱
-				$dthumb = $dtim.'s.jpg'; // 預覽檔案名稱
-				if($FileIO->imageExists($dfile)) $files[] = $dfile;
-				if($FileIO->imageExists($dthumb)) $files[] = $dthumb;
-			}
+		$result = $this->_pgsql_call($tmpSQL, array('Get attachments of the post failed', __LINE__));
+		while(list($dext, $dtim) = pg_fetch_array($result)){ // 個別跑迴圈
+			$dfile = $dtim.$dext; // 附加檔案名稱
+			$dthumb = $dtim.'s.jpg'; // 預覽檔案名稱
+			if($FileIO->imageExists($dfile)) $files[] = $dfile;
+			if($FileIO->imageExists($dthumb)) $files[] = $dthumb;
 		}
 		pg_free_result($result);
 		return $files;
@@ -326,22 +332,23 @@ class PIOpgsql{
 
 		$time = (int)substr($tim, 0, -3); // 13位數的數字串是檔名，10位數的才是時間數值
 		$updatetime = gmdate('Y-m-d H:i:s'); // 更動時間 (UTC)
+		$resto = intval($resto);
 		if($resto){ // 新增回應
 			$root = '1980-01-01 00:00:00';
 			if($age){ // 推文
-				$query = 'UPDATE '.$this->tablename.' SET root = \''.$updatetime.'\' WHERE no = '.$resto; // 將被回應的文章往上移動
-				if(!$result=$this->_pgsql_call($query)) $this->_error_handler('Push the post failed', __LINE__);
+				$this->_pgsql_call('UPDATE '.$this->tablename.' SET root = \''.$updatetime.'\' WHERE no = '.$resto,
+					array('Push the post failed', __LINE__)); // 將被回應的文章往上移動
 			}
 		}else $root = $updatetime; // 新增討論串, 討論串最後被更新時間
 
 		$query = 'INSERT INTO '.$this->tablename.' (resto,root,time,md5chksum,category,tim,ext,imgw,imgh,imgsize,tw,th,pwd,now,name,email,sub,com,host,status) VALUES ('.
-	(int)$resto.",'". // 回應編號
+	$resto.",'". // 回應編號
 	$root."',". // 最後更新時間
 	$time.','. // 發文時間數值
 	"'$md5chksum',". // 附加檔案md5
 	"'".pg_escape_string($category)."',". // 分類標籤
 	"'$tim', '$ext',". // 附加檔名
-	$imgw.','.$imgh.",'".$imgsize."',".$tw.','.$th.','. // 圖檔長寬及檔案大小；預覽圖長寬
+	(int)$imgw.','.(int)$imgh.",'".$imgsize."',".(int)$tw.','.(int)$th.','. // 圖檔長寬及檔案大小；預覽圖長寬
 	"'".pg_escape_string($pwd)."',".
 	"'$now',". // 時間(含ID)字串
 	"'".pg_escape_string($name)."',".
@@ -349,7 +356,7 @@ class PIOpgsql{
 	"'".pg_escape_string($sub)."',".
 	"'".pg_escape_string($com)."',".
 	"'".pg_escape_string($host)."', '".pg_escape_string($status)."');";
-		if(!$result=$this->_pgsql_call($query)) $this->_error_handler('Insert a new post failed', __LINE__);
+		$this->_pgsql_call($query, array('Insert a new post failed', __LINE__));
 	}
 
 	/* 檢查是否連續投稿 */
@@ -358,17 +365,17 @@ class PIOpgsql{
 		if(!$this->prepared) $this->dbPrepare();
 
 		if(!$this->ENV['PERIOD.POST']) return false; // 關閉連續投稿檢查
-		$tmpSQL = 'SELECT pwd,host FROM '.$this->tablename.' WHERE time > '.($timestamp - $this->ENV['PERIOD.POST']); // 一般投稿時間檢查
-		if($isupload) $tmpSQL .= ' OR time > '.($timestamp - $this->ENV['PERIOD.IMAGEPOST']); // 附加圖檔的投稿時間檢查 (與下者兩者擇一)
+		$timestamp = intval($timestamp);
+		$tmpSQL = 'SELECT pwd,host FROM '.$this->tablename.' WHERE time > '.($timestamp - (int)$this->ENV['PERIOD.POST']); // 一般投稿時間檢查
+		if($isupload) $tmpSQL .= ' OR time > '.($timestamp - (int)$this->ENV['PERIOD.IMAGEPOST']); // 附加圖檔的投稿時間檢查 (與下者兩者擇一)
 		else $tmpSQL .= " OR md5(com) = '".md5($com)."'"; // 內文一樣的檢查 (與上者兩者擇一)
-		if(!$result=$this->_pgsql_call($tmpSQL)) $this->_error_handler('Get the post to check the succession failed', __LINE__);
-		else{
-			while(list($lpwd, $lhost)=pg_fetch_array($result)){
-				// 判斷為同一人發文且符合連續投稿條件
-				if($host==$lhost || $pass==$lpwd || $passcookie==$lpwd) return true;
-			}
-			return false;
+
+		$result = $this->_pgsql_call($tmpSQL, array('Get the post to check the succession failed', __LINE__));
+		while(list($lpwd, $lhost) = pg_fetch_array($result)){
+			// 判斷為同一人發文且符合連續投稿條件
+			if($host==$lhost || $pass==$lpwd || $passcookie==$lpwd) return true;
 		}
+		return false;
 	}
 
 	/* 檢查是否重複貼圖 */
@@ -376,21 +383,20 @@ class PIOpgsql{
 		global $FileIO;
 		if(!$this->prepared) $this->dbPrepare();
 
-		if(!$result=$this->_pgsql_call('SELECT tim,ext FROM '.$this->tablename." WHERE ext <> '' AND md5chksum = '$md5hash' ORDER BY no DESC")) $this->_error_handler('Get the post to check the duplicate attachment failed', __LINE__);
-		else{
-			while(list($ltim, $lext)=pg_fetch_array($result)){
-				if($FileIO->imageExists($ltim.$lext)) return true; // 有相同檔案
-			}
-			return false;
+		$result = $this->_pgsql_call('SELECT tim,ext FROM '.$this->tablename." WHERE ext <> '' AND md5chksum = '$md5hash' ORDER BY no DESC",
+			array('Get the post to check the duplicate attachment failed', __LINE__));
+		while(list($ltim, $lext) = pg_fetch_array($result)){
+			if($FileIO->imageExists($ltim.$lext)) return true; // 有相同檔案
 		}
+		return false;
 	}
 
 	/* 有此討論串? */
 	function isThread($no){
 		if(!$this->prepared) $this->dbPrepare();
 
-		$result = $this->_pgsql_call('SELECT no FROM '.$this->tablename.' WHERE no = '.$no.' AND resto = 0');
-		return pg_fetch_array($result);
+		$result = $this->_pgsql_call('SELECT no FROM '.$this->tablename.' WHERE no = '.intval($no).' AND resto = 0');
+		return pg_fetch_array($result) ? true : false;
 	}
 
 	/* 搜尋文章 */
@@ -398,11 +404,14 @@ class PIOpgsql{
 		if(!$this->prepared) $this->dbPrepare();
 
 		$keyword_cnt = count($keyword);
-		$SearchQuery = 'SELECT * FROM '.$this->tablename." WHERE {$field} LIKE '%".($keyword[0])."%'";
-		if($keyword_cnt > 1) for($i = 1; $i < $keyword_cnt; $i++) $SearchQuery .= " {$method} {$field} LIKE '%".($keyword[$i])."%'"; // 多重字串交集 / 聯集搜尋
+		$SearchQuery = 'SELECT * FROM '.$this->tablename." WHERE {$field} LIKE '%".pg_escape_string($keyword[0])."%'";
+		if($keyword_cnt > 1){
+			for($i = 1; $i < $keyword_cnt; $i++){
+				$SearchQuery .= " {$method} {$field} LIKE '%".pg_escape_string($keyword[$i])."%'"; // 多重字串交集 / 聯集搜尋
+			}
+		}
 		$SearchQuery .= ' ORDER BY no DESC'; // 按照號碼大小排序
-		if(!$line=$this->_pgsql_call($SearchQuery)) $this->_error_handler('Search the post failed', __LINE__);
-
+		$line = $this->_pgsql_call($SearchQuery, array('Search the post failed', __LINE__));
 		return $this->_ArrangeArrayStructure($line); // 輸出陣列結構
 	}
 
@@ -412,9 +421,8 @@ class PIOpgsql{
 
 		$foundPosts = array();
 		$SearchQuery = 'SELECT no FROM '.$this->tablename." WHERE category ~* ',".pg_escape_string($category).",' ORDER BY no DESC";
-		$line = $this->_pgsql_call($SearchQuery);
-		while($rows=pg_fetch_array($line)) $foundPosts[] = $rows[0];
-
+		$line = $this->_pgsql_call($SearchQuery, array('Search the category failed', __LINE__));
+		while($rows = pg_fetch_array($line)) $foundPosts[] = $rows[0];
 		pg_free_result($line);
 		return $foundPosts;
 	}
@@ -428,11 +436,14 @@ class PIOpgsql{
 	function updatePost($no, $newValues){
 		if(!$this->prepared) $this->dbPrepare();
 
+		$no = intval($no);
 		$chk = array('resto', 'md5chksum', 'category', 'tim', 'ext', 'imgw', 'imgh', 'imgsize', 'tw', 'th', 'pwd', 'now', 'name', 'email', 'sub', 'com', 'host', 'status');
-
-		foreach($chk as $c)
-			if(isset($newValues[$c]))
-				if(!$this->_pgsql_call('UPDATE '.$this->tablename." SET $c = '".pg_escape_string($newValues[$c])."' WHERE no = $no")) $this->_error_handler('Update the field of the post failed', __LINE__); // 更新討論串屬性
+		foreach($chk as $c){
+			if(isset($newValues[$c])){
+				$this->_pgsql_call('UPDATE '.$this->tablename." SET $c = '".pg_escape_string($newValues[$c])."' WHERE no = ".$no,
+					array('Update the field of the post failed', __LINE__)); // 更新討論串屬性
+			}
+		}
 	}
 
 	/* 設定文章屬性 */
