@@ -183,7 +183,7 @@ var boxclicked=0;
 <div id="contents">
 {$THREADFRONT}
 <form action="{$SELF}" method="post">
-<div id="threads">
+<div id="threads" style="clear:both;">
 {$THREADS}
 </div>
 {$THREADREAR}
