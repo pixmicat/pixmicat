@@ -102,7 +102,6 @@ var boxclicked=0;
 <hr />
 </div>
 </form>
-<div style="clear:both"></div>
 <!--&IF($FORMBOTTOM,'{$FORMBOTTOM}','')-->
 <!--/&POSTFORM-->
 
@@ -182,12 +181,12 @@ var boxclicked=0;
 
 <!--&MAIN-->
 <div id="contents">
-<form action="{$SELF}" method="POST">
-<div id="threads">
 {$THREADFRONT}
+<form action="{$SELF}" method="post">
+<div id="threads">
 {$THREADS}
-{$THREADREAR}
 </div>
+{$THREADREAR}
 <div style="clear:both"></div>
 <!--&DELFORM/-->
 <script type="text/javascript">l2();</script>
