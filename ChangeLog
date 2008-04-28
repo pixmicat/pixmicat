@@ -1,5 +1,10 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2008/04/28
+-[pixmicat] 修正類別標籤受到 magic_quotes_gpc() 開啟的影響
+-[pixmicat] 修正 glob() 在找不到回應快取時，因 PHP 的版本別而產生結果差異的錯誤
+-[PIO.sqlite3] 修正類別標籤搜尋時列出的文章沒有按照編號遞減排序
+
 2008/04/17:
 -[PTE][pixmicat-festival] 排版跟預設主題一致化。
 

@@ -1,5 +1,5 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.3-dev (b080331)'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.3-dev (b080428)'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -233,7 +233,9 @@ function updatelog($resno=0,$page_num=-1,$single_page=false){
 			if(STATIC_HTML_UNTIL != -1 && STATIC_HTML_UNTIL==$page) break; // 頁面數目限制
 		}else{ // PHP 輸出 (回應模式/一般動態輸出)
 			if(!$adminMode && $resno && USE_RE_CACHE){ // 更新快取
-				foreach(glob($cacheFile.'*') as $oldCache) unlink($oldCache); // 刪除舊快取
+				if($oldCaches = glob($cacheFile.'*')){
+					foreach($oldCaches as $o) unlink($o); // 刪除舊快取
+				}
 				$fp = fopen($cacheGzipPrefix.$cacheFile.$cacheETag, 'w');
 				fwrite($fp, $dat);
 				fclose($fp);
@@ -331,7 +333,7 @@ function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $
 			$ary_category_count = count($ary_category);
 			$ary_category2 = array();
 			for($p = 0; $p < $ary_category_count; $p++){
-				if($c = $ary_category[$p]) $ary_category2[] = '<a href="'.PHP_SELF.'?mode=category&amp;c='.urlencode($c).'">'.htmlentities($c, ENT_NOQUOTES, 'UTF-8').'</a>';
+				if($c = $ary_category[$p]) $ary_category2[] = '<a href="'.PHP_SELF.'?mode=category&amp;c='.urlencode($c).'">'.$c.'</a>';
 			}
 			$category = implode(', ', $ary_category2);
 		}else $category = '';
@@ -373,7 +375,7 @@ function regist(){
 	$sub = isset($_POST[FT_SUBJECT]) ? CleanStr($_POST[FT_SUBJECT]) : '';
 	$com = isset($_POST[FT_COMMENT]) ? $_POST[FT_COMMENT] : '';
 	$pwd = isset($_POST['pwd']) ? $_POST['pwd'] : '';
-	$category = isset($_POST['category']) ? $_POST['category'] : '';
+	$category = isset($_POST['category']) ? CleanStr($_POST['category']) : '';
 	$resto = isset($_POST['resto']) ? intval($_POST['resto']) : 0;
 	$upfile = isset($_FILES['upfile']['tmp_name']) ? $_FILES['upfile']['tmp_name'] : '';
 	$upfile_path = isset($_POST['upfile_path']) ? $_POST['upfile_path'] : '';
@@ -995,7 +997,7 @@ function search(){
 				$ary_category_count = count($ary_category);
 				$ary_category2 = array();
 				for($p = 0; $p < $ary_category_count; $p++){
-					if($c = $ary_category[$p]) $ary_category2[] = '<a href="'.PHP_SELF.'?mode=category&amp;c='.urlencode($c).'">'.htmlentities($c, ENT_NOQUOTES, 'UTF-8').'</a>';
+					if($c = $ary_category[$p]) $ary_category2[] = '<a href="'.PHP_SELF.'?mode=category&amp;c='.urlencode($c).'">'.$c.'</a>';
 				}
 				$category = implode(', ', $ary_category2);
 			}else $category = '';
@@ -1089,7 +1091,11 @@ function listModules(){
 
 /* 刪除舊頁面快取檔 */
 function deleteCache($no){
-	foreach($no as $n){ foreach(glob('./cache/'.$n.'-*') as $oldCache) @unlink($oldCache); }
+	foreach($no as $n){
+		if($oldCaches = glob('./cache/'.$n.'-*')){
+			foreach($oldCaches as $o) @unlink($o);
+		}
+	}
 }
 
 /* 顯示系統各項資訊 */

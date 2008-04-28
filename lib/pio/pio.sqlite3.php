@@ -28,7 +28,7 @@ class PIOsqlite3{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.6alpha (b20080407)';
+		return '0.6alpha (b20080428)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -384,7 +384,7 @@ class PIOsqlite3{
 	public function searchCategory($category){
 		if(!$this->prepared) $this->dbPrepare();
 
-		$result = $this->con->prepare('SELECT no FROM '.$this->tablename.' WHERE lower(category) LIKE :category');
+		$result = $this->con->prepare('SELECT no FROM '.$this->tablename.' WHERE lower(category) LIKE :category ORDER BY no DESC');
 		$result->execute(array(':category' => '%,'.strtolower($category).',%'));
 		return $result->fetchAll(PDO::FETCH_COLUMN, 0);
 	}
