@@ -44,13 +44,15 @@ mysql_select_db(MYSQL_DBNAME, $con);
 @mysql_query("SET NAMES 'utf8'"); // MySQL資料以UTF-8模式傳送
 
 if(($result = mysql_query("SHOW COLUMNS FROM ".SQLLOG." LIKE 'category'"))  && mysql_num_rows($result) == 0){ // 更新資料表結構
-	mysql_query('ALTER TABLE '.SQLLOG.' ADD category VARCHAR(255) NOT NULL AFTER md5, COMMENT = "For Pixmicat!-PIO [Structure V2]"'); // category
+	mysql_query('ALTER TABLE '.SQLLOG.' ADD category VARCHAR(255) NOT NULL AFTER md5, COMMENT = "For Pixmicat!-PIO [Structure V3]"'); // category
 	mysql_query('ALTER TABLE '.SQLLOG.' ADD imgw SMALLINT(1) NOT NULL AFTER ext'); // imgw
 	mysql_query('ALTER TABLE '.SQLLOG.' ADD imgh SMALLINT(1) NOT NULL AFTER imgw'); // imgh
 	mysql_query('ALTER TABLE '.SQLLOG.' ADD imgsize VARCHAR(10) NOT NULL AFTER imgh'); // imgsize
 	mysql_query('ALTER TABLE '.SQLLOG.' CHANGE md5 md5chksum VARCHAR(32) NOT NULL'); // md5chksum
-	mysql_query('ALTER TABLE '.SQLLOG.' CHANGE w tw SMALLINT(1) NOT NULL'); //tw
-	mysql_query('ALTER TABLE '.SQLLOG.' CHANGE h th SMALLINT(1) NOT NULL'); //th
+	mysql_query('ALTER TABLE '.SQLLOG.' CHANGE w tw SMALLINT(1) NOT NULL'); // tw
+	mysql_query('ALTER TABLE '.SQLLOG.' CHANGE h th SMALLINT(1) NOT NULL'); // th
+	mysql_query('ALTER TABLE '.SQLLOG.' MODIFY status VARCHAR(255) NOT NULL'); // status
+	mysql_query('UPDATE '.SQLLOG.' SET status = "_TS_" WHERE status = "T"'); // status 旗標改變
 	mysql_free_result($result);
 
 	$tmpSQL = 'SELECT no,tim,ext FROM '.SQLLOG.' WHERE ext <> "" ORDER BY no';

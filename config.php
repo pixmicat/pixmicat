@@ -29,9 +29,9 @@ ini_set("memory_limit", '32M'); // PHP運行的最大記憶體使用量 (php內�
 define("FILEIO_BACKEND", 'normal'); // FileIO後端指定
 define("FILEIO_INDEXLOG", 'fileioindex.dat'); // FileIO索引記錄檔 (儲存在本機端)
 define("FILEIO_PARAMETER", ''); // FileIO參數 (本機端儲存)
-//define("FILEIO_PARAMETER", serialize(array('ftp.example.com', 21, 'demo', 'demo', 'PASV', '/pwd/', 'http://www.example.com/~demo/pwd/'))); // FileIO參數 (FTP)
+//define("FILEIO_PARAMETER", serialize(array('ftp.example.com', 21, 'demo', 'demo', 'PASV', '/pwd/', 'http://www.example.com/~demo/pwd/', true))); // FileIO參數 (FTP)
 //define("FILEIO_PARAMETER", serialize(array('00000000000000000000000000000000'))); // FileIO參數 (ImageShack)
-//define("FILEIO_PARAMETER", serialize(array('http://www.example.com/~demo/satellite.cgi', true, '12345678', 'http://www.example.com/~demo/src/'))); // FileIO參數 (Satellite)
+//define("FILEIO_PARAMETER", serialize(array('http://www.example.com/~demo/satellite.cgi', true, '12345678', 'http://www.example.com/~demo/src/', true))); // FileIO參數 (Satellite)
 
 // PIO資料來源設定
 define("CONNECTION_STRING", 'log://img.log:tree.log/'); // PIO 連線字串 (Log)

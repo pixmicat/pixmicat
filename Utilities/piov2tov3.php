@@ -33,13 +33,13 @@ switch(PIXMICAT_BACKEND){
 	case 'sqlite3':
 	case 'log':
 	case 'logflockp':
-		/* 修正 T -> _TS_ */
+		/* 修正 _THREADSTOP_ -> _TS_ */
 		$plist = $PIO->fetchThreadList(0, $PIO->threadCount());
 		$post = $PIO->fetchPosts($plist); // 取出資料
 		$post_count = count($post);
 
 		for($i = 0; $i < $post_count; $i++){
-			$PIO->setPostStatus($post[$i]['no'], str_replace('T', '_TS_', $post[$i]['status']));
+			$PIO->setPostStatus($post[$i]['no'], str_replace('_THREADSTOP_', '_TS_', $post[$i]['status']));
 		}
 		break;
 	default:

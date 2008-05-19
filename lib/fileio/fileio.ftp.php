@@ -10,7 +10,7 @@
  */
 
 class FileIO{
-	var $conn, $parameter;
+	var $conn, $parameter, $thumbLocalPath;
 	var $IFS;
 
 	/* private 登入 FTP */
@@ -37,7 +37,8 @@ class FileIO{
 		$this->IFS->openIndex();
 		register_shutdown_function(array($this, '_ftp_close')); // 設定解構元 (PHP 結束前執行)
 		set_time_limit(120); // 執行時間 120 秒 (FTP 傳輸過程可能很長)
-		$this->parameter = $parameter; // 將參數重新解析
+		$this->thumbLocalPath = $ENV['PATH'].$ENV['THUMB']; // 預覽圖本機位置
+		$this->parameter = $parameter;
 		/*
 			[0] : FTP 伺服器位置
 			[1] : FTP 伺服器埠號
@@ -46,6 +47,7 @@ class FileIO{
 			[4] : 是否使用被動模式？ (PASV: 使用, NOPASV: 不使用)
 			[5] : FTP 預設工作目錄
 			[6] : 工作目錄對應 URL
+			[7] : 預覽圖是否上傳至遠端 (true: 是, false: 否，使用本機檔案)
 		*/
 	}
 
@@ -54,6 +56,7 @@ class FileIO{
 	}
 
 	function imageExists($imgname){
+		if(!$this->parameter[7] && substr($imgname, -5) == 's.jpg') return file_exists($this->thumbLocalPath.$imgname);
 		return $this->IFS->beRecord($imgname);
 	}
 
@@ -61,12 +64,17 @@ class FileIO{
 		if(!$this->_ftp_login()) return false;
 		if(is_array($imgname)){
 			foreach($imgname as $i){
-				if(!ftp_delete($this->conn, $i)) return false;
-				$this->IFS->delRecord($i); // 自索引中刪除
+				if(!$this->parameter[7] && substr($i, -5) == 's.jpg'){
+					@unlink($this->thumbLocalPath.$i);
+				}else{
+					if(!ftp_delete($this->conn, $i)) return false;
+					$this->IFS->delRecord($i); // 自索引中刪除
+				}
 			}
 			return true;
 		}
 		else{
+			if(!$this->parameter[7] && substr($imgname, -5) == 's.jpg') return @unlink($this->thumbLocalPath.$imgname);
 			if($result = ftp_delete($this->conn, $imgname)) $this->IFS->delRecord($imgname);
 			return $result;
 		}
@@ -74,6 +82,7 @@ class FileIO{
 
 	function uploadImage($imgname='', $imgpath='', $imgsize=0){
 		if($imgname=='') return true; // 支援上傳方法
+		if(!$this->parameter[7] && substr($imgname, -5) == 's.jpg') return false; // 不處理預覽圖
 		if(!$this->_ftp_login()) return false;
 		$result = ftp_put($this->conn, $imgname, $imgpath, FTP_BINARY);
 		if($result){
@@ -84,11 +93,13 @@ class FileIO{
 	}
 
 	function getImageFilesize($imgname){
+		if(!$this->parameter[7] && substr($imgname, -5) == 's.jpg') return @filesize($this->thumbLocalPath.$imgname);
 		if($rc = $this->IFS->getRecord($imgname)) return $rc['imgSize'];
 		return false;
 	}
 
 	function getImageURL($imgname){
+		if(!$this->parameter[7] && substr($imgname, -5) == 's.jpg') return $this->getImageLocalURL($imgname);
 		return $this->IFS->beRecord($imgname) ? $this->parameter[6].$imgname : false;
 	}
 }

@@ -68,6 +68,7 @@ if(count(explode(',', $logimg[0])) != 15) die('File structure error. maybe it\'s
 for($i = 0; $i < $logimg_cnt; $i++){
 	$l = explode(',', $logimg[$i]); // 舊資料格式 (用逗號拆開)
 	$s = getImageWH($l[12].$l[9]); // 圖檔寬長 (寬, 長)
+	$l[6] = str_replace('_THREADSTOP_', '_TS_', $l[6]); // 討論串停止旗標自 _THREADSTOP_ 改為 _TS_
 	if(!DEL_ZOMBIE || getReplyTargetNo($l[0]) !== false) $newLine[] = implode(',', array($l[0], getReplyTargetNo($l[0]), $l[13], '', $l[12], $l[9], $s[0], $s[1], getImageSizeText($l[12].$l[9]), (int) $l[10], (int) $l[11], $l[8], $l[1], $l[2], $l[3], $l[4], $l[5], $l[7], $l[6], ''))."\r\n";
 }
 $writeContent = implode('', $newLine);

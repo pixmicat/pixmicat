@@ -10,7 +10,7 @@
  */
 
 class FileIO{
-	var $userAgent, $parameter;
+	var $userAgent, $parameter, $thumbLocalPath;
 	var $IFS;
 
 	/* private 測試連線並且初始化遠端衛星主機 */
@@ -116,6 +116,7 @@ class FileIO{
 		register_shutdown_function(array($this, '_setIndex')); // 設定解構元 (PHP 結束前執行)
 		set_time_limit(120); // 執行時間 120 秒 (傳輸過程可能很長)
 		$this->userAgent = 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)'; // Just for fun ;-)
+		$this->thumbLocalPath = $ENV['PATH'].$ENV['THUMB']; // 預覽圖本機位置
 		$this->parameter = $parameter; // 將參數重新解析
 		$this->parameter[0] = parse_url($this->parameter[0]); // URL 位置拆解
 		/*
@@ -123,6 +124,7 @@ class FileIO{
 			[1] : 是否使用 Transload 方式要求衛星程式抓取圖檔 (true:是　false:否，使用傳統 HTTP 上傳)
 			[2] : 傳輸認證金鑰
 			[3] : 遠端目錄對應 URL
+			[4] : 預覽圖是否上傳至遠端 (true: 是, false: 否，使用本機檔案)
 		*/
 	}
 
@@ -131,18 +133,25 @@ class FileIO{
 	}
 
 	function imageExists($imgname){
+		if(!$this->parameter[4] && substr($imgname, -5) == 's.jpg') return file_exists($this->thumbLocalPath.$imgname);
 		return $this->IFS->beRecord($imgname);
 	}
 
 	function deleteImage($imgname){
 		if(is_array($imgname)){
 			foreach($imgname as $i){
-				if(!$this->_deleteSatellite($i)) return false;
-				$this->IFS->delRecord($i); // 自索引中刪除
+				if(!$this->parameter[4] && substr($i, -5) == 's.jpg'){
+					@unlink($this->thumbLocalPath.$i);
+				}else{
+					if(!$this->_deleteSatellite($i)) return false;
+					$this->IFS->delRecord($i); // 自索引中刪除
+
+				}
 			}
 			return true;
 		}
 		else{
+			if(!$this->parameter[4] && substr($imgname, -5) == 's.jpg') return @unlink($this->thumbLocalPath.$imgname);
 			if($result = $this->_deleteSatellite($imgname)) $this->IFS->delRecord($imgname);
 			return $result;
 		}
@@ -150,6 +159,7 @@ class FileIO{
 
 	function uploadImage($imgname='', $imgpath='', $imgsize=0){
 		if($imgname=='') return true; // 支援上傳方法
+		if(!$this->parameter[4] && substr($imgname, -5) == 's.jpg') return false; // 不處理預覽圖
 		$result = $this->parameter[1] ? $this->_transloadSatellite($imgname) : $this->_uploadSatellite($imgname, $imgpath); // 選擇傳輸方法
 		if($result){
 			$this->IFS->addRecord($imgname, $imgsize, ''); // 加入索引之中
@@ -159,11 +169,13 @@ class FileIO{
 	}
 
 	function getImageFilesize($imgname){
+		if(!$this->parameter[4] && substr($imgname, -5) == 's.jpg') return @filesize($this->thumbLocalPath.$imgname);
 		if($rc = $this->IFS->getRecord($imgname)) return $rc['imgSize'];
 		return false;
 	}
 
 	function getImageURL($imgname){
+		if(!$this->parameter[4] && substr($imgname, -5) == 's.jpg') return $this->getImageLocalURL($imgname);
 		return $this->IFS->beRecord($imgname) ? $this->parameter[3].$imgname : false;
 	}
 }
