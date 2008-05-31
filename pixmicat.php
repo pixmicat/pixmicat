@@ -1,5 +1,5 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.3-dev (b080428)'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.3-dev (b080601)'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -733,7 +733,7 @@ function usrdel(){
 		total_size(true); // 刪除容量快取
 		$PIO->dbCommit();
 	}else error(_T('del_wrongpwornotfound'));
-	if($_POST['func'] == 'delete'){ // 前端管理刪除文章返回管理頁面
+	if(isset($_POST['func']) && $_POST['func'] == 'delete'){ // 前端管理刪除文章返回管理頁面
 		if(isset($_SERVER['HTTP_REFERER'])){
 			header('HTTP/1.1 302 Moved Temporarily');
 			header('Location: '.$_SERVER['HTTP_REFERER']);
