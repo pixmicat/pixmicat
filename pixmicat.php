@@ -1,5 +1,5 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.3-dev (b080601)'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.3-dev (b080703)'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -110,7 +110,7 @@ function updatelog($resno=0,$page_num=-1,$single_page=false){
 		}elseif($page_num > 0) error(_T('page_not_found')); // 沒有回應的情況只允許page_num = 0 或負數
 		else{ $RES_start = 1; $RES_amount = $tree_count; $page_num = 0; } // 輸出全部回應
 
-		if(!$adminMode && USE_RE_CACHE){ // 檢查快取是否仍可使用 / 頁面有無更動
+		if(USE_RE_CACHE && !$adminMode){ // 檢查快取是否仍可使用 / 頁面有無更動
 			$cacheETag = md5(($AllRes ? 'all' : $page_num).'-'.$tree_count); // 最新狀態快取用 ETag
 			$cacheFile = './cache/'.$resno.'-'.($AllRes ? 'all' : $page_num).'.'; // 暫存快取檔位置
 			$cacheGzipPrefix = extension_loaded('zlib') ? 'compress.zlib://' : ''; // 支援 Zlib Compression Stream 就使用
@@ -124,6 +124,8 @@ function updatelog($resno=0,$page_num=-1,$single_page=false){
 				header('ETag: "'.$cacheETag.'"');
 				header('Connection: close');
 				readfile($cacheGzipPrefix.$cacheFile.$cacheETag); return;
+			}else{
+				header('X-Cache: MISS from Pixmicat!');
 			}
 		}
 	}
@@ -232,7 +234,7 @@ function updatelog($resno=0,$page_num=-1,$single_page=false){
 			@chmod($logfilename, 0666);
 			if(STATIC_HTML_UNTIL != -1 && STATIC_HTML_UNTIL==$page) break; // 頁面數目限制
 		}else{ // PHP 輸出 (回應模式/一般動態輸出)
-			if(!$adminMode && $resno && USE_RE_CACHE){ // 更新快取
+			if(USE_RE_CACHE && !$adminMode && $resno && !isset($_GET['upseries'])){ // 更新快取
 				if($oldCaches = glob($cacheFile.'*')){
 					foreach($oldCaches as $o) unlink($o); // 刪除舊快取
 				}

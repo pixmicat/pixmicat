@@ -43,7 +43,7 @@ class PIOmysql{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.6alpha (b20080407)';
+		return '0.6 (v20080407)';
 	}
 
 	/* 處理連線字串/連接 */

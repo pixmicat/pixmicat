@@ -28,7 +28,7 @@ class PIOsqlite3{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.6alpha (b20080428)';
+		return '0.6 (v20080428)';
 	}
 
 	/* 處理連線字串/連接 */
