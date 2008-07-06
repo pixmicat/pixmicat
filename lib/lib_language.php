@@ -25,7 +25,7 @@ function LoadLanguage($locale = 'en_US') {
 		include_once("./lib/lang/en_US.php");
 	foreach($langattechment as $lf) call_user_func($lf); // Attech other language strings
 }
-function AttechLanguage($fcall){
+function AttachLanguage($fcall){
 	global $langattechment;
 	$langattechment[]=$fcall;
 }
