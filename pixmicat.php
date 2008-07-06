@@ -443,7 +443,7 @@ function regist(){
 			list(,$boundary) = explode('=', $_SERVER['CONTENT_TYPE']);
 			foreach($_POST as $header => $value){ // 表單欄位傳送資料
 				$upsizeHDR += strlen('--'.$boundary."\r\n");
-				$upsizeHDR += strlen('Content-Disposition: form-data; name="$header"'."\r\n\r\n".(get_magic_quotes_gpc()?stripslashes($value):$value)."\r\n");
+				$upsizeHDR += strlen('Content-Disposition: form-data; name="'.$header.'"'."\r\n\r\n".(get_magic_quotes_gpc()?stripslashes($value):$value)."\r\n");
 			}
 			// 附加圖檔欄位傳送資料
 			$upsizeHDR += strlen('--'.$boundary."\r\n");
