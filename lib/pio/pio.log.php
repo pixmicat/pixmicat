@@ -451,7 +451,7 @@ class PIOlog{
 	}
 
 	/* 檢查是否重複貼圖 */
-	function isDuplicateAttechment($lcount, $md5hash){
+	function isDuplicateAttachment($lcount, $md5hash){
 		global $FileIO;
 
 		$pcount = $this->postCount();

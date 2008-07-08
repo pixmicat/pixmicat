@@ -348,7 +348,7 @@ class PIOsqlite3{
 	}
 
 	/* 檢查是否重複貼圖 */
-	public function isDuplicateAttechment($lcount, $md5hash){
+	public function isDuplicateAttachment($lcount, $md5hash){
 		global $FileIO;
 		if(!$this->prepared) $this->dbPrepare();
 

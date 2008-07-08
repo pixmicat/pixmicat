@@ -563,7 +563,7 @@ function regist(){
 	$checkcount = 50; // 預設檢查50筆資料
 	$pwdc = substr(md5($pwdc), 2, 8); // Cookies密碼
 	if($PIO->isSuccessivePost($checkcount, $com, $time, $pass, $pwdc, $host, $upfile_name)) error(_T('regist_successivepost'), $dest); // 連續投稿檢查
-	if($dest){ if($PIO->isDuplicateAttechment($checkcount, $md5chksum)) error(_T('regist_duplicatefile'), $dest); } // 相同附加圖檔檢查
+	if($dest){ if($PIO->isDuplicateAttachment($checkcount, $md5chksum)) error(_T('regist_duplicatefile'), $dest); } // 相同附加圖檔檢查
 	if($resto) $ThreadExistsBefore = $PIO->isThread($resto);
 
 	// 舊文章刪除處理
