@@ -26,7 +26,8 @@ function LoadLanguage($locale = 'en_US') {
 	foreach($langattachment as $lf) call_user_func($lf); // Attach other language strings
 }
 function AttachLanguage($fcall){
-	global $langattachment;
+	global $langattachment,$language;
 	$langattachment[]=$fcall;
+	call_user_func($fcall);
 }
 ?>
