@@ -2,12 +2,13 @@
 /*
 Pixmicat! Language module loader
 */
-$langattachment=array();
+$langloaded = false; // Is language file loaded?
 
 function _T(/*$arg1, $arg2...$argN*/) {
-	global $language,$langattachment;
-	if (!isset($language))	// language file is not loaded
-		LoadLanguage(PIXMICAT_LANGUAGE);
+	global $language,$langloaded;
+	if (!$langloaded){ // language file is not loaded
+		LoadLanguage(PIXMICAT_LANGUAGE); $langloaded = true;
+	}
 	if (!func_num_args()) // called with no arg
 		return '';
 	$arg_list = func_get_args();
@@ -16,18 +17,19 @@ function _T(/*$arg1, $arg2...$argN*/) {
 }
 
 function LoadLanguage($locale = 'en_US') {
-	global $language,$langattachment;
+	global $language;
 	if(!defined('PIXMICAT_LANGUAGE') || defined('PIXMICAT_LANGUAGE_OVERLOADING')) // language overloading
 		include_once("./lib/lang/en_US.php");
 	if (file_exists("./lib/lang/$locale.php"))
 		include_once("./lib/lang/$locale.php");
 	else
 		include_once("./lib/lang/en_US.php");
-	foreach($langattachment as $lf) call_user_func($lf); // Attach other language strings
 }
 function AttachLanguage($fcall){
-	global $langattachment,$language;
-	$langattachment[]=$fcall;
-	LoadLanguage(PIXMICAT_LANGUAGE); // reload language
+	global $language,$langloaded;
+	if (!$langloaded){ // language file is not loaded
+		LoadLanguage(PIXMICAT_LANGUAGE); $langloaded = true;
+	}
+	call_user_func($fcall);
 }
 ?>
