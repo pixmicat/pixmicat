@@ -28,6 +28,6 @@ function LoadLanguage($locale = 'en_US') {
 function AttachLanguage($fcall){
 	global $langattachment,$language;
 	$langattachment[]=$fcall;
-	call_user_func($fcall);
+	LoadLanguage(PIXMICAT_LANGUAGE); // reload language
 }
 ?>
