@@ -404,10 +404,10 @@ class PIOpgsql{
 		if(!$this->prepared) $this->dbPrepare();
 
 		$keyword_cnt = count($keyword);
-		$SearchQuery = 'SELECT * FROM '.$this->tablename." WHERE {$field} LIKE '%".pg_escape_string($keyword[0])."%'";
+		$SearchQuery = 'SELECT * FROM '.$this->tablename." WHERE {$field} ILIKE '%".pg_escape_string($keyword[0])."%'";
 		if($keyword_cnt > 1){
 			for($i = 1; $i < $keyword_cnt; $i++){
-				$SearchQuery .= " {$method} {$field} LIKE '%".pg_escape_string($keyword[$i])."%'"; // 多重字串交集 / 聯集搜尋
+				$SearchQuery .= " {$method} {$field} ILIKE '%".pg_escape_string($keyword[$i])."%'"; // 多重字串交集 / 聯集搜尋
 			}
 		}
 		$SearchQuery .= ' ORDER BY no DESC'; // 按照號碼大小排序
