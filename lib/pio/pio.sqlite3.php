@@ -22,6 +22,7 @@ class PIOsqlite3{
 	/* private 攔截SQL錯誤 */
 	private function _error_handler($errtext, $errline){
 		$err = "Pixmicat! SQL Error: $errtext on line $errline";
+		//error_log($err."\n".print_r($this->con->errorInfo(),true)."\n", 3, 'error.log');
 		trigger_error($err, E_USER_ERROR);
 		exit();
 	}

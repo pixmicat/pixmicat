@@ -1,5 +1,5 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.3-dev (b080703)'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.3-dev (b080727)'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -1171,7 +1171,7 @@ function showstatus(){
 <tr align="center"><td>'._T('info_fileusage_count').'</td><td colspan="2"><span style="color: #'.$clrflag_sl.'">'.$tmp_total_size.' KB</span></td></tr>';
 	}else{
 		$dat .= '
-<tr align="center"><td>'._T('info_fileusage_count').'</td><td>'.$tmp_total_size.' KB</td><td>'._T('info_dsusage_usage').'<br /><span style="color: green;">'._T('info_fileusage_unlimited').'</span></td></tr>';
+<tr align="center"><td>'._T('info_fileusage_count').'</td><td>'.$tmp_total_size.' KB</td><td colspan="2">'._T('info_dsusage_usage').'<br /><span style="color: green;">'._T('info_fileusage_unlimited').'</span></td></tr>';
 	}
 
 	$dat .= '

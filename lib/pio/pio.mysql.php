@@ -22,6 +22,7 @@ class PIOmysql{
 	/* private 攔截SQL錯誤 */
 	function _error_handler($errarray){
 		$err = 'Pixmicat! SQL Error: '.$errarray[0].' on line '.$errarray[1];
+		//error_log($err."\n".mysql_errno().': '.mysql_error()."\n\n", 3, 'error.log');
 		trigger_error($err, E_USER_ERROR);
 		exit();
 	}
