@@ -1,7 +1,6 @@
 <?php
 /*
 PIO - Pixmicat! data source I/O
-PIO Kernel Switcher
 */
 
 // 協助設定 status 旗標的類別
@@ -31,8 +30,10 @@ class FlagHelper{
 
 	function value($flag){
 		$wholeflag = $this->get($flag);
-		if(strpos($wholeflag, ':')!==false) return explode(':', preg_replace('/^'.$flag.'\:/', '', $wholeflag));
-		else return $wholeflag !== false;
+		if($scount = substr_count($wholeflag, ':')){
+			$wholeflag = preg_replace('/^'.$flag.'\:/', '', $wholeflag);
+			return ($scount > 1 ? explode(':', $wholeflag) : $wholeflag);
+		}else return $wholeflag !== false;
 	}
 
 	function add($flag, $value=null){
@@ -44,6 +45,7 @@ class FlagHelper{
 			$ifexist = $this->get($flag);
 			if($ifexist !== $flag) $this->_write($this->toString()."_${flag}_");
 		}else{
+			if(is_array($value)) $value = $this->join($value); // Array Flatten
 			$ifexist = $this->get($flag);
 			if($ifexist !== $flag.':'.$value){
 				if($ifexist) $this->_write($this->replace($ifexist, "$flag:$value")); // 已立flag，不同值
@@ -64,9 +66,16 @@ class FlagHelper{
 	}
 
 	function toggle($flag){
-		if($this->get($flag)) return $this->remove($flag);
-		else return $this->add($flag);
+		return ($this->get($flag) ? $this->remove($flag) : $this->add($flag));
 	}
+
+	function offsetValue($flag, $d=0){
+		$v = intval($this->value($flag));
+		return $this->update($flag, $v + $d);
+	}
+
+	function plus($flag){ return $this->offsetValue($flag, 1); }
+	function minus($flag){ return $this->offsetValue($flag, -1); }
 
 	function join(){
 		$arg = func_get_args();
