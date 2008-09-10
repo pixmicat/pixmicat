@@ -1,5 +1,5 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.3 (v080903)'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.3 (v080910)'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -56,7 +56,7 @@ function updatelog($resno=0,$page_num=-1,$single_page=false){
 	if($adminMode){
 		$adminFunc = '<select name="func"><option value="delete">'._T('admin_delete').'</option>';
 		$funclist = array();
-		$PMS->useModuleMethods('AdminFunction', array('add', &$funclist)); // "AdminFunction" Hook Point
+		$PMS->useModuleMethods('AdminFunction', array('add', &$funclist, null, null)); // "AdminFunction" Hook Point
 		foreach($funclist as $f) $adminFunc .= '<option value="'.$f[0].'">'.$f[1].'</option>'."\n";
 		$adminFunc .= '</select>';
 	}
@@ -894,7 +894,7 @@ _ADMINEOF_;
 <p>
 <select name="func"><option value="delete">'._T('admin_delete').'</option>';
 	$funclist = array();
-	$PMS->useModuleMethods('AdminFunction', array('add', &$funclist)); // "AdminFunction" Hook Point
+	$PMS->useModuleMethods('AdminFunction', array('add', &$funclist, null, null)); // "AdminFunction" Hook Point
 	foreach($funclist as $f) echo '<option value="'.$f[0].'">'.$f[1].'</option>';
 	echo '</select>
 <input type="submit" value="'._T('admin_submit_btn').'" /> <input type="reset" value="'._T('admin_reset_btn').'" /> [<input type="checkbox" name="onlyimgdel" id="onlyimgdel" value="on" /><label for="onlyimgdel">'._T('del_img_only').'</label>]</p>
