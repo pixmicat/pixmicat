@@ -1,5 +1,5 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.3 (v080910)'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.4-dev (b080920)'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -580,7 +580,7 @@ function regist(){
 	// 附加圖檔容量限制功能啟動：刪除過大檔
 	if(STORAGE_LIMIT && STORAGE_MAX > 0){
 		$tmp_total_size = total_size(); // 取得目前附加圖檔使用量
-		if($tmp_total_size >= STORAGE_MAX){
+		if($tmp_total_size > STORAGE_MAX){
 			$files = $PIO->delOldAttachments($tmp_total_size, STORAGE_MAX, false);
 			$FileIO->deleteImage($files);
 		}
@@ -760,7 +760,7 @@ function valid(){
 	$dat = '';
 	head($dat);
 	$links = '[<a href="'.PHP_SELF2.'?'.time().'">'._T('return').'</a>] [<a href="'.PHP_SELF.'?mode=remake">'._T('admin_remake').'</a>] [<a href="'.PHP_SELF.'?page_num=0">'._T('admin_frontendmanage').'</a>]';
-	$PMS->useModuleMethods('LinksAboveBar', array(&$links,'admin',$haveperm)); // LinksAboveBar hook point
+	$PMS->useModuleMethods('LinksAboveBar', array(&$links,'admin',$isCheck)); // LinksAboveBar hook point
 	$dat .= '<div id="banner">'.$links.'<div class="bar_admin">'._T('admin_top').'</div>
 </div>
 <form action="'.PHP_SELF.'" method="post" name="adminform">

@@ -100,7 +100,7 @@ class PIOlogflockp{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.5 (v20071013)';
+		return '0.5 (v20080920)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -372,6 +372,7 @@ class PIOlogflockp{
 	/* 刪除文章 */
 	function removePosts($posts){
 		if(!$this->prepared) $this->dbPrepare();
+		if(count($posts)==0) return array();
 
 		$posts = $this->_includeReplies($posts); // 包含所有回文
 		$filelist = $this->removeAttachments($posts); // 欲刪除附件
@@ -401,6 +402,7 @@ class PIOlogflockp{
 	function removeAttachments($posts){
 		global $FileIO;
 		if(!$this->prepared) $this->dbPrepare();
+		if(count($posts)==0) return array();
 
 		$files = array();
 		$logsarray = $this->_ArrangeArrayStructure($posts); // 分析資料為陣列

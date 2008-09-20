@@ -20,8 +20,9 @@ class PIOpgsql{
 	}
 
 	/* private 攔截SQL錯誤 */
-	function _error_handler($errarray){
+	function _error_handler($errarray, $query=''){
 		$err = 'Pixmicat! SQL Error: '.$errarray[0].' on line '.$errarray[1];
+		//error_log($err."\n".pg_last_error($this->con)."\n".$query."\n\n", 3, 'error.log');
 		trigger_error($err, E_USER_ERROR);
 		exit();
 	}
@@ -29,7 +30,7 @@ class PIOpgsql{
 	/* private 使用SQL字串和PostgreSQL伺服器要求 */
 	function _pgsql_call($query, $errarray=false){
 		$resource = pg_query($this->con, $query);
-		if(is_array($errarray) && $resource===false) $this->_error_handler($errarray);
+		if(is_array($errarray) && $resource===false) $this->_error_handler($errarray, $query);
 		else return $resource;
 	}
 
@@ -43,7 +44,7 @@ class PIOpgsql{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.6 (v20080407)';
+		return '0.6 (v20080920)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -297,6 +298,7 @@ class PIOpgsql{
 	/* 刪除文章 */
 	function removePosts($posts){
 		if(!$this->prepared) $this->dbPrepare();
+		if(count($posts)==0) return array();
 
 		$files = $this->removeAttachments($posts, true); // 先遞迴取得刪除文章及其回應附件清單
 		$pno = implode(', ', $posts); // ID字串
@@ -309,6 +311,7 @@ class PIOpgsql{
 	function removeAttachments($posts, $recursion=false){
 		global $FileIO;
 		if(!$this->prepared) $this->dbPrepare();
+		if(count($posts)==0) return array();
 
 		$files = array();
 		$pno = implode(', ', $posts); // ID字串
