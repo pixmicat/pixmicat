@@ -4,6 +4,8 @@
 -[pixmicat] 修正發文後判斷附加圖檔容量過大開始刪除的敘述 (>= 改成 >)
 -[pixmicat] 修改管理區上方的連結列 (LinksAboveBar) 是否登入的判斷參數
 -[PIO] 新增 remove 系方法的 $posts 參數為空之錯誤處理
+-[pixmicat] 修正後端登入之 Authenticate 掛載點
+-[lib_common] 修正發文框下方說明列，回應模式時附加圖檔尺寸限制沒有正確反映的問題
 
 2008/09/10 : 4th.Release.3 (v080910)
 -[PMS] 修正 PHP 4 的相容性問題

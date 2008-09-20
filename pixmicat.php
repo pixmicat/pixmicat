@@ -751,11 +751,10 @@ function valid(){
 	$haveperm = false;
 	$isCheck = adminAuthenticate('check'); // 登入是否正確
 	if(!$isCheck && $pass){
-		if(!($haveperm = ($pass == ADMIN_PASS))){
-			$PMS->useModuleMethods('Authenticate', array($pass,'admin',&$haveperm));
-			if(!$haveperm) error(_T('admin_wrongpassword'));
-		}
+		$haveperm = ($pass == ADMIN_PASS);
+		$PMS->useModuleMethods('Authenticate', array($pass,'admin',&$haveperm));
 		if($haveperm){ adminAuthenticate('login'); $isCheck = true; }
+		else error(_T('admin_wrongpassword'));
 	}
 	$dat = '';
 	head($dat);
@@ -1204,7 +1203,7 @@ function init(){
 if(GZIP_COMPRESS_LEVEL && ($Encoding = CheckSupportGZip())){ ob_start(); ob_implicit_flush(0); } // 支援且開啟Gzip壓縮就設緩衝區
 $mode = isset($_GET['mode']) ? $_GET['mode'] : (isset($_POST['mode']) ? $_POST['mode'] : ''); // 目前執行模式 (GET, POST)
 
-init(); // ←■■！程式環境初始化，跑過一次後請刪除此行！■■
+//init(); // ←■■！程式環境初始化，跑過一次後請刪除此行！■■
 switch($mode){
 	case 'regist':
 		regist();

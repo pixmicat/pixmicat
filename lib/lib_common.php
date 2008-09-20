@@ -58,7 +58,7 @@ function form(&$dat, $resno, $iscollapse=true, $retURL=PHP_SELF, $name='', $mail
 		'{$FORM_DELETE_PASSWORD_TEXT}' => _T('form_delete_password'),
 		'{$FORM_DELETE_PASSWORD_NOTICE}' => _T('form_delete_password_notice'),
 		'{$FORM_EXTRA_COLUMN}' => '',
-		'{$FORM_NOTICE}' => _T('form_notice',str_replace('|',', ',ALLOW_UPLOAD_EXT),MAX_KB,MAX_W,MAX_H),
+		'{$FORM_NOTICE}' => _T('form_notice',str_replace('|',', ',ALLOW_UPLOAD_EXT),MAX_KB,($resno ? MAX_RW : MAX_W),($resno ? MAX_RH : MAX_H)),
 		'{$HOOKPOSTINFO}' => '',
 		'{$ADDITION_INFO}' => $ADDITION_INFO,
 		'{$FORM_NOTICE_NOSCRIPT}' => _T('form_notice_noscript'));
