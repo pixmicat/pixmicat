@@ -44,6 +44,7 @@ class CheckEnvironment{
 		}
 		foreach($ary as $value){
 			if(@is_file($value.DIRECTORY_SEPARATOR.$filename)){ return ($value.DIRECTORY_SEPARATOR.$filename); }
+			if(@realpath($value.DIRECTORY_SEPARATOR.$filename)){ return ($value.DIRECTORY_SEPARATOR.$filename); } // smbfs workaround, from http://php.net/file-exists#82269
 		}
 		return false;
 	}
@@ -157,7 +158,7 @@ class CheckEnvironment{
 
 		@exec("\"$_exec\" -version", $status, $retval);
 		$a = null;
-		if($retval===0 && preg_match('/^Version: (.*)/', $status[0], $a)){
+		if(preg_match('/^Version: (.*)/', $status[0], $a)){
 			return $a[1]."\n\t\t".'- Location guessed: '.$_exec;
 		}else{ return false; }
 	}
