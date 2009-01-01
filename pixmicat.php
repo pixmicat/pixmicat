@@ -426,7 +426,7 @@ function regist(){
 	}
 
 	// 如果有上傳檔案則處理附加圖檔
-	if($upfile && is_file($upfile)){
+	if($upfile && (@is_uploaded_file($upfile) || @is_file($upfile))){
 		// 一‧先儲存檔案
 		$dest = $path.$tim.'.tmp';
 		@move_uploaded_file($upfile, $dest) or @copy($upfile, $dest);
