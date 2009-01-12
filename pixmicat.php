@@ -1,9 +1,9 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.4-dev (b080920)'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.4-dev (b090112)'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
-版權所有 © 2005-2008 Pixmicat! Development Team
+版權所有 © 2005-2009 Pixmicat! Development Team
 
 版權聲明：
 此程式是基於レッツPHP!<http://php.s3.to/>的gazou.php、
@@ -181,9 +181,9 @@ function updatelog($resno=0,$page_num=-1,$single_page=false){
 				$pte_vals['{$PAGENAV}'] .= "</td><td>";
 				if($tree_count==0) $pte_vals['{$PAGENAV}'] .= '[<b>0</b>] '; // 無回應
 				else{
-					for($i = 0; $i < $tree_count ; $i += RE_PAGE_DEF){
-						if(!$AllRes && $page_num==$i/RE_PAGE_DEF) $pte_vals['{$PAGENAV}'] .= '[<b>'.$i/RE_PAGE_DEF.'</b>] ';
-						else $pte_vals['{$PAGENAV}'] .= '[<a href="'.PHP_SELF.'?res='.$resno.'&amp;page_num='.$i/RE_PAGE_DEF.'">'.$i/RE_PAGE_DEF.'</a>] ';
+					for($i = 0, $len = $tree_count / RE_PAGE_DEF; $i < $len; $i++){
+						if(!$AllRes && $page_num==$i) $pte_vals['{$PAGENAV}'] .= '[<b>'.$i.'</b>] ';
+						else $pte_vals['{$PAGENAV}'] .= '[<a href="'.PHP_SELF.'?res='.$resno.'&amp;page_num='.$i.'">'.$i.'</a>] ';
 					}
 					$pte_vals['{$PAGENAV}'] .= $AllRes ? '[<b>'._T('all_pages').'</b>] ' : ($tree_count > RE_PAGE_DEF ? '[<a href="'.PHP_SELF.'?res='.$resno.'&amp;page_num=all">'._T('all_pages').'</a>] ' : '');
 				}
@@ -202,12 +202,13 @@ function updatelog($resno=0,$page_num=-1,$single_page=false){
 				$pte_vals['{$PAGENAV}'] .= '<div><input type="submit" value="'._T('prev_page').'" /></div></form></td>';
 			}else $pte_vals['{$PAGENAV}'] .= '<td style="white-space: nowrap;">'._T('first_page').'</td>';
 			$pte_vals['{$PAGENAV}'] .= '<td>';
-			for($i = 0; $i < $threads_count ; $i += PAGE_DEF){
-				if($page==$i/PAGE_DEF) $pte_vals['{$PAGENAV}'] .= "[<b>".$i/PAGE_DEF."</b>] ";
+			for($i = 0, $len = $threads_count / PAGE_DEF; $i < $len; $i++){
+				if($page==$i) $pte_vals['{$PAGENAV}'] .= "[<b>".$i."</b>] ";
 				else{
+					$pageNext = ($i==$next) ? ' rel="next"' : '';
 					if(!$adminMode && $i==0) $pte_vals['{$PAGENAV}'] .= '[<a href="'.PHP_SELF2.'?">0</a>] ';
-					elseif($adminMode || STATIC_HTML_UNTIL != -1 && $i/PAGE_DEF > STATIC_HTML_UNTIL) $pte_vals['{$PAGENAV}'] .= '[<a href="'.PHP_SELF.'?page_num='.$i/PAGE_DEF.'">'.$i/PAGE_DEF.'</a>] ';
-					else $pte_vals['{$PAGENAV}'] .= '[<a href="'.$i/PAGE_DEF.PHP_EXT.'?">'.$i/PAGE_DEF.'</a>] ';
+					elseif($adminMode || (STATIC_HTML_UNTIL != -1 && $i > STATIC_HTML_UNTIL)) $pte_vals['{$PAGENAV}'] .= '[<a href="'.PHP_SELF.'?page_num='.$i.'"'.$pageNext.'>'.$i.'</a>] ';
+					else $pte_vals['{$PAGENAV}'] .= '[<a href="'.$i.PHP_EXT.'?"'.$pageNext.'>'.$i.'</a>] ';
 				}
 			}
 			$pte_vals['{$PAGENAV}'] .= '</td>';

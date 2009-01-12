@@ -1,5 +1,5 @@
 <!--&THEMENAME-->futaba Theme<!--/&THEMENAME-->
-<!--&THEMEVER-->v20071006<!--/&THEMEVER-->
+<!--&THEMEVER-->v20090112<!--/&THEMEVER-->
 <!--&THEMEAUTHOR-->Pixmicat! Development Team<!--/&THEMEAUTHOR-->
 
 <!--&HEADER--><?xml version="1.0" encoding="UTF-8"?>
@@ -152,7 +152,7 @@ var ext="{$ALLOW_UPLOAD_EXT}".toUpperCase().split("|");
 <div id="contents">
 {$THREADFRONT}
 <form action="{$SELF}" method="post">
-<div id="threads">
+<div id="threads" class="autopagerize_page_element">
 {$THREADS}
 </div>
 {$THREADREAR}

@@ -1,5 +1,9 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2009/01/12
+-[pixmicat] 修改分頁運算方法
+-[inc_pixmicat] 支援 AutoPagerize 套件換頁定義 (http://userscripts.org/scripts/show/8551)
+
 2008/11/30
 -[pixmicat] 修改上傳圖檔判斷是否存在的方法 (增加 is_uploaded_file() 偵測法)
 
