@@ -1,6 +1,6 @@
 <!-- Theme Description -->
 <!--&THEMENAME-->Pixmicat!-Festival Theme<!--/&THEMENAME-->
-<!--&THEMEVER-->v20071006<!--/&THEMEVER-->
+<!--&THEMEVER-->v20090321<!--/&THEMEVER-->
 <!--&THEMEAUTHOR-->Pixmicat! Development Team<!--/&THEMEAUTHOR-->
 
 <!-- Theme Settings -->
@@ -46,7 +46,7 @@ var ext="{$ALLOW_UPLOAD_EXT}".toUpperCase().split("|");
 var boxclicked=0;
 //--><!]]></script>
 <script type="text/javascript" src="mainscript.js"></script>
-<!--[if IE]><script type="text/javascript" src="iedivfix.js"></script><![endif]-->
+<!--[if lt IE 8]><script type="text/javascript" src="iedivfix.js"></script><![endif]-->
 <!--/&JSHEADER-->
 
 <!--&TOPLINKS-->

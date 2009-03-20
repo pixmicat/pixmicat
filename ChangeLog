@@ -1,5 +1,8 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2009/03/21
+-[inc_pixmicat] 因應 IE8 推出，修改針對舊版 IE 的 Bugfix 判斷條件
+
 2009/01/12
 -[pixmicat] 修改分頁運算方法
 -[inc_pixmicat] 支援 AutoPagerize 套件換頁定義 (http://userscripts.org/scripts/show/8551)

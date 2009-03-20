@@ -1,5 +1,5 @@
 <!--&THEMENAME-->futaba Theme<!--/&THEMENAME-->
-<!--&THEMEVER-->v20090112<!--/&THEMEVER-->
+<!--&THEMEVER-->v20090321<!--/&THEMEVER-->
 <!--&THEMEAUTHOR-->Pixmicat! Development Team<!--/&THEMEAUTHOR-->
 
 <!--&HEADER--><?xml version="1.0" encoding="UTF-8"?>
@@ -22,7 +22,7 @@ var ext="{$ALLOW_UPLOAD_EXT}".toUpperCase().split("|");
 // ]]>
 </script>
 <script type="text/javascript" src="mainscript.js"></script>
-<!--[if IE]><script type="text/javascript" src="iedivfix.js"></script><![endif]-->
+<!--[if lt IE 8]><script type="text/javascript" src="iedivfix.js"></script><![endif]-->
 <!--/&JSHEADER-->
 
 <!--&TOPLINKS-->
