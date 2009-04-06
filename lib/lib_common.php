@@ -246,9 +246,11 @@ function adminAuthenticate($mode){
 
 /* 取得 (Transparent) Proxy 提供之 IP 參數 */
 function getREMOTE_ADDR(){
-	if(isset($_SERVER['HTTP_X_FORWARDED_FOR'])){
+	// 同時有 VIA 和 FORWARDED_FOR 較可能為 Proxy
+	if(isset($_SERVER['HTTP_VIA']) && isset($_SERVER['HTTP_X_FORWARDED_FOR'])){
 		$tmp = preg_split('/[ ,]+/', $_SERVER['HTTP_X_FORWARDED_FOR']);
-		return $tmp[0];
+		// 防止 Squid "unknown" 問題，此種情況直接使用 REMOTE_ADDR
+		return ($tmp[0] != 'unknown' ? $tmp[0] : $_SERVER['REMOTE_ADDR']);
 	}
 	return $_SERVER['REMOTE_ADDR'];
 }

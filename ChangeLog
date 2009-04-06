@@ -1,5 +1,8 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2009/04/02
+-[lib_common] 修改 getREMOTE_ADDR() 對 HTTP_X_FORWARDED_FOR 的使用問題
+
 2009/03/21
 -[inc_pixmicat] 因應 IE8 推出，修改針對舊版 IE 的 Bugfix 判斷條件
 
