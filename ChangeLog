@@ -1,5 +1,8 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2009/04/25
+-[pixmicat] 修正發文時重複引用同一文章多次後造成的HTML重複問題
+
 2009/04/02
 -[lib_common] 修改 getREMOTE_ADDR() 對 HTTP_X_FORWARDED_FOR 的使用問題
 

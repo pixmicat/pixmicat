@@ -1,5 +1,5 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.4-dev (b090112)'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Release.4-dev (b090425)'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -280,7 +280,9 @@ function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $
 		$com = quoteLight($com);
 		if(USE_QUOTESYSTEM && $i){ // 啟用引用瀏覽系統
 			if(preg_match_all('/((?:&gt;|＞)+)(?:No\.)?(\d+)/i', $com, $matches, PREG_SET_ORDER)){ // 找尋>>No.xxx
-				foreach($matches as $val){
+				$matches_unique = array();
+				foreach($matches as $val){ if(!in_array($val, $matches_unique)) array_push($matches_unique, $val); }
+				foreach($matches_unique as $val){
 					if(isset($tree_clone[$val[2]])){
 						$r_page = $tree_clone[$val[2]]; // 引用回應在整體討論串中的位置
 						// 在此頁顯示區間內，輸出錨點即可
