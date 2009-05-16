@@ -313,7 +313,7 @@ function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $
 		// 設定回應 / 引用連結
 		if($resno){ // 回應模式
 			if($showquotelink) $QUOTEBTN = '<a href="javascript:quote('.$no.');" class="qlink">No.'.$no.'</a>';
-			else $QUOTEBTN = '<a href="#" class="qlink">No.'.$no.'</a>';
+			else $QUOTEBTN = '<a href="'.PHP_SELF.'?res='.$tree.'&amp;page_num=all#r'.$no.'" class="qlink">No.'.$no.'</a>';
 		}else{
 			if(!$i)	$REPLYBTN = '[<a href="'.PHP_SELF.'?res='.$no.'">'._T('reply_btn').'</a>]'; // 首篇
 			$QUOTEBTN = '<a href="'.PHP_SELF.'?res='.$tree[0].'#q'.$no.'" class="qlink">No.'.$no.'</a>';
@@ -1045,7 +1045,7 @@ function searchCategory(){
 	$dat .= "<div>$links</div>\n";
 	for($i = 0; $i < $loglist_cut_count; $i++){
 		$posts = $PIO->fetchPosts($loglist_cut[$i]); // 取得文章內容
-		$dat .= arrangeThread($PTE, null, null, $posts, 0, $loglist_cut[$i], array(), array(), false, false, false); // 逐個輸出 (引用連結不顯示)
+		$dat .= arrangeThread($PTE, ($posts[0]['resto'] ? $posts[0]['resto'] : $posts[0]['no']), null, $posts, 0, $loglist_cut[$i], array(), array(), false, false, false); // 逐個輸出 (引用連結不顯示)
 	}
 
 	$dat .= '<table border="1"><tr>';
