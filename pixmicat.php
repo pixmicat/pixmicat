@@ -574,7 +574,7 @@ function regist(){
 		$delarr = PIOSensor::listee('delete', $LIMIT_SENSOR);
 		if(count($delarr)){
 			deleteCache($delarr);
-			$PMS->useModuleMethods('PostOnDeletion', array($delarr)); // "PostOnDeletion" Hook Point
+			$PMS->useModuleMethods('PostOnDeletion', array($delarr, 'recycle')); // "PostOnDeletion" Hook Point
 			$files = $PIO->removePosts($delarr);
 			if(count($files)) $FileIO->deleteImage($files);
 		}
@@ -731,7 +731,7 @@ function usrdel(){
 		}
 	}
 	if($search_flag){
-		if(!$onlyimgdel) $PMS->useModuleMethods('PostOnDeletion', array($delposts)); // "PostOnDeletion" Hook Point
+		if(!$onlyimgdel) $PMS->useModuleMethods('PostOnDeletion', array($delposts, 'frontend')); // "PostOnDeletion" Hook Point
 		$files = $onlyimgdel ? $PIO->removeAttachments($delposts) : $PIO->removePosts($delposts);
 		$FileIO->deleteImage($files);
 		deleteCache($delposts);
@@ -820,7 +820,7 @@ function admindel(){
 		//if(!adminAuthenticate('check')) error(_T('admin_wrongpassword'));
 
 		$delno = array_merge($delno, $_POST['clist']);
-		if($onlyimgdel != 'on') $PMS->useModuleMethods('PostOnDeletion', array($delno)); // "PostOnDeletion" Hook Point
+		if($onlyimgdel != 'on') $PMS->useModuleMethods('PostOnDeletion', array($delno, 'backend')); // "PostOnDeletion" Hook Point
 		$files = ($onlyimgdel != 'on') ? $PIO->removePosts($delno) : $PIO->removeAttachments($delno);
 		$FileIO->deleteImage($files);
 		deleteCache($delno);

@@ -2,6 +2,7 @@
 ----------------------
 2009/05/16
 -[pixmicat] 新增依特定類別標籤篩選觀看文章時，能根據No.連結找到文章的完整討論串位置
+-[PMS] PostOnDeletion 掛載點新增 $cond 參數判斷被呼叫時機 (frontend, backend, recycle)
 
 2009/04/25
 -[pixmicat] 修正發文時重複引用同一文章多次後造成的HTML重複問題
