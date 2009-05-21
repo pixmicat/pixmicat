@@ -1,5 +1,8 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2009/05/21 : 4th.Anniversary (v090521)
+-正式釋出版
+
 2009/05/16
 -[pixmicat] 新增依特定類別標籤篩選觀看文章時，能根據No.連結找到文章的完整討論串位置
 -[PMS] PostOnDeletion 掛載點新增 $cond 參數判斷被呼叫時機 (frontend, backend, recycle)
