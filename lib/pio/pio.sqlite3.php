@@ -29,7 +29,7 @@ class PIOsqlite3{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.6 (v20080428)';
+		return '0.6 (v20090701)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -142,7 +142,7 @@ class PIOsqlite3{
 			$PDOStmt->bindValue(6, $line[4], PDO::PARAM_STR);
 			$PDOStmt->bindValue(7, $line[5], PDO::PARAM_INT);
 			$PDOStmt->bindValue(8, $line[6], PDO::PARAM_STR);
-			$PDOStmt->bindValue(9, $line[7], PDO::PARAM_INT);
+			$PDOStmt->bindValue(9, floatval($line[7])); // 13-digit BIGINT workground
 			$PDOStmt->bindValue(10, $line[8], PDO::PARAM_INT);
 			$PDOStmt->bindValue(11, $line[9], PDO::PARAM_STR);
 			$PDOStmt->bindValue(12, $line[10], PDO::PARAM_INT);
@@ -311,7 +311,7 @@ class PIOsqlite3{
 		$PDOStmt->bindValue(3, $time, PDO::PARAM_INT);
 		$PDOStmt->bindValue(4, $md5chksum, PDO::PARAM_STR);
 		$PDOStmt->bindValue(5, $category, PDO::PARAM_STR);
-		$PDOStmt->bindValue(6, $tim, PDO::PARAM_INT);
+		$PDOStmt->bindValue(6, floatval($tim)); // 13-digit BIGINT workground
 		$PDOStmt->bindValue(7, $ext, PDO::PARAM_STR);
 		$PDOStmt->bindValue(8, $imgw, PDO::PARAM_INT);
 		$PDOStmt->bindValue(9, $imgh, PDO::PARAM_INT);

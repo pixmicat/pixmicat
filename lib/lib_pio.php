@@ -91,7 +91,7 @@ class FlagHelper{
 // 文章自動刪除機制
 include('./lib/lib_pio.cond.php');
 class PIOSensor{
-	/*public static */function check($type, $condobj){
+	public static function check($type, $condobj){
 		foreach($condobj as $i => $j){
 			// 有其中一個需要處理
 			if(call_user_func_array(array($i, 'check'), array($type, $j))===true) return true;
@@ -99,7 +99,7 @@ class PIOSensor{
 		return false;
 	}
 
-	/*public static */function listee($type, $condobj){
+	public static function listee($type, $condobj){
 		$tmparray = array(); // 項目陣列
 		foreach($condobj as $i => $j){
 			// 結果併進 $tmparray
@@ -109,7 +109,7 @@ class PIOSensor{
 		return array_unique($tmparray);
 	}
 
-	/*public static */function info($condobj){
+	public static function info($condobj){
 		$sensorinfo='';
 		foreach($condobj as $i => $j){
 			$sensorinfo .= call_user_func_array(array($i, 'info'), array($j))."\n";

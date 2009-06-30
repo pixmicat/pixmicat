@@ -1,5 +1,5 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 4th.Anniversary (v090521)'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 5th.Release-dev (b090630)'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -19,7 +19,7 @@ http://pixmicat.openfoundry.org/
 請瀏覽http://pixmicat.openfoundry.org/license/以取得一份。
 
 最低運行需求：
-PHP 4.3.0 / 27 December 2002
+PHP 5.2.0 / 2 November 2006
 GD Version 2.0.28 / 21 July 2004
 
 建議運行環境：
@@ -534,16 +534,16 @@ function regist(){
 	if((strlen($com) > COMM_MAX) && !$is_admin) error(_T('regist_commenttoolong'), $dest);
 	$com = CleanStr($com, $is_admin); // 引入$is_admin參數是因為當管理員キャップ啟動時，允許管理員依config設定是否使用HTML
 	if(!$com && $upfile_status==4) error(_T('regist_withoutcomment'));
-	$com = str_replace(array("\r\n", "\r"), "\n", $com); $com = ereg_replace("\n((　| )*\n){3,}", "\n", $com);
+	$com = str_replace(array("\r\n", "\r"), "\n", $com); $com = preg_replace("/\n((　| )*\n){3,}/", "\n", $com);
 	if(!BR_CHECK || substr_count($com,"\n") < BR_CHECK) $com = nl2br($com); // 換行字元用<br />代替
 	$com = str_replace("\n", '', $com); // 若還有\n換行字元則取消換行
 	// 預設的內容
-	if(!$name || ereg("^[ |　|]*$", $name)){
+	if(!$name || preg_match("/^[ |　|]*$/", $name)){
 		if(ALLOW_NONAME) $name = DEFAULT_NONAME;
 		else error(_T('regist_withoutname'), $dest);
 	}
-	if(!$sub || ereg("^[ |　|]*$", $sub)) $sub = DEFAULT_NOTITLE;
-	if(!$com || ereg("^[ |　|\t]*$", $com)) $com = DEFAULT_NOCOMMENT;
+	if(!$sub || preg_match("/^[ |　|]*$/", $sub)) $sub = DEFAULT_NOTITLE;
+	if(!$com || preg_match("/^[ |　|\t]*$/", $com)) $com = DEFAULT_NOCOMMENT;
 	// 修整標籤樣式
 	if($category && USE_CATEGORY){
 		$category = explode(',', $category); // 把標籤拆成陣列
