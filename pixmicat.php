@@ -937,7 +937,7 @@ function total_size($isupdate=false){
 	}
 	if(!is_file($cache_file)){ // 無快取，新增
 		$line = $PIO->fetchPostList(); // 取出所有文章編號
-		$posts = $PIO->fetchPosts($line);
+		$posts = $PIO->fetchPosts($line,'tim,ext');
 		$linecount = count($posts);
 		for($i = 0; $i < $linecount; $i++){
 			extract($posts[$i]);

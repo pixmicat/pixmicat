@@ -249,14 +249,14 @@ class PIOsqlite{
 	}
 
 	/* 輸出文章 */
-	function fetchPosts($postlist){
+	function fetchPosts($postlist,$fields='*'){
 		if(!$this->prepared) $this->dbPrepare();
 
 		if(is_array($postlist)){ // 取多串
-			$pno = implode(', ', $postlist); // ID字串
-			$tmpSQL = 'SELECT * FROM '.$this->tablename.' WHERE no IN ('.$pno.') ORDER BY no';
+			$pno = implode(',', $postlist); // ID字串
+			$tmpSQL = 'SELECT '.$fields.' FROM '.$this->tablename.' WHERE no IN ('.$pno.') ORDER BY no';
 			if(count($postlist) > 1){ if($postlist[0] > $postlist[1]) $tmpSQL .= ' DESC'; } // 由大排到小
-		}else $tmpSQL = 'SELECT * FROM '.$this->tablename.' WHERE no = '.intval($postlist); // 取單串
+		}else $tmpSQL = 'SELECT '.$fields.' FROM '.$this->tablename.' WHERE no = '.intval($postlist); // 取單串
 		$line = $this->_sqlite_call($tmpSQL, array('Fetch the post content failed', __LINE__));
 		return sqlite_fetch_all($line, SQLITE_ASSOC);
 	}

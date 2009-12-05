@@ -339,7 +339,7 @@ class PIOlog{
 	}
 
 	/* 輸出文章 */
-	function fetchPosts($postlist){
+	function fetchPosts($postlist,$fields='*'){
 		if(!$this->prepared) $this->dbPrepare();
 
 		return $this->_ArrangeArrayStructure($postlist); // 輸出陣列結構
