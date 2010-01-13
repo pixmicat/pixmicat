@@ -1,5 +1,5 @@
 <!--&THEMENAME-->futaba Theme<!--/&THEMENAME-->
-<!--&THEMEVER-->v20090321<!--/&THEMEVER-->
+<!--&THEMEVER-->v20100113<!--/&THEMEVER-->
 <!--&THEMEAUTHOR-->Pixmicat! Development Team<!--/&THEMEAUTHOR-->
 
 <!--&HEADER--><?xml version="1.0" encoding="UTF-8"?>
@@ -10,6 +10,7 @@
 <meta http-equiv="Expires" content="Sat, 1 Jan 2000 00:00:00 GMT" />
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <meta http-equiv="Content-Language" content="zh-tw" />
+<meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7" />
 <title>{$TITLE}</title>
 <link rel="stylesheet" type="text/css" href="mainstyle.css" />
 <!--/&HEADER-->
@@ -22,7 +23,7 @@ var ext="{$ALLOW_UPLOAD_EXT}".toUpperCase().split("|");
 // ]]>
 </script>
 <script type="text/javascript" src="mainscript.js"></script>
-<!--[if lt IE 8]><script type="text/javascript" src="iedivfix.js"></script><![endif]-->
+<!--[if IE]><script type="text/javascript" src="iedivfix.js"></script><![endif]-->
 <!--/&JSHEADER-->
 
 <!--&TOPLINKS-->
