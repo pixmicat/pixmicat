@@ -1,5 +1,9 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2010/01/26
+-[pixmicat] 刪除回應排版 $arrLabels 多餘的 {$QUOTEBTN}
+-[PTE] 修正內文輸入 PTE 取代標籤會誤變換的情況 (ex: {$NAME_TEXT} => 名稱:)
+
 2010/01/13
 -[pixmicat] 修正autoHookAdminFunction參數不是ref的問題 *PHP 5.3相容修正
 -[Templates] 修正 IE8 標準成像模式下無法複製回應文字的問題
