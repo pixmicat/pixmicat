@@ -41,10 +41,11 @@ class PTELibrary{
 	/* 將樣版的標籤取代為正確的字串並傳回 */
 	function ParseBlock($blockName, $ary_val){
 		if(($tmp_block = $this->_readBlock($blockName))===false) return ""; // 找無
+		foreach($ary_val as $akey=>$aval) $ary_val[$akey] = str_replace('{$', '{'.chr(1).'$', $ary_val[$akey]);
 		$tmp_block = $this->EvalFOREACH($tmp_block, $ary_val); // 解析FOREACH敘述
 		$tmp_block = $this->EvalIF($tmp_block, $ary_val); // 解析IF敘述
 		$tmp_block = $this->EvalInclude($tmp_block, $ary_val); // 解析引用
-		return @str_replace(@array_keys($ary_val), @array_values($ary_val), $tmp_block);
+		return @str_replace('{'.chr(1).'$','{$',@str_replace(@array_keys($ary_val), @array_values($ary_val), $tmp_block));
 	}
 
 	/* 解析IF敘述 */
