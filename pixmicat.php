@@ -87,8 +87,9 @@ function updatelog($resno=0,$page_num=-1,$single_page=false){
 			$threads_count = $PIO->threadCount(); // 討論串個數
 			if($page_num < 0 || ($page_num * PAGE_DEF) >= $threads_count) error(_T('page_not_found')); // $page_num超過範圍
 			$page_start = $page_end = $page_num; // 設定靜態頁面編號
-			$threads = $PIO->fetchThreadList($page_num * PAGE_DEF, PAGE_DEF); // 取出分頁後的討論串首篇列表
+			$threads = $PIO->fetchThreadList(); // 取得全討論串列表
 			$PMS->useModuleMethods('ThreadOrder', array($resno,$page_num,$single_page,&$threads)); // "ThreadOrder" Hook Point
+			$threads = array_splice($threads, $page_num * PAGE_DEF, PAGE_DEF); // 取出分頁後的討論串首篇列表
 			$inner_for_count = count($threads); // 討論串個數就是迴圈次數
 		}
 	}else{
