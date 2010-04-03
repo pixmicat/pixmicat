@@ -1,5 +1,14 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2010/04/03
+-[mainscript] 使用 Closure Complier 取代先前使用之 Packer
+
+2010/02/05
+-[pixmicat] 修正討論串分頁 ThreadOrder 不正常的問題
+
+2010/01/28
+-[PTE] 標籤內容中的標籤無效化 (01/26 的再修正)
+
 2010/01/26
 -[pixmicat] 刪除回應排版 $arrLabels 多餘的 {$QUOTEBTN}
 -[PTE] 修正內文輸入 PTE 取代標籤會誤變換的情況 (ex: {$NAME_TEXT} => 名稱:)
@@ -8,6 +17,9 @@
 -[pixmicat] 修正autoHookAdminFunction參數不是ref的問題 *PHP 5.3相容修正
 -[Templates] 修正 IE8 標準成像模式下無法複製回應文字的問題
 -更新版權日期
+
+2009/12/15
+-[PIO] fetchPosts 新增 $fields 參數以降低total_size()的記憶體使用量 (log/logflockp只修改prototype)
 
 2009/07/01
 -[PIO] 靜態呼叫方法定義為靜態 *PHP 5.3相容修正
