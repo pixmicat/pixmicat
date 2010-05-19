@@ -1,5 +1,5 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 5th.Release-dev (b100205)'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 5th.Release (v100521)'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
