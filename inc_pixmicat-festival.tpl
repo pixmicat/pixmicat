@@ -12,7 +12,7 @@
 <!--&CENTERIMG-->1<!--/&CENTERIMG-->
 
 <!-- non-Festival Theme Settings (Replace "!--&" to "!---&" of above and replace "!---&" to "!--&" of below to activate ) -->
-<!---&CLICKENTER-->1<!--/&CLICKENTER-->
+<!---&CLICKENTER-->0<!--/&CLICKENTER-->
 <!---&BLOCKWIDTH-->99%<!--/&BLOCKWIDTH-->
 <!---&BLOCKHEIGHT-->auto<!--/&BLOCKHEIGHT-->
 <!---&CENTERIMG-->0<!--/&CENTERIMG-->
@@ -120,7 +120,7 @@ var boxclicked=0;
 <div id="error">
 <div style="text-align: center; font-size: 1.5em; font-weight: bold;">
 <span style="color: red;">{$MESG}</span><p />
-<a href="{$SELF2}">{$RETURN_TEXT}</a>　<a href="javascript:history.back();">{$BACK_TEXT}</a>
+<a href="{$SELF2}">{$RETURN_TEXT}</a>&emsp;<a href="javascript:history.back();">{$BACK_TEXT}</a>
 </div>
 <hr />
 </div>
@@ -128,7 +128,7 @@ var boxclicked=0;
 
 
 <!--&CLICKENTER_PROP--> onclick="if (!boxclicked) window.location='{$SELF}?res={$NO}';boxclicked=0;"<!--/&CLICKENTER_PROP-->
-<!--&THREAD_CLICKENTER--><div class="grid"<!--&IF(&CLICKENTER,'<!--&CLICKENTER_PROP/-->','')-->><!--/&THREAD_CLICKENTER-->
+<!--&THREAD_CLICKENTER--><div class="grid"<!--&IF(&CLICKENTER,'<!--&CLICKENTER_PROP/-->','')--> id="g{$NO}"><!--/&THREAD_CLICKENTER-->
 <!--&IMGARRANGE--><!--&IF(&CENTERIMG,'<!--&IMG_CENTER/-->','<!--&IMG_LEFT/-->')--><!--/&IMGARRANGE-->
 <!--&IMG_CENTER--><!--&IF($IMG_BAR,'<table align="center"><tr><td>','')-->{$IMG_SRC}<!--&IF($IMG_BAR,'</td></tr></table>','')--><!--/&IMG_CENTER-->
 <!--&IMG_LEFT--><!--&IF($IMG_BAR,'<br />','')-->{$IMG_SRC}<!--/&IMG_LEFT-->
