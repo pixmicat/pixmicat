@@ -1,5 +1,9 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2010/08/16
+-[PMS] 新增 addCHP, callCHP 以實現模組間互相呼叫的方法
+-[PMS] onlyLoad 會載入全部模組方便 ModulePage 其他模組的相互作用
+
 2010/05/21 : 5th.Release (v100521)
 -正式釋出版
 

@@ -14,6 +14,7 @@ class PMS{
 	var $moduleInstance, $moduleLists;
 	var $hookPoints;
 	var $loaded;
+	var $CHPList;
 
 	/* Constructor */
 	function PMS($ENV){
@@ -27,6 +28,7 @@ class PMS{
 		$this->hookPoints = array(); // 掛載點
 		$this->moduleInstance = array(); // 存放各模組實體
 		$this->moduleLists = array(); // 存放各模組類別名稱
+		$this->CHPList = array(); // CHP List
 	}
 
 	// 模組載入相關
@@ -41,7 +43,8 @@ class PMS{
 	function onlyLoad($specificModule){
 		// 搜尋載入模組列表有沒有，沒有就直接取消程式
 		if(array_search($specificModule, $this->ENV['MODULE.LOADLIST'])===false) return false;
-		$this->loadModules($specificModule);
+		//$this->loadModules($specificModule);
+		$this->loadModules();
 		return isset($this->hookPoints['ModulePage']);
 	}
 
@@ -97,8 +100,9 @@ class PMS{
 
 	/* 將模組方法掛載於特定掛載點 */
 	function hookModuleMethod($hookPoint, $methodObject){
-		if(!isset($this->hooks[$hookPoint])) return false;
-		if(!isset($this->hookPoints[$hookPoint]) && $hookPoint != 'ModulePage'){
+		if(!isset($this->hooks[$hookPoint])){ // Treat as CHP
+			if(!isset($this->CHPList[$hookPoint])) array_push($this->CHPList, $hookPoint);
+		}else if(!isset($this->hookPoints[$hookPoint]) && $hookPoint != 'ModulePage'){ // Treat as normal hook point
 			if(!$this->loaded) $this->init();
 			$this->__autoHookMethods($hookPoint);
 		}
@@ -111,6 +115,17 @@ class PMS{
 		$arrMethod =& $this->__autoHookMethods($hookPoint); // 取得掛載點模組方法
 		$imax = count($arrMethod);
 		for($i = 0; $i < $imax; $i++) call_user_func_array($arrMethod[$i], $parameter);
+	}
+
+	// CHP (Custom Hook Point)
+	/* 新增 CHP */
+	function addCHP($CHPName, $methodObject){
+		$this->hookModuleMethod($CHPName, $methodObject);
+	}
+
+	/* 呼叫 CHP */
+	function callCHP($CHPName, $parameter){
+		if(!isset($this->CHPList[$CHPName])) $this->useModuleMethods($CHPName, $parameter);
 	}
 }
 ?>
