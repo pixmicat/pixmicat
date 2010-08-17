@@ -43,8 +43,7 @@ class PMS{
 	function onlyLoad($specificModule){
 		// 搜尋載入模組列表有沒有，沒有就直接取消程式
 		if(array_search($specificModule, $this->ENV['MODULE.LOADLIST'])===false) return false;
-		//$this->loadModules($specificModule);
-		$this->loadModules();
+		$this->loadModules($specificModule);
 		return isset($this->hookPoints['ModulePage']);
 	}
 
@@ -54,7 +53,7 @@ class PMS{
 		foreach($loadlist as $f){
 			$mpath = $this->ENV['MODULE.PATH'].$f.'.php';
 			if(is_file($mpath) && array_search($f, $this->moduleLists)===false){
-				include_once($mpath);
+				include($mpath);
 				$this->moduleLists[] = $f;
 				$this->moduleInstance[$f] = new $f();
 			}
@@ -101,7 +100,7 @@ class PMS{
 	/* 將模組方法掛載於特定掛載點 */
 	function hookModuleMethod($hookPoint, $methodObject){
 		if(!isset($this->hooks[$hookPoint])){ // Treat as CHP
-			if(!isset($this->CHPList[$hookPoint])) array_push($this->CHPList, $hookPoint);
+			if(!isset($this->CHPList[$hookPoint])) $this->CHPList[$hookPoint] = 1;
 		}else if(!isset($this->hookPoints[$hookPoint]) && $hookPoint != 'ModulePage'){ // Treat as normal hook point
 			if(!$this->loaded) $this->init();
 			$this->__autoHookMethods($hookPoint);
@@ -125,7 +124,8 @@ class PMS{
 
 	/* 呼叫 CHP */
 	function callCHP($CHPName, $parameter){
-		if(!isset($this->CHPList[$CHPName])) $this->useModuleMethods($CHPName, $parameter);
+		if(!$this->loaded) $this->init(); // 若尚未完全載入則載入全部模組
+		if(isset($this->CHPList[$CHPName])) $this->useModuleMethods($CHPName, $parameter);
 	}
 }
 ?>
