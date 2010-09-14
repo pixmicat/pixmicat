@@ -1,5 +1,8 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2010/09/14
+-[PMS] 修正 AdminFunction 掛載點第二個參數 $param 沒有傳址發生錯誤的問題
+
 2010/08/17
 -[PMS] 修正 Bug
 -[PMS] onlyLoad 恢復單載入，直到呼叫 callCHP 才會載入全部模組

@@ -1,5 +1,5 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 5th.Release (v100521)'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 5th.Release.2-dev (b100914)'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -706,7 +706,7 @@ function usrdel(){
 	$haveperm = ($pwd==ADMIN_PASS) || adminAuthenticate('check');
 	if($haveperm && isset($_POST['func'])){ // 前端管理功能
 		$message = '';
-		$PMS->useModuleMethods('AdminFunction', array('run', $delno, $_POST['func'], &$message)); // "AdminFunction" Hook Point
+		$PMS->useModuleMethods('AdminFunction', array('run', &$delno, $_POST['func'], &$message)); // "AdminFunction" Hook Point
 		if($_POST['func'] != 'delete'){
 			if(isset($_SERVER['HTTP_REFERER'])){
 				header('HTTP/1.1 302 Moved Temporarily');
@@ -815,7 +815,7 @@ function admindel(){
 	$message = ''; // 操作後顯示訊息
 
 	if(isset($_POST['func']) && isset($_POST['clist']))
-		$PMS->useModuleMethods('AdminFunction', array('run', $_POST['clist'], $_POST['func'], &$message)); // "AdminFunction" Hook Point
+		$PMS->useModuleMethods('AdminFunction', array('run', &$_POST['clist'], $_POST['func'], &$message)); // "AdminFunction" Hook Point
 
 	// 刪除文章區塊
 	if($delflag){
