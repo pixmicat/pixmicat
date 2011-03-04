@@ -1,9 +1,9 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 5th.Release.2-dev (b100914)'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 6th.Release-dev (b110225)'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
-版權所有 © 2005-2010 Pixmicat! Development Team
+版權所有 © 2005-2011 Pixmicat! Development Team
 
 版權聲明：
 此程式是基於レッツPHP!<http://php.s3.to/>的gazou.php、
@@ -367,6 +367,7 @@ function regist(){
 	global $PIO, $FileIO, $PMS, $language, $BAD_STRING, $BAD_FILEMD5, $BAD_IPADDR, $LIMIT_SENSOR;
 	$dest = ''; $mes = ''; $up_incomplete = 0; $is_admin = false;
 	$path = realpath('.').DIRECTORY_SEPARATOR; // 此目錄的絕對位置
+	$delta_totalsize = 0; // 總檔案大小的更動值
 
 	if($_SERVER['REQUEST_METHOD'] != 'POST') error(_T('regist_notpost')); // 非正規POST方式
 	// 欄位陷阱
@@ -578,7 +579,7 @@ function regist(){
 			deleteCache($delarr);
 			$PMS->useModuleMethods('PostOnDeletion', array($delarr, 'recycle')); // "PostOnDeletion" Hook Point
 			$files = $PIO->removePosts($delarr);
-			if(count($files)) $FileIO->deleteImage($files);
+			if(count($files)) $delta_totalsize -= $FileIO->deleteImage($files); // 更新 delta 值
 		}
 	}
 
@@ -587,7 +588,7 @@ function regist(){
 		$tmp_total_size = total_size(); // 取得目前附加圖檔使用量
 		if($tmp_total_size > STORAGE_MAX){
 			$files = $PIO->delOldAttachments($tmp_total_size, STORAGE_MAX, false);
-			$FileIO->deleteImage($files);
+			$delta_totalsize -= $FileIO->deleteImage($files);
 		}
 	}
 
@@ -636,7 +637,6 @@ function regist(){
 	// Cookies儲存：密碼與E-mail部分，期限是一週
 	setcookie('pwdc', $pwd, time()+7*24*3600);
 	setcookie('emailc', $email, time()+7*24*3600);
-	total_size(true); // 刪除舊容量快取
 	if($dest && is_file($dest)){
 		$destFile = $path.IMG_DIR.$tim.$ext; // 圖檔儲存位置
 		$thumbFile = $path.THUMB_DIR.$tim.'s.jpg'; // 預覽圖儲存位置
@@ -651,9 +651,19 @@ function regist(){
 			unset($thObj);
 		}
 		if($FileIO->uploadImage()){ // 支援上傳圖片至其他伺服器
-			if(file_exists($destFile)) $FileIO->uploadImage($tim.$ext, $destFile, filesize($destFile));
-			if(file_exists($thumbFile)) $FileIO->uploadImage($tim.'s.jpg', $thumbFile, filesize($thumbFile));
+			if(file_exists($destFile)){
+				$FileIO->uploadImage($tim.$ext, $destFile, filesize($destFile));
+				$delta_totalsize += filesize($destFile);
+			}
+			if(file_exists($thumbFile)){
+				$FileIO->uploadImage($tim.'s.jpg', $thumbFile, filesize($thumbFile));
+				$delta_totalsize += filesize($thumbFile);
+			}
 		}
+	}
+	// delta != 0 表示總檔案大小有更動，須更新快取
+	if($delta_totalsize != 0){
+		total_size($delta_totalsize);
 	}
 	updatelog();
 
@@ -701,6 +711,7 @@ function usrdel(){
 	$pwdc = isset($_COOKIE['pwdc']) ? $_COOKIE['pwdc'] : '';
 	$onlyimgdel = isset($_POST['onlyimgdel']) ? $_POST['onlyimgdel'] : '';
 	$delno = array();
+	$delta_totalsize = 0;
 	reset($_POST);
 	while($item = each($_POST)){ if($item[1]=='delete' && $item[0] != 'func') array_push($delno, $item[0]); }
 	$haveperm = ($pwd==ADMIN_PASS) || adminAuthenticate('check');
@@ -735,9 +746,9 @@ function usrdel(){
 	if($search_flag){
 		if(!$onlyimgdel) $PMS->useModuleMethods('PostOnDeletion', array($delposts, 'frontend')); // "PostOnDeletion" Hook Point
 		$files = $onlyimgdel ? $PIO->removeAttachments($delposts) : $PIO->removePosts($delposts);
-		$FileIO->deleteImage($files);
+		$delta_totalsize -= $FileIO->deleteImage($files);
 		deleteCache($delposts);
-		total_size(true); // 刪除容量快取
+		total_size($delta_totalsize); // 更新容量快取
 		$PIO->dbCommit();
 	}else error(_T('del_wrongpwornotfound'));
 	if(isset($_POST['func']) && $_POST['func'] == 'delete'){ // 前端管理刪除文章返回管理頁面
@@ -819,20 +830,16 @@ function admindel(){
 
 	// 刪除文章區塊
 	if($delflag){
-		//if(!adminAuthenticate('check')) error(_T('admin_wrongpassword'));
-
 		$delno = array_merge($delno, $_POST['clist']);
 		if($onlyimgdel != 'on') $PMS->useModuleMethods('PostOnDeletion', array($delno, 'backend')); // "PostOnDeletion" Hook Point
 		$files = ($onlyimgdel != 'on') ? $PIO->removePosts($delno) : $PIO->removeAttachments($delno);
-		$FileIO->deleteImage($files);
+		$delta = 0 - $FileIO->deleteImage($files);
 		deleteCache($delno);
-		total_size(true); // 刪除容量快取
+		total_size($delta);
 		$is_modified = true;
 	}
 	// 討論串停止區塊
 	if($thsflag){
-		//if(!adminAuthenticate('check')) error(_T('admin_wrongpassword'));
-
 		$thsno = array_merge($thsno, $_POST['stop']);
 		$threads = $PIO->fetchPosts($thsno); // 取得文章
 		foreach($threads as $th){
@@ -928,37 +935,24 @@ _ADMINEOF_;
 }
 
 /* 計算目前附加圖檔使用容量 (單位：KB) */
-function total_size($isupdate=false){
-	global $PIO, $FileIO;
+function total_size($delta=0){
+	global $FileIO;
 
-	$size = 0; $all = 0;
-	$cache_file = "./sizecache.dat"; // 附加圖檔使用容量值快取檔案
+	$size = 0;
+	$cache_file = './sizecache.dat'; // 附加圖檔使用容量值快取檔案
 
-	if($isupdate){ // 刪除舊快取
-		if(is_file($cache_file)) unlink($cache_file);
-		return;
-	}
 	if(!is_file($cache_file)){ // 無快取，新增
-		$line = $PIO->fetchPostList(); // 取出所有文章編號
-		$posts = $PIO->fetchPosts($line,'tim,ext');
-		$linecount = count($posts);
-		for($i = 0; $i < $linecount; $i++){
-			extract($posts[$i]);
-			// 從記錄檔抽出計算附加圖檔使用量
-			if($ext && $FileIO->imageExists($tim.$ext)) $all += $FileIO->getImageFilesize($tim.$ext); // 附加圖檔合計計算
-			if($FileIO->imageExists($tim.'s.jpg')) $all += $FileIO->getImageFilesize($tim.'s.jpg'); // 預覽圖合計計算
-		}
-		$sp = fopen($cache_file, 'w');
-		stream_set_write_buffer($sp, 0);
-		fwrite($sp, $all); // 寫入目前使用容量值
-		fclose($sp);
+		$size = $FileIO->getCurrentStorageSize();
+		file_put_contents($cache_file, $size, LOCK_EX);
 		@chmod($cache_file, 0666);
 	}else{ // 使用快取
-		$sp = file($cache_file);
-		$all = $sp[0];
-		unset($sp);
+		$size = file_get_contents($cache_file);
+		if($delta != 0){ // 快取值更動
+			$size += $delta;
+			file_put_contents($cache_file, $size, LOCK_EX);
+		}
 	}
-	return (int)($all / 1024);
+	return (int)($size / 1024);
 }
 
 /* 搜尋(全文檢索)功能 */

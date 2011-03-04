@@ -113,15 +113,31 @@ class FileIO{
 
 	function deleteImage($imgname){
 		if(is_array($imgname)){
+			$size = 0; $size_perimg = 0;
 			foreach($imgname as $i){
-				if(($rc = $this->IFS->getRecord($i)) && $this->_deleteImageShack($rc['imgURL'])) $this->IFS->delRecord($i); // 自索引中刪除
-				else return false; // 送出刪除要求失敗
+				$rc = $this->IFS->getRecord($i);
+				if(!$rc) continue;
+				$size_perimg = $rc['imgSize'];
+				// 刪除出現錯誤
+				if(!$this->_deleteImageShack($rc['imgURL'])){
+					if($this->remoteImageExists($rc['imgURL'])) continue; // 無法刪除，檔案存在 (保留索引)
+					// 無法刪除，檔案消失 (更新索引)
+				}
+				$this->IFS->delRecord($i); // 自索引中刪除
+				$size += $size_perimg;
 			}
-			return true;
+			return $size;
 		}
 		else{
-			if(($rc = $this->IFS->getRecord($imgname)) && $this->_deleteImageShack($rc['imgURL'])){ $this->IFS->delRecord($imgname); return true; }
-			return false;
+			$rc = $this->IFS->getRecord($imgname);
+			if(!$rc) return 0;
+			$size = $rc['imgSize'];
+			if(!$this->_deleteImageShack($rc['imgURL'])){
+				if($this->remoteImageExists($rc['imgURL'])) return 0; // 無法刪除，檔案存在 (保留索引)
+				// 無法刪除，檔案消失 (更新索引)
+			}
+			$this->IFS->delRecord($imgname);
+			return $size;
 		}
 	}
 

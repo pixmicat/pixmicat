@@ -61,22 +61,36 @@ class FileIO{
 	}
 
 	function deleteImage($imgname){
-		if(!$this->_ftp_login()) return false;
+		if(!$this->_ftp_login()) return 0;
 		if(is_array($imgname)){
+			$size = 0; $size_perimg = 0;
 			foreach($imgname as $i){
+				$size_perimg = $this->getImageFilesize($i);
 				if(!$this->parameter[7] && substr($i, -5) == 's.jpg'){
 					@unlink($this->thumbLocalPath.$i);
 				}else{
-					if(!ftp_delete($this->conn, $i)) return false;
+					if(!ftp_delete($this->conn, $i)){
+						if($this->remoteImageExists($this->parameter[6].$i)) continue; // 無法刪除，檔案存在 (保留索引)
+						// 無法刪除，檔案消失 (更新索引)
+					}
 					$this->IFS->delRecord($i); // 自索引中刪除
 				}
+				$size += $size_perimg;
 			}
-			return true;
+			return $size;
 		}
 		else{
-			if(!$this->parameter[7] && substr($imgname, -5) == 's.jpg') return @unlink($this->thumbLocalPath.$imgname);
-			if($result = ftp_delete($this->conn, $imgname)) $this->IFS->delRecord($imgname);
-			return $result;
+			$size = $this->getImageFilesize($imgname);
+			if(!$this->parameter[7] && substr($imgname, -5) == 's.jpg'){
+				@unlink($this->thumbLocalPath.$imgname);
+			}else{
+				if(!ftp_delete($this->conn, $imgname)){
+					if($this->remoteImageExists($this->parameter[6].$imgname)) return 0; // 無法刪除，檔案存在 (保留索引)
+					// 無法刪除，檔案消失 (更新索引)
+				}
+				$this->IFS->delRecord($imgname);
+			}
+			return $size;
 		}
 	}
 

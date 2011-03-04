@@ -113,5 +113,22 @@ class IndexFS{
 			sqlite_close($this->index);
 		}
 	}
+
+	/* 取得目前索引之所有檔案大小 */
+	function getCurrentStorageSize(){
+		switch($this->backend){
+			case 'log':
+				$size = 0;
+				if(count($this->index)){
+					foreach($this->index as $ival){
+						$size += $ival['imgSize'];
+					}
+				}
+				return intval($size);
+			case 'sqlite2':
+				$size = sqlite_fetch_array(sqlite_query($this->index, 'SELECT SUM(imgSize) FROM IndexFS'));
+				return intval($size[0]);
+		}
+	}
 }
 ?>

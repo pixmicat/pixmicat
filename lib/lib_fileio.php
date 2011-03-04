@@ -14,10 +14,21 @@ class FileIOWrapper extends FileIO{
 	function _getAbsoluteURL(){
 		return 'http://'.$_SERVER['HTTP_HOST'].substr($_SERVER['PHP_SELF'], 0, strpos($_SERVER['PHP_SELF'], PHP_SELF));
 	}
+
 	function getImageLocalURL($imgname){
 		if(!isset($this->absoluteURL)) $this->absoluteURL = $this->_getAbsoluteURL();
 
 		return $this->absoluteURL.(substr($imgname, -5)=='s.jpg' ? THUMB_DIR : IMG_DIR).$imgname;
+	}
+
+	/* 檢查遠端檔案是否存在 */
+	function remoteImageExists($img){
+		return (@file_get_contents($img, false, null, 0, 1) !== false);
+	}
+
+	/* 回傳目前總檔案大小 */
+	function getCurrentStorageSize(){
+		return $this->IFS->getCurrentStorageSize();
 	}
 }
 

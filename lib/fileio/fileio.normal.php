@@ -11,16 +11,26 @@
 
 class FileIO{
 	var $path, $imgPath, $thumbPath;
+	var $IFS;
 
 	/* private 藉由檔名分辨圖檔存放位置 */
 	function _getImagePhysicalPath($imgname){
 		return (substr($imgname, -5)=='s.jpg' ? $this->thumbPath : $this->imgPath).$imgname;
 	}
 
+	/* private 儲存索引檔 */
+	function _close(){
+		$this->IFS->saveIndex(); // 索引表更新
+	}
+
 	function FileIO($parameter='', $ENV){
+		require($ENV['IFS.PATH']);
 		$this->path = $ENV['PATH'];
 		$this->imgPath = $this->path.$ENV['IMG'];
 		$this->thumbPath = $this->path.$ENV['THUMB'];
+		$this->IFS = new IndexFS($ENV['IFS.LOG']); // IndexFS 物件
+		$this->IFS->openIndex();
+		register_shutdown_function(array($this, '_close')); // 設定解構元 (PHP 結束前執行)
 	}
 
 	function init(){
@@ -32,12 +42,34 @@ class FileIO{
 	}
 
 	function deleteImage($imgname){
-		if(is_array($imgname)){ foreach($imgname as $i){ if(!@unlink($this->_getImagePhysicalPath($i))) return false; } return true; }
-		else{ return @unlink($this->_getImagePhysicalPath($imgname)); }
+		if(is_array($imgname)){
+			$size = 0; $size_perimg = 0;
+			foreach($imgname as $i){
+				$size_perimg = $this->getImageFilesize($i);
+				// 刪除出現錯誤
+				if(!@unlink($this->_getImagePhysicalPath($i))){
+					if($this->imageExists($i)) continue; // 無法刪除，檔案存在 (保留索引)
+					// 無法刪除，檔案消失 (更新索引)
+				}
+				$this->IFS->delRecord($i);
+				$size += $size_perimg;
+			}
+			return $size;
+		}else{
+			$size = $this->getImageFilesize($imgname);
+			if(!@unlink($this->_getImagePhysicalPath($imgname))){
+				if($this->imageExists($i)) return 0; // 無法刪除，檔案存在 (保留索引)
+				// 無法刪除，檔案消失 (更新索引)
+			}
+			$this->IFS->delRecord($imgname);
+			return $size;
+		}
 	}
 
 	function uploadImage($imgname='', $imgpath='', $imgsize=0){
-		return false;
+		if($imgname=='') return true; // 為檔案作索引
+		$this->IFS->addRecord($imgname, $imgsize, ''); // 加入索引之中
+		return true;
 	}
 
 	function getImageFilesize($imgname){

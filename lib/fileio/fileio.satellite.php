@@ -139,21 +139,35 @@ class FileIO{
 
 	function deleteImage($imgname){
 		if(is_array($imgname)){
+			$size = 0; $size_perimg = 0;
 			foreach($imgname as $i){
+				$size_perimg = $this->getImageFilesize($i);
 				if(!$this->parameter[4] && substr($i, -5) == 's.jpg'){
 					@unlink($this->thumbLocalPath.$i);
 				}else{
-					if(!$this->_deleteSatellite($i)) return false;
-					$this->IFS->delRecord($i); // 自索引中刪除
-
+					// 刪除出現錯誤
+					if(!$this->_deleteSatellite($i)){
+						if($this->remoteImageExists($this->parameter[3].$i)) continue; // 無法刪除，檔案存在 (保留索引)
+						// 無法刪除，檔案消失 (更新索引)
+					}
+					$this->IFS->delRecord($i);
 				}
+				$size += $size_perimg;
 			}
-			return true;
+			return $size;
 		}
 		else{
-			if(!$this->parameter[4] && substr($imgname, -5) == 's.jpg') return @unlink($this->thumbLocalPath.$imgname);
-			if($result = $this->_deleteSatellite($imgname)) $this->IFS->delRecord($imgname);
-			return $result;
+			$size = $this->getImageFilesize($imgname);
+			if(!$this->parameter[4] && substr($imgname, -5) == 's.jpg'){
+				@unlink($this->thumbLocalPath.$imgname);
+			}else{
+				if(!$this->_deleteSatellite($imgname)){
+					if($this->remoteImageExists($this->parameter[3].$imgname)) return 0; // 無法刪除，檔案存在 (保留索引)
+					// 無法刪除，檔案消失 (更新索引)
+				}
+				$this->IFS->delRecord($imgname);
+			}
+			return $size;
 		}
 	}
 

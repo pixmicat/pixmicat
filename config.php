@@ -2,7 +2,7 @@
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
-版權所有 © 2005-2010 Pixmicat! Development Team
+版權所有 © 2005-2011 Pixmicat! Development Team
 
 版權聲明：
 此程式是基於レッツPHP!<http://php.s3.to/>的gazou.php、
@@ -34,9 +34,9 @@ define("FILEIO_PARAMETER", ''); // FileIO參數 (本機端儲存)
 //define("FILEIO_PARAMETER", serialize(array('http://www.example.com/~demo/satellite.cgi', true, '12345678', 'http://www.example.com/~demo/src/', true))); // FileIO參數 (Satellite)
 
 // PIO資料來源設定
-define("CONNECTION_STRING", 'log://img.log:tree.log/'); // PIO 連線字串 (Log)
+//define("CONNECTION_STRING", 'log://img.log:tree.log/'); // PIO 連線字串 (Log)
 //define("CONNECTION_STRING", 'mysql://pixmicat:pass@localhost/test/imglog/'); // PIO 連線字串 (MySQL)
-//define("CONNECTION_STRING", 'sqlite://pixmicat.db/imglog/'); // PIO 連線字串 (SQLite)
+define("CONNECTION_STRING", 'sqlite://pixmicat.db/imglog/'); // PIO 連線字串 (SQLite)
 //define("CONNECTION_STRING", 'pgsql://pixmicat:1234@localhost/pixmicat_use/imglog/'); // PIO 連線字串 (PostgreSQL)
 
 /*---- Part 2：板面各項細部功能設定 ----*/
@@ -94,8 +94,8 @@ define("STORAGE_MAX", 30000); // 附加圖檔總容量限制上限大小 (單位
 define("ALLOW_UPLOAD_EXT", 'GIF|JPG|PNG|BMP|SWF'); // 接受之附加圖檔副檔名 (送出前表單檢查用，用 | 分隔)
 
 // 連續投稿時間限制
-define("RENZOKU", 10); // 連續投稿間隔秒數
-define("RENZOKU2", 10); // 連續貼圖間隔秒數
+define("RENZOKU", 60); // 連續投稿間隔秒數
+define("RENZOKU2", 60); // 連續貼圖間隔秒數
 
 // 預覽圖片相關限制
 define("MAX_W", 250); // 討論串本文預覽圖片寬度 (超過則自動縮小)
