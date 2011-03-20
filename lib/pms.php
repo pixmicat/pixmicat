@@ -55,7 +55,7 @@ class PMS{
 			if(is_file($mpath) && array_search($f, $this->moduleLists)===false){
 				include($mpath);
 				$this->moduleLists[] = $f;
-				$this->moduleInstance[$f] = new $f();
+				$this->moduleInstance[$f] = new $f($this); // Sent $PMS into constructor
 			}
 		}
 	}
