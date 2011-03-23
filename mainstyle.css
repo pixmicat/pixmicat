@@ -59,3 +59,18 @@
 	html { background: #FFF; color: #000; } /* 網頁改成白底黑字,節省彩色列印成本 */
 	#postform_main { display: none; } /* 貼文表單在列印模式沒有用處,故不顯示以節省空間 */
 }
+
+/* Android / iOS */
+@media only screen and (min-device-width: 320px) and (max-device-width: 480px) {
+	html { font-size: 0.8em; padding: 10px; } /* 頁面基本字體大小，邊界 */
+	#toplink { text-align: left; } /* 頂部連結列取消置右 */
+	#fcom { max-width: 30ex; } /* 調整表單欄位 */
+	#fupfile { display: block; }
+	input[type="text"] { max-width: 100% }
+	ul { padding-left: 20px; }
+	.img { margin: 0.5ex 0.5ex; max-width: 100%; height: auto; display: block; float: none; } /* 討論串圖片顯示樣式 */
+	.reply { clear: left; margin: 0.5ex 0 0 0; max-width: 100%; } /* 討論串回應樣式 */
+	.quote { margin: 5px 10px; } /* 內文內縮 */
+	.pushpost { padding: 10px; }
+	#page_switch { clear: right; } /* 避免頁尾表格交疊 */
+}
