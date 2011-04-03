@@ -61,16 +61,16 @@
 }
 
 /* Android / iOS */
-@media only screen and (min-device-width: 320px) and (max-device-width: 480px) {
-	html { font-size: 0.8em; padding: 10px; } /* 頁面基本字體大小，邊界 */
+@media only screen and (min-device-width: 240px) and (max-device-width: 640px) {
+	html { font-size: 0.9em; padding: 10px; } /* 頁面基本字體大小，邊界 */
 	#toplink { text-align: left; } /* 頂部連結列取消置右 */
-	#fcom { max-width: 30ex; } /* 調整表單欄位 */
+	#fcom { max-width: 35ex; } /* 調整表單欄位 */
 	#fupfile { display: block; }
 	input[type="text"] { max-width: 100% }
-	ul { padding-left: 20px; }
+	ul { padding-left: 2em; }
 	.img { margin: 0.5ex 0.5ex; max-width: 100%; height: auto; display: block; float: none; } /* 討論串圖片顯示樣式 */
 	.reply { clear: left; margin: 0.5ex 0 0 0; max-width: 100%; } /* 討論串回應樣式 */
 	.quote { margin: 5px 10px; } /* 內文內縮 */
-	.pushpost { padding: 10px; }
+	.pushpost { padding: 0.8em; }
 	#page_switch { clear: right; } /* 避免頁尾表格交疊 */
 }
