@@ -42,28 +42,21 @@ class FileIO{
 	}
 
 	function deleteImage($imgname){
-		if(is_array($imgname)){
-			$size = 0; $size_perimg = 0;
-			foreach($imgname as $i){
-				$size_perimg = $this->getImageFilesize($i);
-				// 刪除出現錯誤
-				if(!@unlink($this->_getImagePhysicalPath($i))){
-					if($this->imageExists($i)) continue; // 無法刪除，檔案存在 (保留索引)
-					// 無法刪除，檔案消失 (更新索引)
-				}
-				$this->IFS->delRecord($i);
-				$size += $size_perimg;
-			}
-			return $size;
-		}else{
-			$size = $this->getImageFilesize($imgname);
-			if(!@unlink($this->_getImagePhysicalPath($imgname))){
-				if($this->imageExists($i)) return 0; // 無法刪除，檔案存在 (保留索引)
+		if(!is_array($imgname))
+			$imgname = array($imgname); // 單一名稱參數
+
+		$size = 0; $size_perimg = 0;
+		foreach($imgname as $i){
+			$size_perimg = $this->getImageFilesize($i);
+			// 刪除出現錯誤
+			if(!@unlink($this->_getImagePhysicalPath($i))){
+				if($this->imageExists($i)) continue; // 無法刪除，檔案存在 (保留索引)
 				// 無法刪除，檔案消失 (更新索引)
 			}
-			$this->IFS->delRecord($imgname);
-			return $size;
+			$this->IFS->delRecord($i);
+			$size += $size_perimg;
 		}
+		return $size;
 	}
 
 	function uploadImage($imgname='', $imgpath='', $imgsize=0){

@@ -1,5 +1,5 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 6th.Release-dev (b110225)'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 6th.Release-dev (b110411)'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -8,15 +8,17 @@ http://pixmicat.openfoundry.org/
 版權聲明：
 此程式是基於レッツPHP!<http://php.s3.to/>的gazou.php、
 双葉ちゃん<http://www.2chan.net>的futaba.php所改寫之衍生著作程式，屬於自由軟體，
-以The Clarified Artistic License作為發佈授權條款。
-您可以遵照The Clarified Artistic License來自由使用、散播、修改或製成衍生著作。
+以Artistic License 2.0作為發佈授權條款。
+您可以遵照Artistic License 2.0來自由使用、散播、修改或製成衍生著作。
 更詳細的條款及定義請參考隨附"LICENSE"條款副本。
 
 發佈這一程式的目的是希望它有用，但沒有任何擔保，甚至沒有適合特定目的而隱含的擔保。
 關於此程式相關的問題請不要詢問レッツPHP!及双葉ちゃん。
 
-如果您沒有隨著程式收到一份The Clarified Artistic License副本，
+如果您沒有隨著程式收到一份Artistic License 2.0副本，
 請瀏覽http://pixmicat.openfoundry.org/license/以取得一份。
+
+"Pixmicat!", "Pixmicat", 及"圖咪貓"是Pixmicat! Development Team的商標。
 
 最低運行需求：
 PHP 5.2.0 / 2 November 2006
@@ -137,7 +139,7 @@ function updatelog($resno=0,$page_num=-1,$single_page=false){
 		$old_sensor = true; // 標記打開
 		$arr_old = array_flip(PIOSensor::listee('predict', $LIMIT_SENSOR)); // 過舊文章陣列
 	}
-	$tmp_total_size = total_size(); // 目前附加圖檔使用量
+	$tmp_total_size = $FileIO->getCurrentStorageSize(); // 目前附加圖檔使用量
 	$tmp_STORAGE_MAX = STORAGE_MAX * (($tmp_total_size >= STORAGE_MAX) ? 1 : 0.95); // 預估上限值
 	if(STORAGE_LIMIT && STORAGE_MAX > 0 && ($tmp_total_size >= $tmp_STORAGE_MAX)){
 		$kill_sensor = true; // 標記打開
@@ -585,7 +587,7 @@ function regist(){
 
 	// 附加圖檔容量限制功能啟動：刪除過大檔
 	if(STORAGE_LIMIT && STORAGE_MAX > 0){
-		$tmp_total_size = total_size(); // 取得目前附加圖檔使用量
+		$tmp_total_size = $FileIO->getCurrentStorageSize(); // 取得目前附加圖檔使用量
 		if($tmp_total_size > STORAGE_MAX){
 			$files = $PIO->delOldAttachments($tmp_total_size, STORAGE_MAX, false);
 			$delta_totalsize -= $FileIO->deleteImage($files);
@@ -663,7 +665,7 @@ function regist(){
 	}
 	// delta != 0 表示總檔案大小有更動，須更新快取
 	if($delta_totalsize != 0){
-		total_size($delta_totalsize);
+		$FileIO->updateStorageSize($delta_totalsize);
 	}
 	updatelog();
 
@@ -711,7 +713,6 @@ function usrdel(){
 	$pwdc = isset($_COOKIE['pwdc']) ? $_COOKIE['pwdc'] : '';
 	$onlyimgdel = isset($_POST['onlyimgdel']) ? $_POST['onlyimgdel'] : '';
 	$delno = array();
-	$delta_totalsize = 0;
 	reset($_POST);
 	while($item = each($_POST)){ if($item[1]=='delete' && $item[0] != 'func') array_push($delno, $item[0]); }
 	$haveperm = ($pwd==ADMIN_PASS) || adminAuthenticate('check');
@@ -746,9 +747,8 @@ function usrdel(){
 	if($search_flag){
 		if(!$onlyimgdel) $PMS->useModuleMethods('PostOnDeletion', array($delposts, 'frontend')); // "PostOnDeletion" Hook Point
 		$files = $onlyimgdel ? $PIO->removeAttachments($delposts) : $PIO->removePosts($delposts);
-		$delta_totalsize -= $FileIO->deleteImage($files);
+		$FileIO->updateStorageSize(-$FileIO->deleteImage($files)); // 更新容量快取
 		deleteCache($delposts);
-		total_size($delta_totalsize); // 更新容量快取
 		$PIO->dbCommit();
 	}else error(_T('del_wrongpwornotfound'));
 	if(isset($_POST['func']) && $_POST['func'] == 'delete'){ // 前端管理刪除文章返回管理頁面
@@ -833,9 +833,8 @@ function admindel(){
 		$delno = array_merge($delno, $_POST['clist']);
 		if($onlyimgdel != 'on') $PMS->useModuleMethods('PostOnDeletion', array($delno, 'backend')); // "PostOnDeletion" Hook Point
 		$files = ($onlyimgdel != 'on') ? $PIO->removePosts($delno) : $PIO->removeAttachments($delno);
-		$delta = 0 - $FileIO->deleteImage($files);
+		$FileIO->updateStorageSize(-$FileIO->deleteImage($files));
 		deleteCache($delno);
-		total_size($delta);
 		$is_modified = true;
 	}
 	// 討論串停止區塊
@@ -910,7 +909,7 @@ _ADMINEOF_;
 	foreach($funclist as $f) echo '<option value="'.$f[0].'">'.$f[1].'</option>';
 	echo '</select>
 <input type="submit" value="'._T('admin_submit_btn').'" /> <input type="reset" value="'._T('admin_reset_btn').'" /> [<input type="checkbox" name="onlyimgdel" id="onlyimgdel" value="on" /><label for="onlyimgdel">'._T('del_img_only').'</label>]</p>
-<p>'._T('admin_totalsize',total_size()).'</p>
+<p>'._T('admin_totalsize', $FileIO->getCurrentStorageSize()).'</p>
 </div>
 </form>
 <hr />
@@ -934,25 +933,13 @@ _ADMINEOF_;
 </html>');
 }
 
-/* 計算目前附加圖檔使用容量 (單位：KB) */
+/**
+ * 計算目前附加圖檔使用容量 (單位：KB)
+ * @deprecated Use FileIO->getCurrentStorageSize() / FileIO->updateStorageSize($delta) instead
+ */
 function total_size($delta=0){
 	global $FileIO;
-
-	$size = 0;
-	$cache_file = './sizecache.dat'; // 附加圖檔使用容量值快取檔案
-
-	if(!is_file($cache_file)){ // 無快取，新增
-		$size = $FileIO->getCurrentStorageSize();
-		file_put_contents($cache_file, $size, LOCK_EX);
-		@chmod($cache_file, 0666);
-	}else{ // 使用快取
-		$size = file_get_contents($cache_file);
-		if($delta != 0){ // 快取值更動
-			$size += $delta;
-			file_put_contents($cache_file, $size, LOCK_EX);
-		}
-	}
-	return (int)($size / 1024);
+	return $FileIO->getCurrentStorageSize($delta);
 }
 
 /* 搜尋(全文檢索)功能 */
@@ -1104,7 +1091,7 @@ function showstatus(){
 	global $PTE, $PIO, $FileIO, $PMS, $language, $LIMIT_SENSOR;
 	$countline = $PIO->postCount(); // 計算投稿文字記錄檔目前資料筆數
 	$counttree = $PIO->threadCount(); // 計算樹狀結構記錄檔目前資料筆數
-	$tmp_total_size = total_size(); // 附加圖檔使用量總大小
+	$tmp_total_size = $FileIO->getCurrentStorageSize(); // 附加圖檔使用量總大小
 	$tmp_ts_ratio = STORAGE_MAX > 0 ? $tmp_total_size / STORAGE_MAX : 0; // 附加圖檔使用量
 
 	// 決定「附加圖檔使用量」提示文字顏色

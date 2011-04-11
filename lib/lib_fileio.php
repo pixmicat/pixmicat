@@ -27,8 +27,27 @@ class FileIOWrapper extends FileIO{
 	}
 
 	/* 回傳目前總檔案大小 */
-	function getCurrentStorageSize(){
-		return $this->IFS->getCurrentStorageSize();
+	function getCurrentStorageSize($delta=0){
+		$size = 0;
+		$cache_file = './sizecache.dat'; // 使用快取檔案記錄
+
+		if(!is_file($cache_file)){ // 無快取，新增
+			$size = $this->IFS->getCurrentStorageSize();
+			file_put_contents($cache_file, $size, LOCK_EX);
+			@chmod($cache_file, 0666);
+		}else{ // 使用快取
+			$size = file_get_contents($cache_file);
+			if($delta != 0){ // 快取值更動
+				$size += $delta;
+				file_put_contents($cache_file, $size, LOCK_EX);
+			}
+		}
+		return intval($size / 1024);
+	}
+
+	/* 更新總檔案大小數值 */
+	function updateStorageSize($delta){
+		$this->getCurrentStorageSize($delta);
 	}
 }
 

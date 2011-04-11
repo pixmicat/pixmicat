@@ -1,5 +1,11 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2011/04/11
+-[FileIO] 將附加圖檔容量相關函式搬到 FileIO (getCurrentStorageSize, updateStorageSize)
+-[FileIO] 精簡 deleteImage()
+-[pixmicat] 移除 total_size() (僅保留作相容性用途)
+-[pixmicat] 更新授權 Artistic License 2.0
+
 2011/03/23
 -[mainstyle] 使用 CSS Media query 和 Viewport 改善行動版檢視 (Android / iOS)
 
