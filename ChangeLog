@@ -1,5 +1,11 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2011/04/13
+-[thumb] 預覽圖生成物件修改為準備可支援其他圖像格式
+-[config] 整合預覽圖生成設定 $THUMB_SETTING
+-[FileIO] 新增 resolveThumbName() 以此查詢預覽圖副檔名可變動之完整檔名
+-[FileIO] 移除 fileio.imageshack.php
+
 2011/04/11
 -[FileIO] 將附加圖檔容量相關函式搬到 FileIO (getCurrentStorageSize, updateStorageSize)
 -[FileIO] 精簡 deleteImage()

@@ -44,6 +44,11 @@ class FileIOWrapper extends FileIO{
 		}
 		return intval($size / 1024);
 	}
+	
+	/* 搜尋預覽圖檔之完整檔名 */
+	function resolveThumbName($thumbPattern){
+		return $this->_resolveThumbName($thumbPattern);
+	}
 
 	/* 更新總檔案大小數值 */
 	function updateStorageSize($delta){

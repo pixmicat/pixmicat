@@ -10,7 +10,7 @@
  */
 
 class ThumbWrapper{
-	var $sourceFile, $sourceWidth, $sourceHeight, $thumbWidth, $thumbHeight, $thumbQuality;
+	var $sourceFile, $sourceWidth, $sourceHeight, $thumbWidth, $thumbHeight, $thumbSetting, $thumbQuality;
 	var $_exec;
 
 	function ThumbWrapper($sourceFile='', $sourceWidth=0, $sourceHeight=0){
@@ -37,10 +37,11 @@ class ThumbWrapper{
 		return ($retval===0);
 	}
 
-	function setThumbnailConfig($thumbWidth, $thumbHeight, $thumbQuality=50){
+	function setThumbnailConfig($thumbWidth, $thumbHeight, $thumbSetting){
 		$this->thumbWidth = $thumbWidth;
 		$this->thumbHeight = $thumbHeight;
-		$this->thumbQuality = $thumbQuality;
+		$this->thumbSetting = $thumbSetting;
+		$this->thumbQuality = $thumbSetting['Quality'];
 	}
 
 	function makeThumbnailtoFile($destFile){

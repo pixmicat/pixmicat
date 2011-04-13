@@ -13,9 +13,16 @@ class FileIO{
 	var $path, $imgPath, $thumbPath;
 	var $IFS;
 
+	/* private 搜尋預覽圖檔之完整檔名 */
+	function _resolveThumbName($thumbPattern){
+		$find = glob($this->thumbPath.$thumbPattern.'s.*');
+		return ($find !== false && count($find) != 0)
+			? basename($find[0]) : false;
+	}
+
 	/* private 藉由檔名分辨圖檔存放位置 */
 	function _getImagePhysicalPath($imgname){
-		return (substr($imgname, -5)=='s.jpg' ? $this->thumbPath : $this->imgPath).$imgname;
+		return (strpos($imgname, 's.') !== false ? $this->thumbPath : $this->imgPath).$imgname;
 	}
 
 	/* private 儲存索引檔 */

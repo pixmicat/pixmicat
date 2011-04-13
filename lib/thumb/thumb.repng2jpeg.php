@@ -10,7 +10,7 @@
  */
 
 class ThumbWrapper{
-	var $sourceFile, $sourceWidth, $sourceHeight, $thumbWidth, $thumbHeight, $thumbQuality;
+	var $sourceFile, $sourceWidth, $sourceHeight, $thumbWidth, $thumbHeight, $thumbSetting, $thumbQuality;
 	var $_exec;
 
 	function ThumbWrapper($sourceFile='', $sourceWidth=0, $sourceHeight=0){
@@ -32,10 +32,11 @@ class ThumbWrapper{
 		return file_exists($this->_exec) && function_exists('exec') && (strtoupper(substr(PHP_OS, 0, 3))==='WIN' || is_executable($this->_exec));
 	}
 
-	function setThumbnailConfig($thumbWidth, $thumbHeight, $thumbQuality=50){
+	function setThumbnailConfig($thumbWidth, $thumbHeight, $thumbSetting){
 		$this->thumbWidth = $thumbWidth;
 		$this->thumbHeight = $thumbHeight;
-		$this->thumbQuality = $thumbQuality;
+		$this->thumbSetting = $thumbSetting;
+		$this->thumbQuality = $thumbSetting['Quality'];
 	}
 
 	function makeThumbnailtoFile($destFile){

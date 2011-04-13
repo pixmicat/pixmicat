@@ -13,6 +13,17 @@ class FileIO{
 	var $conn, $parameter, $thumbLocalPath;
 	var $IFS;
 
+	/* private 搜尋預覽圖檔之完整檔名 */
+	function _resolveThumbName($thumbPattern){
+		if(!$this->parameter[7]){ // 預覽圖在本機
+			$find = glob($this->thumbLocalPath.$thumbPattern.'s.*');
+			return ($find !== false && count($find) != 0)
+				? basename($find[0]) : false;
+		}else{ // 預覽圖在網路
+			return $this->IFS->findThumbName($thumbPattern);
+		}
+	}
+
 	/* private 登入 FTP */
 	function _ftp_login(){
 		if($this->conn) return true;
@@ -56,7 +67,7 @@ class FileIO{
 	}
 
 	function imageExists($imgname){
-		if(!$this->parameter[7] && substr($imgname, -5) == 's.jpg') return file_exists($this->thumbLocalPath.$imgname);
+		if(!$this->parameter[7] && strpos($imgname, 's.') !== false) return file_exists($this->thumbLocalPath.$imgname);
 		return $this->IFS->beRecord($imgname);
 	}
 
@@ -68,7 +79,7 @@ class FileIO{
 		$size = 0; $size_perimg = 0;
 		foreach($imgname as $i){
 			$size_perimg = $this->getImageFilesize($i);
-			if(!$this->parameter[7] && substr($i, -5) == 's.jpg'){
+			if(!$this->parameter[7] && strpos($i, 's.') !== false){
 				@unlink($this->thumbLocalPath.$i);
 			}else{
 				if(!ftp_delete($this->conn, $i)){
@@ -84,7 +95,7 @@ class FileIO{
 
 	function uploadImage($imgname='', $imgpath='', $imgsize=0){
 		if($imgname=='') return true; // 支援上傳方法
-		if(!$this->parameter[7] && substr($imgname, -5) == 's.jpg') return false; // 不處理預覽圖
+		if(!$this->parameter[7] && strpos($imgname, 's.') !== false) return false; // 不處理預覽圖
 		if(!$this->_ftp_login()) return false;
 		$result = ftp_put($this->conn, $imgname, $imgpath, FTP_BINARY);
 		if($result){
@@ -95,13 +106,13 @@ class FileIO{
 	}
 
 	function getImageFilesize($imgname){
-		if(!$this->parameter[7] && substr($imgname, -5) == 's.jpg') return @filesize($this->thumbLocalPath.$imgname);
+		if(!$this->parameter[7] && strpos($imgname, 's.') !== false) return @filesize($this->thumbLocalPath.$imgname);
 		if($rc = $this->IFS->getRecord($imgname)) return $rc['imgSize'];
 		return false;
 	}
 
 	function getImageURL($imgname){
-		if(!$this->parameter[7] && substr($imgname, -5) == 's.jpg') return $this->getImageLocalURL($imgname);
+		if(!$this->parameter[7] && strpos($imgname, 's.') !== false) return $this->getImageLocalURL($imgname);
 		return $this->IFS->beRecord($imgname) ? $this->parameter[6].$imgname : false;
 	}
 }

@@ -10,7 +10,7 @@
  */
 
 class IndexFS{
-	var $logfile, $backend, $index, $modified;
+	var $logfile, $backend, $index, $modified, $keylist;
 
 	/* 建構元 */
 	function IndexFS($logfile){
@@ -53,6 +53,7 @@ class IndexFS{
 				$this->index[$field[0]] = array('imgSize' => $field[1], 'imgURL' => $field[2]);
 				// 索引格式: 檔名	檔案大小	對應路徑
 			}
+			$this->keylist = array_keys($this->index);
 			unset($indexlog);
 		}
 	}
@@ -64,6 +65,19 @@ class IndexFS{
 				return isset($this->index[$id]);
 			case 'sqlite2':
 				return (sqlite_fetch_array(sqlite_query($this->index, 'SELECT imgName FROM IndexFS WHERE imgName = "'.sqlite_escape_string($id).'"'), SQLITE_ASSOC) ? true : false);
+		}
+	}
+
+	/* 搜尋預覽圖檔檔名 */
+	function findThumbName($pattern){
+		switch($this->backend){
+			case 'log':
+				foreach($this->keylist as $k){
+					if(strpos($k, $pattern.'s.')) return $k;
+				}
+				return false;
+			case 'sqlite2':
+				return (sqlite_fetch_array(sqlite_query($this->index, 'SELECT imgName FROM IndexFS WHERE imgName LIKE "'.sqlite_escape_string($pattern).'s.%"'), SQLITE_ASSOC) ? true : false);
 		}
 	}
 

@@ -13,6 +13,17 @@ class FileIO{
 	var $userAgent, $parameter, $thumbLocalPath;
 	var $IFS;
 
+	/* private 搜尋預覽圖檔之完整檔名 */
+	function _resolveThumbName($thumbPattern){
+		if(!$this->parameter[4]){ // 預覽圖在本機
+			$find = glob($this->thumbLocalPath.$thumbPattern.'s.*');
+			return ($find !== false && count($find) != 0)
+				? basename($find[0]) : false;
+		}else{ // 預覽圖在網路
+			return $this->IFS->findThumbName($thumbPattern);
+		}
+	}
+
 	/* private 測試連線並且初始化遠端衛星主機 */
 	function _initSatellite(){
 		if(!($fp = @fsockopen($this->parameter[0]['host'], 80))) return false;
@@ -133,7 +144,7 @@ class FileIO{
 	}
 
 	function imageExists($imgname){
-		if(!$this->parameter[4] && substr($imgname, -5) == 's.jpg') return file_exists($this->thumbLocalPath.$imgname);
+		if(!$this->parameter[4] && strpos($imgname, 's.') !== false) return file_exists($this->thumbLocalPath.$imgname);
 		return $this->IFS->beRecord($imgname);
 	}
 
@@ -144,7 +155,7 @@ class FileIO{
 		$size = 0; $size_perimg = 0;
 		foreach($imgname as $i){
 			$size_perimg = $this->getImageFilesize($i);
-			if(!$this->parameter[4] && substr($i, -5) == 's.jpg'){
+			if(!$this->parameter[4] && strpos($i, 's.') !== false){
 				@unlink($this->thumbLocalPath.$i);
 			}else{
 				// 刪除出現錯誤
@@ -161,7 +172,7 @@ class FileIO{
 
 	function uploadImage($imgname='', $imgpath='', $imgsize=0){
 		if($imgname=='') return true; // 支援上傳方法
-		if(!$this->parameter[4] && substr($imgname, -5) == 's.jpg') return false; // 不處理預覽圖
+		if(!$this->parameter[4] && strpos($imgname, 's.') !== false) return false; // 不處理預覽圖
 		$result = $this->parameter[1] ? $this->_transloadSatellite($imgname) : $this->_uploadSatellite($imgname, $imgpath); // 選擇傳輸方法
 		if($result){
 			$this->IFS->addRecord($imgname, $imgsize, ''); // 加入索引之中
@@ -171,13 +182,13 @@ class FileIO{
 	}
 
 	function getImageFilesize($imgname){
-		if(!$this->parameter[4] && substr($imgname, -5) == 's.jpg') return @filesize($this->thumbLocalPath.$imgname);
+		if(!$this->parameter[4] && strpos($imgname, 's.') !== false) return @filesize($this->thumbLocalPath.$imgname);
 		if($rc = $this->IFS->getRecord($imgname)) return $rc['imgSize'];
 		return false;
 	}
 
 	function getImageURL($imgname){
-		if(!$this->parameter[4] && substr($imgname, -5) == 's.jpg') return $this->getImageLocalURL($imgname);
+		if(!$this->parameter[4] && strpos($imgname, 's.') !== false) return $this->getImageLocalURL($imgname);
 		return $this->IFS->beRecord($imgname) ? $this->parameter[3].$imgname : false;
 	}
 }

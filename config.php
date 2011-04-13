@@ -7,15 +7,17 @@ http://pixmicat.openfoundry.org/
 版權聲明：
 此程式是基於レッツPHP!<http://php.s3.to/>的gazou.php、
 双葉ちゃん<http://www.2chan.net>的futaba.php所改寫之衍生著作程式，屬於自由軟體，
-以The Clarified Artistic License作為發佈授權條款。
-您可以遵照The Clarified Artistic License來自由使用、散播、修改或製成衍生著作。
+以Artistic License 2.0作為發佈授權條款。
+您可以遵照Artistic License 2.0來自由使用、散播、修改或製成衍生著作。
 更詳細的條款及定義請參考隨附"LICENSE"條款副本。
 
 發佈這一程式的目的是希望它有用，但沒有任何擔保，甚至沒有適合特定目的而隱含的擔保。
 關於此程式相關的問題請不要詢問レッツPHP!及双葉ちゃん。
 
-如果您沒有隨著程式收到一份The Clarified Artistic License副本，
+如果您沒有隨著程式收到一份Artistic License 2.0副本，
 請瀏覽http://pixmicat.openfoundry.org/license/以取得一份。
+
+"Pixmicat!", "Pixmicat", 及"圖咪貓"是Pixmicat! Development Team的商標。
 */
 /*---- Part 1：程式基本設定 ----*/
 // 伺服器常態設定
@@ -58,7 +60,6 @@ define("CAP_SUFFIX", ' ★'); // 管理員キャップ後綴字元 (請務必有
 define("CAP_ISHTML", 1); // 管理員キャップ啟動後內文是否接受HTML標籤 (是：1 否：0)
 
 // 功能切換
-define("USE_THUMB", 1); // 使用預覽圖機能 (使用：1 不使用：0)
 define("USE_FLOATFORM", 1); // 新增文章表單使用自動隱藏 (是：1 否：0)
 define("USE_SEARCH", 1); // 開放搜尋功能 (是：1 否：0)
 define("USE_UPSERIES", 1); // 是否啟用連貼機能 [開主題後自動指向到主題下以方便連貼] (是：1 否：0)
@@ -98,11 +99,15 @@ define("RENZOKU", 60); // 連續投稿間隔秒數
 define("RENZOKU2", 60); // 連續貼圖間隔秒數
 
 // 預覽圖片相關限制
+define("USE_THUMB", 1); // 使用預覽圖機能 (使用：1 不使用：0) [gd, imagemagick, imagick, magickwand, repng2jpeg]
 define("MAX_W", 250); // 討論串本文預覽圖片寬度 (超過則自動縮小)
 define("MAX_H", 250); // 討論串本文預覽圖片高度
 define("MAX_RW", 125); // 討論串回應預覽圖片寬度 (超過則自動縮小)
 define("MAX_RH", 125); // 討論串回應預覽圖片高度
-define("THUMB_Q", 75); // 預覽圖片之品質 (1-100, 建議預設75，越高品質越好但檔案也越大)
+$THUMB_SETTING = array( // 預覽圖生成設定
+	'Format' => 'jpg',
+	'Quality' => 75
+);
 
 // 外觀設定
 $ADDITION_INFO = ""; // 可在表單下顯示額外文字

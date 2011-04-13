@@ -10,7 +10,7 @@
  */
 
 class ThumbWrapper{
-	var $sourceFile, $sourceWidth, $sourceHeight, $thumbWidth, $thumbHeight, $thumbQuality;
+	var $sourceFile, $sourceWidth, $sourceHeight, $thumbWidth, $thumbHeight, $thumbSetting, $thumbQuality;
 
 	function ThumbWrapper($sourceFile='', $sourceWidth=0, $sourceHeight=0){
 		$this->sourceFile = $sourceFile;
@@ -212,10 +212,11 @@ class ThumbWrapper{
 		return extension_loaded('gd') && function_exists('ImageCreateTrueColor') && function_exists('ImageCopyResampled');
 	}
 
-	function setThumbnailConfig($thumbWidth, $thumbHeight, $thumbQuality=50){
+	function setThumbnailConfig($thumbWidth, $thumbHeight, $thumbSetting){
 		$this->thumbWidth = $thumbWidth;
 		$this->thumbHeight = $thumbHeight;
-		$this->thumbQuality = $thumbQuality;
+		$this->thumbSetting = $thumbSetting;
+		$this->thumbQuality = $thumbSetting['Quality'];
 	}
 
 	function makeThumbnailtoFile($destFile){

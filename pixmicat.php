@@ -1,5 +1,5 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 6th.Release-dev (b110411)'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 6th.Release-dev (b110413)'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -301,11 +301,12 @@ function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $
 		// 設定附加圖檔顯示
 		if($ext && $FileIO->imageExists($tim.$ext)){
 			$imageURL = $FileIO->getImageURL($tim.$ext); // image URL
-			$thumbURL = $FileIO->getImageURL($tim.'s.jpg'); // thumb URL
+			$thumbName = $FileIO->resolveThumbName($tim); // thumb Name
 
 			$imgsrc = '<a href="'.$imageURL.'" rel="_blank"><img src="nothumb.gif" class="img" alt="'.$imgsize.'" title="'.$imgsize.'" /></a>'; // 預設顯示圖樣式 (無預覽圖時)
 			if($tw && $th){
-				if($FileIO->imageExists($tim.'s.jpg')){ // 有預覽圖
+				if($thumbName != false){ // 有預覽圖
+					$thumbURL = $FileIO->getImageURL($thumbName); // thumb URL
 					$img_thumb = '<small>'._T('img_sample').'</small>';
 					$imgsrc = '<a href="'.$imageURL.'" rel="_blank"><img src="'.$thumbURL.'" style="width: '.$tw.'px; height: '.$th.'px;" class="img" alt="'.$imgsize.'" title="'.$imgsize.'" /></a>';
 				}elseif($ext=='.swf') $imgsrc = ''; // swf檔案不需預覽圖
@@ -366,7 +367,7 @@ function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $
 
 /* 寫入記錄檔 */
 function regist(){
-	global $PIO, $FileIO, $PMS, $language, $BAD_STRING, $BAD_FILEMD5, $BAD_IPADDR, $LIMIT_SENSOR;
+	global $PIO, $FileIO, $PMS, $language, $BAD_STRING, $BAD_FILEMD5, $BAD_IPADDR, $LIMIT_SENSOR, $THUMB_SETTING;
 	$dest = ''; $mes = ''; $up_incomplete = 0; $is_admin = false;
 	$path = realpath('.').DIRECTORY_SEPARATOR; // 此目錄的絕對位置
 	$delta_totalsize = 0; // 總檔案大小的更動值
@@ -641,13 +642,13 @@ function regist(){
 	setcookie('emailc', $email, time()+7*24*3600);
 	if($dest && is_file($dest)){
 		$destFile = $path.IMG_DIR.$tim.$ext; // 圖檔儲存位置
-		$thumbFile = $path.THUMB_DIR.$tim.'s.jpg'; // 預覽圖儲存位置
+		$thumbFile = $path.THUMB_DIR.$tim.'s.'.$THUMB_SETTING['Format']; // 預覽圖儲存位置
 		rename($dest, $destFile);
 		if(USE_THUMB !== 0){ // 生成預覽圖
 			$thumbType = USE_THUMB; if(USE_THUMB==1){ $thumbType = 'gd'; } // 與舊設定相容
 			require('./lib/thumb/thumb.'.$thumbType.'.php');
 			$thObj = new ThumbWrapper($destFile, $imgW, $imgH);
-			$thObj->setThumbnailConfig($W, $H, THUMB_Q);
+			$thObj->setThumbnailConfig($W, $H, $THUMB_SETTING);
 			$thObj->makeThumbnailtoFile($thumbFile);
 			@chmod($thumbFile, 0666);
 			unset($thObj);
@@ -658,7 +659,7 @@ function regist(){
 				$delta_totalsize += filesize($destFile);
 			}
 			if(file_exists($thumbFile)){
-				$FileIO->uploadImage($tim.'s.jpg', $thumbFile, filesize($thumbFile));
+				$FileIO->uploadImage($tim.'s.'.$THUMB_SETTING['Format'], $thumbFile, filesize($thumbFile));
 				$delta_totalsize += filesize($thumbFile);
 			}
 		}
@@ -886,7 +887,8 @@ function admindel(){
 		if($ext && $FileIO->imageExists($tim.$ext)){
 			$clip = '<a href="'.$FileIO->getImageURL($tim.$ext).'" rel="_blank">'.$tim.$ext.'</a>';
 			$size = $FileIO->getImageFilesize($tim.$ext);
-			if($FileIO->imageExists($tim.'s.jpg')) $size += $FileIO->getImageFilesize($tim.'s.jpg');
+			$thumbName = $FileIO->resolveThumbName($tim);
+			if($thumbName != false) $size += $FileIO->getImageFilesize($thumbName);
 		}else{
 			$clip = $md5chksum = '--';
 			$size = 0;
@@ -1088,7 +1090,7 @@ function deleteCache($no){
 
 /* 顯示系統各項資訊 */
 function showstatus(){
-	global $PTE, $PIO, $FileIO, $PMS, $language, $LIMIT_SENSOR;
+	global $PTE, $PIO, $FileIO, $PMS, $language, $LIMIT_SENSOR, $THUMB_SETTING;
 	$countline = $PIO->postCount(); // 計算投稿文字記錄檔目前資料筆數
 	$counttree = $PIO->threadCount(); // 計算樹狀結構記錄檔目前資料筆數
 	$tmp_total_size = $FileIO->getCurrentStorageSize(); // 附加圖檔使用量總大小
@@ -1140,7 +1142,7 @@ function showstatus(){
 <tr><td>'._T('info_basic_com_limit').'</td><td colspan="3"> '.COMM_MAX._T('info_basic_com_after').'</td></tr>
 <tr><td>'._T('info_basic_anonpost').'</td><td colspan="3"> '.ALLOW_NONAME.' '._T('info_basic_anonpost_opt').'</td></tr>
 <tr><td>'._T('info_basic_del_incomplete').'</td><td colspan="3"> '.KILL_INCOMPLETE_UPLOAD.' '._T('info_0no1yes').'</td></tr>
-<tr><td>'._T('info_basic_use_sample',THUMB_Q).'</td><td colspan="3"> '.USE_THUMB.' '._T('info_0notuse1use').'</td></tr>
+<tr><td>'._T('info_basic_use_sample', $THUMB_SETTING['Quality']).'</td><td colspan="3"> '.USE_THUMB.' '._T('info_0notuse1use').'</td></tr>
 <tr><td>'._T('info_basic_useblock').'</td><td colspan="3"> '.BAN_CHECK.' '._T('info_0disable1enable').'</td></tr>
 <tr><td>'._T('info_basic_showid').'</td><td colspan="3"> '.DISP_ID.' '._T('info_basic_showid_after').'</td></tr>
 <tr><td>'._T('info_basic_cr_limit').'</td><td colspan="3"> '.BR_CHECK._T('info_basic_cr_after').'</td></tr>
