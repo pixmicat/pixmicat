@@ -77,7 +77,11 @@ class IndexFS{
 				}
 				return false;
 			case 'sqlite2':
-				return (sqlite_fetch_array(sqlite_query($this->index, 'SELECT imgName FROM IndexFS WHERE imgName LIKE "'.sqlite_escape_string($pattern).'s.%"'), SQLITE_ASSOC) ? true : false);
+				$ptrn = sqlite_escape_string($pattern);
+				// LIKE Optimization by >= AND < using index
+				// Original: LIKE "1234567890123s.%"
+				$result = sqlite_fetch_array(sqlite_query($this->index, 'SELECT imgName FROM IndexFS WHERE imgName >= "'.$ptrn.'s" AND imgName < "'.$ptrn.'t"'), SQLITE_ASSOC);
+				return (isset($result) ? $result['imgName'] : false);
 		}
 	}
 

@@ -13,13 +13,6 @@ class FileIO{
 	var $path, $imgPath, $thumbPath;
 	var $IFS;
 
-	/* private 搜尋預覽圖檔之完整檔名 */
-	function _resolveThumbName($thumbPattern){
-		$find = glob($this->thumbPath.$thumbPattern.'s.*');
-		return ($find !== false && count($find) != 0)
-			? basename($find[0]) : false;
-	}
-
 	/* private 藉由檔名分辨圖檔存放位置 */
 	function _getImagePhysicalPath($imgname){
 		return (strpos($imgname, 's.') !== false ? $this->thumbPath : $this->imgPath).$imgname;
@@ -45,7 +38,7 @@ class FileIO{
 	}
 
 	function imageExists($imgname){
-		return file_exists($this->_getImagePhysicalPath($imgname));
+		return $this->IFS->beRecord($imgname);
 	}
 
 	function deleteImage($imgname){
@@ -73,7 +66,8 @@ class FileIO{
 	}
 
 	function getImageFilesize($imgname){
-		return @filesize($this->_getImagePhysicalPath($imgname));
+		if($rc = $this->IFS->getRecord($imgname)) return $rc['imgSize'];
+		return false;
 	}
 
 	function getImageURL($imgname){

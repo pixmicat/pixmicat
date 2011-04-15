@@ -13,17 +13,6 @@ class FileIO{
 	var $userAgent, $parameter, $thumbLocalPath;
 	var $IFS;
 
-	/* private 搜尋預覽圖檔之完整檔名 */
-	function _resolveThumbName($thumbPattern){
-		if(!$this->parameter[4]){ // 預覽圖在本機
-			$find = glob($this->thumbLocalPath.$thumbPattern.'s.*');
-			return ($find !== false && count($find) != 0)
-				? basename($find[0]) : false;
-		}else{ // 預覽圖在網路
-			return $this->IFS->findThumbName($thumbPattern);
-		}
-	}
-
 	/* private 測試連線並且初始化遠端衛星主機 */
 	function _initSatellite(){
 		if(!($fp = @fsockopen($this->parameter[0]['host'], 80))) return false;
@@ -39,7 +28,7 @@ class FileIO{
 		$result = fgets($fp, 128); // 取一次足以取到檔頭
 		fclose($fp);
 
-		return (strpos($result, '202 Accepted')!==false ? true : false); // 檢查狀態值偵測是否傳輸成功
+		return (strpos($result, '202 Accepted') !== false); // 檢查狀態值偵測是否傳輸成功
 	}
 
 	/* private 傳送抓取要求到遠端衛星主機上面 */
@@ -57,7 +46,7 @@ class FileIO{
 		$result = fgets($fp, 128); // 取一次足以取到檔頭
 		fclose($fp);
 
-		return (strpos($result, '202 Accepted')!==false ? true : false); // 檢查狀態值偵測是否傳輸成功
+		return (strpos($result, '202 Accepted') !== false); // 檢查狀態值偵測是否傳輸成功
 	}
 
 	/* private 直接傳送檔案到遠端衛星主機上面 */
@@ -94,7 +83,7 @@ class FileIO{
 		$result = fgets($fp, 128);
 		fclose($fp);
 
-		return (strpos($result, '202 Accepted')!==false ? true : false);
+		return (strpos($result, '202 Accepted') !== false);
 	}
 
 	/* private 發出刪除圖片要求 */
@@ -112,7 +101,7 @@ class FileIO{
 		$result = fgets($fp, 128);
 		fclose($fp);
 
-		return (strpos($result, '202 Accepted')!==false ? true : false);
+		return (strpos($result, '202 Accepted') !== false);
 	}
 
 	/* private 儲存索引檔 */
@@ -126,7 +115,7 @@ class FileIO{
 		$this->IFS->openIndex();
 		register_shutdown_function(array($this, '_setIndex')); // 設定解構元 (PHP 結束前執行)
 		set_time_limit(120); // 執行時間 120 秒 (傳輸過程可能很長)
-		$this->userAgent = 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)'; // Just for fun ;-)
+		$this->userAgent = 'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.1)'; // Just for fun ;-)
 		$this->thumbLocalPath = $ENV['PATH'].$ENV['THUMB']; // 預覽圖本機位置
 		$this->parameter = $parameter; // 將參數重新解析
 		$this->parameter[0] = parse_url($this->parameter[0]); // URL 位置拆解
@@ -144,7 +133,6 @@ class FileIO{
 	}
 
 	function imageExists($imgname){
-		if(!$this->parameter[4] && strpos($imgname, 's.') !== false) return file_exists($this->thumbLocalPath.$imgname);
 		return $this->IFS->beRecord($imgname);
 	}
 
@@ -163,8 +151,8 @@ class FileIO{
 					if($this->remoteImageExists($this->parameter[3].$i)) continue; // 無法刪除，檔案存在 (保留索引)
 					// 無法刪除，檔案消失 (更新索引)
 				}
-				$this->IFS->delRecord($i);
 			}
+			$this->IFS->delRecord($i);
 			$size += $size_perimg;
 		}
 		return $size;
@@ -172,8 +160,13 @@ class FileIO{
 
 	function uploadImage($imgname='', $imgpath='', $imgsize=0){
 		if($imgname=='') return true; // 支援上傳方法
-		if(!$this->parameter[4] && strpos($imgname, 's.') !== false) return false; // 不處理預覽圖
-		$result = $this->parameter[1] ? $this->_transloadSatellite($imgname) : $this->_uploadSatellite($imgname, $imgpath); // 選擇傳輸方法
+		if(!$this->parameter[4] && strpos($imgname, 's.') !== false){
+			$this->IFS->addRecord($imgname, $imgsize, ''); // 加入索引之中
+			return true; // 不處理預覽圖
+		}
+		$result = $this->parameter[1]
+			? $this->_transloadSatellite($imgname)
+			: $this->_uploadSatellite($imgname, $imgpath); // 選擇傳輸方法
 		if($result){
 			$this->IFS->addRecord($imgname, $imgsize, ''); // 加入索引之中
 			unlink($imgpath); // 確實上傳後刪除本機暫存
@@ -182,7 +175,6 @@ class FileIO{
 	}
 
 	function getImageFilesize($imgname){
-		if(!$this->parameter[4] && strpos($imgname, 's.') !== false) return @filesize($this->thumbLocalPath.$imgname);
 		if($rc = $this->IFS->getRecord($imgname)) return $rc['imgSize'];
 		return false;
 	}
