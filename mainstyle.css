@@ -21,6 +21,7 @@
 
 	.threadpost {  } /* 討論串首篇樣式 */
 	.reply { display: table; margin: 0.5ex 1em 0 1em; background: #F0E0D6; } /* 討論串回應樣式 */
+	.replywrap { display: table-cell; } /* 解決 IE8+ 無法選取討論串回應內文用 */
 	.reply_hl { background: #F0D5B7; }  /* 討論串回應背景標亮樣式 */
 	.name { color: #117743; font-weight: bold; } /* 文章張貼者名稱樣式 */
 	.admin_cap { color: #0000FF; } /* 管理員キャップ樣式設定 */

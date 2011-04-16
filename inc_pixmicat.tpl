@@ -1,16 +1,15 @@
 <!--&THEMENAME-->futaba Theme<!--/&THEMENAME-->
-<!--&THEMEVER-->v20100113<!--/&THEMEVER-->
+<!--&THEMEVER-->v20110416<!--/&THEMEVER-->
 <!--&THEMEAUTHOR-->Pixmicat! Development Team<!--/&THEMEAUTHOR-->
 
 <!--&HEADER--><?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="zh-tw">
 <head>
-<meta http-equiv="Pragma" content="no-cache" />
-<meta http-equiv="Expires" content="Sat, 1 Jan 2000 00:00:00 GMT" />
+<meta http-equiv="Cache-Control" content="max-age=0; must-revalidate" />
+<meta http-equiv="Expires" content="Sat, 1 Jan 2011 00:00:00 GMT" />
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <meta http-equiv="Content-Language" content="zh-tw" />
-<meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=yes" />
 <title>{$TITLE}</title>
 <link rel="stylesheet" type="text/css" href="mainstyle.css" />
@@ -24,7 +23,7 @@ var ext="{$ALLOW_UPLOAD_EXT}".toUpperCase().split("|");
 // ]]>
 </script>
 <script type="text/javascript" src="mainscript.js"></script>
-<!--[if IE]><script type="text/javascript" src="iedivfix.js"></script><![endif]-->
+<!--[if lt IE 8]><script type="text/javascript" src="iedivfix.js"></script><![endif]-->
 <!--/&JSHEADER-->
 
 <!--&TOPLINKS-->
@@ -114,11 +113,11 @@ var ext="{$ALLOW_UPLOAD_EXT}".toUpperCase().split("|");
 <!--/&THREAD-->
 
 <!--&REPLY-->
-<div class="reply" id="r{$NO}">
+<div class="reply" id="r{$NO}"><div class="replywrap">
 <input type="checkbox" name="{$NO}" value="delete" /><span class="title">{$SUB}</span> {$NAME_TEXT}<span class="name">{$NAME}</span> [{$NOW}] {$QUOTEBTN} &nbsp;<!--&IF($IMG_BAR,'<br />&nbsp;','')-->{$IMG_BAR} {$IMG_SRC}
 <div class="quote">{$COM}</div>
 <!--&IF($CATEGORY,'<div class="category">{$CATEGORY_TEXT}{$CATEGORY}</div>','')-->
-{$WARN_BEKILL}</div>
+{$WARN_BEKILL}</div></div>
 <!--/&REPLY-->
 
 <!--&SEARCHRESULT-->

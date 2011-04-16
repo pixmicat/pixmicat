@@ -1,6 +1,6 @@
 <!-- Theme Description -->
 <!--&THEMENAME-->Pixmicat!-Festival Theme<!--/&THEMENAME-->
-<!--&THEMEVER-->v20100113<!--/&THEMEVER-->
+<!--&THEMEVER-->v20110416<!--/&THEMEVER-->
 <!--&THEMEAUTHOR-->Pixmicat! Development Team<!--/&THEMEAUTHOR-->
 
 <!-- Theme Settings -->
@@ -23,11 +23,10 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="zh-tw">
 <head>
-<meta http-equiv="Pragma" content="no-cache" />
-<meta http-equiv="Expires" content="Sat, 1 Jan 2000 00:00:00 GMT" />
+<meta http-equit="Cache-Control" content="max-age=0; must-revalidate" />
+<meta http-equiv="Expires" content="Sat, 1 Jan 2011 00:00:00 GMT" />
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <meta http-equiv="Content-Language" content="zh-tw" />
-<meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7" />
 <title>{$TITLE}</title>
 <link rel="stylesheet" type="text/css" href="mainstyle.css" />
 <style type="text/css"><!--/*--><![CDATA[/*><!--*/
@@ -47,7 +46,7 @@ var ext="{$ALLOW_UPLOAD_EXT}".toUpperCase().split("|");
 var boxclicked=0;
 //--><!]]></script>
 <script type="text/javascript" src="mainscript.js"></script>
-<!--[if IE ]><script type="text/javascript" src="iedivfix.js"></script><![endif]-->
+<!--[if lt IE 8]><script type="text/javascript" src="iedivfix.js"></script><![endif]-->
 <!--/&JSHEADER-->
 
 <!--&TOPLINKS-->
@@ -144,11 +143,11 @@ var boxclicked=0;
 <!--/&THREAD-->
 
 <!--&REPLY-->
-<div class="reply" id="r{$NO}">
+<div class="reply" id="r{$NO}"><div class="replywrap">
 <input type="checkbox" name="{$NO}" value="delete" onclick="boxclicked=1;" /><span class="title">{$SUB}</span> {$NAME_TEXT}<span class="name">{$NAME}</span> [{$NOW}] {$QUOTEBTN}&nbsp;<!--&IF($IMG_BAR,'<br />&nbsp;','')-->{$IMG_BAR} {$IMG_SRC}
 {$WARN_BEKILL}<div class="quote">{$COM}</div>
 <!--&IF($CATEGORY,'<div class="category">{$CATEGORY_TEXT}{$CATEGORY}</div>','')-->
-</div>
+</div></div>
 <!--/&REPLY-->
 
 <!--&SEARCHRESULT-->
