@@ -250,7 +250,10 @@ function getREMOTE_ADDR(){
 	if(isset($_SERVER['HTTP_VIA']) && isset($_SERVER['HTTP_X_FORWARDED_FOR'])){
 		$tmp = preg_split('/[ ,]+/', $_SERVER['HTTP_X_FORWARDED_FOR']);
 		// 防止 Squid "unknown" 問題，此種情況直接使用 REMOTE_ADDR
-		return ($tmp[0] != 'unknown' ? $tmp[0] : $_SERVER['REMOTE_ADDR']);
+		// 如果結果為 Private IP 或 Reserved IP，捨棄改用 REMOTE_ADDR
+		if(filter_var($tmp[0], FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)){
+			return $tmp[0];
+		}
 	}
 	return $_SERVER['REMOTE_ADDR'];
 }
