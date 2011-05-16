@@ -18,7 +18,7 @@ class FileIOWrapper extends FileIO{
 	function getImageLocalURL($imgname){
 		if(!isset($this->absoluteURL)) $this->absoluteURL = $this->_getAbsoluteURL();
 
-		return $this->absoluteURL.(substr($imgname, -5)=='s.jpg' ? THUMB_DIR : IMG_DIR).$imgname;
+		return $this->absoluteURL.(strpos($imgname, 's.') !== false ? THUMB_DIR : IMG_DIR).$imgname;
 	}
 
 	/* 檢查遠端檔案是否存在 */

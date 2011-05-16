@@ -354,8 +354,10 @@ class PIOlog{
 		$arr_warn = $arr_kill = array();
 		foreach($rpord as $post){
 			$logsarray = $this->_ArrangeArrayStructure($post); // 分析資料為陣列
-			if($FileIO->imageExists($logsarray[0]['tim'].$logsarray[0]['ext'])){ $total_size -= $FileIO->getImageFilesize($logsarray[0]['tim'].$logsarray[0]['ext']) / 1024; $arr_kill[] = $post; $arr_warn[$post] = 1; } // 標記刪除
-			if($FileIO->imageExists($logsarray[0]['tim'].'s.jpg')) $total_size -= $FileIO->getImageFilesize($logsarray[0]['tim'].'s.jpg') / 1024;
+			$dfile = $logsarray[0]['tim'].$logsarray[0]['ext'];
+			$dthumb = $FileIO->resolveThumbName($logsarray[0]['tim']);
+			if($FileIO->imageExists($dfile)){ $total_size -= $FileIO->getImageFilesize($dfile) / 1024; $arr_kill[] = $post; $arr_warn[$post] = 1; } // 標記刪除
+			if($dthumb && $FileIO->imageExists($dthumb)) $total_size -= $FileIO->getImageFilesize($dthumb) / 1024;
 			if($total_size < $storage_max) break;
 		}
 		return $warnOnly ? $arr_warn : $this->removeAttachments($arr_kill);
@@ -401,8 +403,10 @@ class PIOlog{
 		$lcount = count($logsarray);
 		for($i = 0; $i < $lcount; $i++){
 			if($logsarray[$i]['ext']){
-				if($FileIO->imageExists($logsarray[$i]['tim'].$logsarray[$i]['ext'])) $files[] = $logsarray[$i]['tim'].$logsarray[$i]['ext'];
-				if($FileIO->imageExists($logsarray[$i]['tim'].'s.jpg')) $files[] = $logsarray[$i]['tim'].'s.jpg';
+				$dfile = $logsarray[$i]['tim'].$logsarray[$i]['ext'];
+				$dthumb = $FileIO->resolveThumbName($logsarray[$i]['tim']);
+				if($FileIO->imageExists($dfile)) $files[] = $dfile;
+				if($dthumb && $FileIO->imageExists($dthumb)) $files[] = $dthumb;
 			}
 		}
 		return $files;

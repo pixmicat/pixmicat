@@ -237,7 +237,18 @@ class ThumbWrapper{
 		if(!$im_in) return false;
 		$im_out = ImageCreateTrueColor($this->thumbWidth, $this->thumbHeight);
 		ImageCopyResampled($im_out, $im_in, 0, 0, 0, 0, $this->thumbWidth, $this->thumbHeight, $this->sourceWidth, $this->sourceHeight);
-		ImageJPEG($im_out, $destFile, $this->thumbQuality);
+		switch(strtolower($this->thumbSetting['Format'])){
+			case 'png':
+				ImagePNG($im_out, $destFile, $this->thumbQuality);
+				break;
+			case 'gif':
+				ImageGIF($im_out, $destFile);
+				break;
+			case 'jpg':
+			default:
+				ImageJPEG($im_out, $destFile, $this->thumbQuality);
+				break;
+		}
 		ImageDestroy($im_in); ImageDestroy($im_out);
 		return true;
 	}

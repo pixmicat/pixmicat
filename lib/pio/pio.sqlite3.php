@@ -252,9 +252,9 @@ class PIOsqlite3{
 		$arr_warn = $arr_kill = array(); // 警告 / 即將被刪除標記
 		($result = $this->con->query('SELECT no,ext,tim FROM '.$this->tablename.' WHERE ext <> "" ORDER BY no')) or $this->_error_handler('Get the old post failed', __LINE__);
 		while(list($dno, $dext, $dtim) = $result->fetch(PDO::FETCH_NUM)){
-			$dfile = $dtim.$dext; $dthumb = $dtim.'s.jpg';
+			$dfile = $dtim.$dext; $dthumb = $FileIO->resolveThumbName($dtim);
 			if($FileIO->imageExists($dfile)){ $total_size -= $FileIO->getImageFilesize($dfile) / 1024; $arr_kill[] = $dno; $arr_warn[$dno] = 1; } // 標記刪除
-			if($FileIO->imageExists($dthumb)) $total_size -= $FileIO->getImageFilesize($dthumb) / 1024;
+			if($dthumb && $FileIO->imageExists($dthumb)) $total_size -= $FileIO->getImageFilesize($dthumb) / 1024;
 			if($total_size < $storage_max) break;
 		}
 		return $warnOnly ? $arr_warn : $this->removeAttachments($arr_kill);
@@ -282,9 +282,9 @@ class PIOsqlite3{
 
 		($result = $this->con->query($tmpSQL)) or $this->_error_handler('Get attachments of the post failed', __LINE__);
 		while(list($dext, $dtim) = $result->fetch(PDO::FETCH_NUM)){
-			$dfile = $dtim.$dext; $dthumb = $dtim.'s.jpg';
+			$dfile = $dtim.$dext; $dthumb = $FileIO->resolveThumbName($dtim);
 			if($FileIO->imageExists($dfile)) $files[] = $dfile;
-			if($FileIO->imageExists($dthumb)) $files[] = $dthumb;
+			if($dthumb && $FileIO->imageExists($dthumb)) $files[] = $dthumb;
 		}
 		return $files;
 	}

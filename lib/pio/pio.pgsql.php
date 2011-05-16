@@ -286,9 +286,9 @@ class PIOpgsql{
 			array('Get the old post failed', __LINE__));
 		while(list($dno, $dext, $dtim) = pg_fetch_array($result)){ // 個別跑舊文迴圈
 			$dfile = $dtim.$dext; // 附加檔案名稱
-			$dthumb = $dtim.'s.jpg'; // 預覽檔案名稱
+			$dthumb = $FileIO->resolveThumbName($dtim); // 預覽檔案名稱
 			if($FileIO->imageExists($dfile)){ $total_size -= $FileIO->getImageFilesize($dfile) / 1024; $arr_kill[] = $dno; $arr_warn[$dno] = 1; } // 標記刪除
-			if($FileIO->imageExists($dthumb)) $total_size -= $FileIO->getImageFilesize($dthumb) / 1024;
+			if($dthumb && $FileIO->imageExists($dthumb)) $total_size -= $FileIO->getImageFilesize($dthumb) / 1024;
 			if($total_size < $storage_max) break;
 		}
 		pg_free_result($result);
@@ -321,9 +321,9 @@ class PIOpgsql{
 		$result = $this->_pgsql_call($tmpSQL, array('Get attachments of the post failed', __LINE__));
 		while(list($dext, $dtim) = pg_fetch_array($result)){ // 個別跑迴圈
 			$dfile = $dtim.$dext; // 附加檔案名稱
-			$dthumb = $dtim.'s.jpg'; // 預覽檔案名稱
+			$dthumb = $FileIO->resolveThumbName($dtim); // 預覽檔案名稱
 			if($FileIO->imageExists($dfile)) $files[] = $dfile;
-			if($FileIO->imageExists($dthumb)) $files[] = $dthumb;
+			if($dthumb && $FileIO->imageExists($dthumb)) $files[] = $dthumb;
 		}
 		pg_free_result($result);
 		return $files;

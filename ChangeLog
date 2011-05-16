@@ -1,5 +1,9 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2011/05/16
+-[PIO][FileIO] 修正依賴 s.jpg 查詢預覽圖的敘述
+-[thumb.gd] 新增 PNG, GIF 格式預覽圖生成
+
 2011/04/13, 14
 -[thumb] 預覽圖生成物件修改為準備可支援其他圖像格式
 -[config] 整合預覽圖生成設定 $THUMB_SETTING
