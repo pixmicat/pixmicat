@@ -1,5 +1,5 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 6th.Release-dev (b110413)'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 6th.Release RC'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -643,25 +643,23 @@ function regist(){
 	if($dest && is_file($dest)){
 		$destFile = $path.IMG_DIR.$tim.$ext; // 圖檔儲存位置
 		$thumbFile = $path.THUMB_DIR.$tim.'s.'.$THUMB_SETTING['Format']; // 預覽圖儲存位置
-		rename($dest, $destFile);
 		if(USE_THUMB !== 0){ // 生成預覽圖
 			$thumbType = USE_THUMB; if(USE_THUMB==1){ $thumbType = 'gd'; } // 與舊設定相容
 			require('./lib/thumb/thumb.'.$thumbType.'.php');
-			$thObj = new ThumbWrapper($destFile, $imgW, $imgH);
+			$thObj = new ThumbWrapper($dest, $imgW, $imgH);
 			$thObj->setThumbnailConfig($W, $H, $THUMB_SETTING);
 			$thObj->makeThumbnailtoFile($thumbFile);
 			@chmod($thumbFile, 0666);
 			unset($thObj);
 		}
-		if($FileIO->uploadImage()){ // 支援上傳圖片至其他伺服器
-			if(file_exists($destFile)){
-				$FileIO->uploadImage($tim.$ext, $destFile, filesize($destFile));
-				$delta_totalsize += filesize($destFile);
-			}
-			if(file_exists($thumbFile)){
-				$FileIO->uploadImage($tim.'s.'.$THUMB_SETTING['Format'], $thumbFile, filesize($thumbFile));
-				$delta_totalsize += filesize($thumbFile);
-			}
+		rename($dest, $destFile);
+		if(file_exists($destFile)){
+			$FileIO->uploadImage($tim.$ext, $destFile, filesize($destFile));
+			$delta_totalsize += filesize($destFile);
+		}
+		if(file_exists($thumbFile)){
+			$FileIO->uploadImage($tim.'s.'.$THUMB_SETTING['Format'], $thumbFile, filesize($thumbFile));
+			$delta_totalsize += filesize($thumbFile);
 		}
 	}
 	// delta != 0 表示總檔案大小有更動，須更新快取

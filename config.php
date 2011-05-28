@@ -25,7 +25,7 @@ define("PHP_SELF", 'pixmicat.php'); // 主程式名 (若是修改了主程式名
 define("TIME_ZONE", '+8'); // 時區設定 (GMT時區，參照 http://wwp.greenwichmeantime.com/ )
 define("PIXMICAT_LANGUAGE", 'zh_TW'); // 語系語定
 define("HTTP_UPLOAD_DIFF", 50); // HTTP上傳所有位元組與實際位元組之允許誤差值
-ini_set("memory_limit", '32M'); // PHP運行的最大記憶體使用量 (php內定8M / 建議32M)
+ini_set("memory_limit", '128M'); // PHP運行的最大記憶體使用量 (php內定128M/無限:-1)
 
 // FileIO設定
 define("FILEIO_BACKEND", 'normal'); // FileIO後端指定

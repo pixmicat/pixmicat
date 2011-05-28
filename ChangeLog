@@ -1,5 +1,10 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2011/05/28
+-[pixmicat] 修正程式當預覽圖因為PHP最大記憶體限制而強迫終止時，sizecache可能產生誤差的問題
+-[config] 將PHP最大記憶體限制調整至現今預設值 128M
+-[thumb.gd][thumb.repng2jpeg] 修改來源圖檔類型判斷方式
+
 2011/05/16
 -[PIO][FileIO] 修正依賴 s.jpg 查詢預覽圖的敘述
 -[thumb.gd] 新增 PNG, GIF 格式預覽圖生成

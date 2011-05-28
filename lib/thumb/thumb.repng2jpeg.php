@@ -41,10 +41,11 @@ class ThumbWrapper{
 
 	function makeThumbnailtoFile($destFile){
 		if(!$this->isWorking()) return false;
-		switch(strtolower(strrchr($this->sourceFile, '.'))){ // 取出副檔名
-			case '.jpg':
-			case '.gif':
-			case '.png':
+		$size = getimagesize($this->sourceFile);
+		switch($size[2]){
+			case IMAGETYPE_JPEG:
+			case IMAGETYPE_GIF:
+			case IMAGETYPE_PNG:
 				break; // 僅支援此三種格式
 			default:
 				return false;

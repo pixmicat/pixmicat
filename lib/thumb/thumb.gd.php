@@ -221,15 +221,15 @@ class ThumbWrapper{
 
 	function makeThumbnailtoFile($destFile){
 		if(!$this->isWorking()) return false;
-		switch(strtolower(strrchr($this->sourceFile, '.'))){ // 取出副檔名
-			case '.jpg':
+		$size = getimagesize($this->sourceFile);
+		switch($size[2]){
+			case IMAGETYPE_JPEG:
 				$im_in = @ImageCreateFromJPEG($this->sourceFile); break;
-			case '.gif':
+			case IMAGETYPE_GIF:
 				$im_in = @ImageCreateFromGIF($this->sourceFile); break;
-			case '.png':
+			case IMAGETYPE_PNG:
 				$im_in = @ImageCreateFromPNG($this->sourceFile); break;
-			case '.rle':
-			case '.bmp':
+			case IMAGETYPE_BMP:
 				$im_in = $this->_ImageCreateFromBMP($this->sourceFile); break;
 			default:
 				return false;
