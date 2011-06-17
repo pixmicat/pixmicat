@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * Thumbnail Generate API: Imagick Wrapper
  *
