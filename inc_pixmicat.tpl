@@ -1,5 +1,5 @@
 <!--&THEMENAME-->futaba Theme<!--/&THEMENAME-->
-<!--&THEMEVER-->v20110416<!--/&THEMEVER-->
+<!--&THEMEVER-->v20110703<!--/&THEMEVER-->
 <!--&THEMEAUTHOR-->Pixmicat! Development Team<!--/&THEMEAUTHOR-->
 
 <!--&HEADER--><?xml version="1.0" encoding="UTF-8"?>
@@ -7,7 +7,6 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="zh-tw">
 <head>
 <meta http-equiv="Cache-Control" content="max-age=0; must-revalidate" />
-<meta http-equiv="Expires" content="Sat, 1 Jan 2011 00:00:00 GMT" />
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <meta http-equiv="Content-Language" content="zh-tw" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=yes" />

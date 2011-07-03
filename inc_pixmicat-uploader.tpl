@@ -1,6 +1,6 @@
 <!-- Theme Description -->
 <!--&THEMENAME-->Pixmicat! Uploader-liked Theme<!--/&THEMENAME-->
-<!--&THEMEVER-->v20110416<!--/&THEMEVER-->
+<!--&THEMEVER-->v20110703<!--/&THEMEVER-->
 <!--&THEMEAUTHOR-->Pixmicat! Development Team<!--/&THEMEAUTHOR-->
 
 <!-- Theme Blocks -->
@@ -9,7 +9,6 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="zh-tw">
 <head>
 <meta http-equiv="Cache-Control" content="max-age=0; must-revalidate" />
-<meta http-equiv="Expires" content="Sat, 1 Jan 2011 00:00:00 GMT" />
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <meta http-equiv="Content-Language" content="zh-tw" />
 <title>{$TITLE}</title>
