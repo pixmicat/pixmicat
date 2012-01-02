@@ -1,5 +1,5 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 6th.Release RC'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 6th.Release'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -715,6 +715,7 @@ function usrdel(){
 	reset($_POST);
 	while($item = each($_POST)){ if($item[1]=='delete' && $item[0] != 'func') array_push($delno, $item[0]); }
 	$haveperm = ($pwd==ADMIN_PASS) || adminAuthenticate('check');
+	$PMS->useModuleMethods('Authenticate', array($pwd,'userdel',&$haveperm));
 	if($haveperm && isset($_POST['func'])){ // 前端管理功能
 		$message = '';
 		$PMS->useModuleMethods('AdminFunction', array('run', &$delno, $_POST['func'], &$message)); // "AdminFunction" Hook Point
@@ -726,7 +727,6 @@ function usrdel(){
 			exit(); // 僅執行AdminFunction，終止刪除動作
 		}
 	}
-	$PMS->useModuleMethods('Authenticate', array($pwd,'userdel',&$haveperm));
 
 	if($pwd=='' && $pwdc!='') $pwd = $pwdc;
 	$pwd_md5 = substr(md5($pwd),2,8);

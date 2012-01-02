@@ -1,5 +1,8 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2012/01/02
+-[pixmicat] 修正usrdel()方法Authenticate掛載點呼叫太晚的問題
+
 2011/07/03
 -[tpl] 移除會造成瀏覽器快取頁面的 <meta http-equiv="Expires" /> 標籤
 -[config] 調整 STATIC_HTML_UNTIL 預設值
