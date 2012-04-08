@@ -1,10 +1,8 @@
 <?php
-
 include('./config.php');
-
 include('./lib/fileio/ifs.php');
 
-
+@unlink(FILEIO_INDEXLOG);
 $fio = new IndexFS(FILEIO_INDEXLOG);
 
 $fio->openIndex();
@@ -20,3 +18,4 @@ foreach ($dirs as $dir) {
 }
 $fio->saveIndex();
 echo "done";
+?>

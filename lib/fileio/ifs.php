@@ -14,12 +14,20 @@ class IndexFS{
 
 	/* 建構元 */
 	function IndexFS($logfile){
-		$this->logfile = $logfile; // 索引記錄檔位置
+		$this->logfile = realpath($logfile); // 索引記錄檔位置
 	}
 
 	/* 初始化 */
 	function init(){
 		switch($this->backend){
+			case 'pdo_sqlite':
+				$execText = 'CREATE TABLE IndexFS (
+				"imgName" VARCHAR(20)  NOT NULL PRIMARY KEY,
+				"imgSize" INTEGER  NOT NULL,
+				"imgURL" VARCHAR(255)  NOT NULL
+				); CREATE INDEX IDX_IndexFS_imgName ON IndexFS(imgName);';
+				$this->index->exec($execText);
+				break;
 			case 'log':
 				touch($this->logfile); chmod($this->logfile, 0666); // 建立索引檔
 				break;
@@ -36,7 +44,11 @@ class IndexFS{
 
 	/* 開啟索引檔並讀入 */
 	function openIndex(){
-		if(extension_loaded('SQLite')){
+		if(extension_loaded('pdo_sqlite')){
+			$this->backend = 'pdo_sqlite';
+			$this->index = new PDO('sqlite:'.$this->logfile);
+			if($this->index->query("SELECT COUNT(name) FROM sqlite_master WHERE name LIKE 'IndexFS'")->fetchColumn() === '0') $this->init();
+		}else if(extension_loaded('SQLite')){
 			$this->backend = 'sqlite2';
 			$this->index = sqlite_open($this->logfile, 0666);
 			if(sqlite_num_rows(sqlite_query($this->index, "SELECT name FROM sqlite_master WHERE name LIKE 'IndexFS'"))===0) $this->init();
@@ -50,7 +62,7 @@ class IndexFS{
 			for($i = 0; $i < $indexlog_count; $i++){
 				if(!($trimline = rtrim($indexlog[$i]))) continue; // 本行無意義
 				$field = explode("\t\t", $trimline);
-				$this->index[$field[0]] = array('imgSize' => $field[1], 'imgURL' => $field[2]);
+				$this->index[$field[0]] = array('imgSize' => $field[1], 'imgURL' => isset($field[2]) ? $field[2] : '');
 				// 索引格式: 檔名	檔案大小	對應路徑
 			}
 			$this->keylist = array_keys($this->index);
@@ -61,6 +73,10 @@ class IndexFS{
 	/* 索引是否存在 */
 	function beRecord($id){
 		switch($this->backend){
+			case 'pdo_sqlite':
+				$sth = $this->index->prepare('SELECT COUNT(imgName) FROM IndexFS WHERE imgName = ?');
+				$sth->execute(array($id));
+				return $sth->fetchColumn() != false;
 			case 'log':
 				return isset($this->index[$id]);
 			case 'sqlite2':
@@ -71,9 +87,17 @@ class IndexFS{
 	/* 搜尋預覽圖檔檔名 */
 	function findThumbName($pattern){
 		switch($this->backend){
+			case 'pdo_sqlite':
+				$sth = $this->index->prepare('SELECT imgName FROM IndexFS WHERE imgName >= ? AND imgName < ?');
+				$sth->execute(array($pattern.'s', $pattern.'t'));
+				return $sth->fetchColumn();
 			case 'log':
+				if(count($this->keylist) != count($this->index)){ // Index Sync
+					$this->keylist = array_keys($this->index);
+				}
+				// O(n) not optimized
 				foreach($this->keylist as $k){
-					if(strpos($k, $pattern.'s.')) return $k;
+					if(strpos($k, $pattern.'s.') !== false) return $k;
 				}
 				return false;
 			case 'sqlite2':
@@ -88,6 +112,10 @@ class IndexFS{
 	/* 取得一筆索引 */
 	function getRecord($id){
 		switch($this->backend){
+			case 'pdo_sqlite':
+				$sth = $this->index->prepare('SELECT * FROM IndexFS WHERE imgName = ?');
+				$sth->execute(array($id));
+				return $sth->fetchAll();
 			case 'log':
 				return isset($this->index[$id]) ? $this->index[$id] : false;
 			case 'sqlite2':
@@ -98,6 +126,10 @@ class IndexFS{
 	/* 新增一筆索引 */
 	function addRecord($id, $imgSize, $imgURL){
 		switch($this->backend){
+			case 'pdo_sqlite':
+				$sth = $this->index->prepare('INSERT INTO IndexFS (imgName, imgSize, imgURL) VALUES (?, ?, ?)');
+				$sth->execute(array($id, $imgSize, $imgURL));
+				break;
 			case 'log':
 				$this->modified = true;
 				$this->index[$id] = array('imgSize' => $imgSize, 'imgURL' => $imgURL); // 加入索引之中
@@ -111,6 +143,9 @@ class IndexFS{
 	/* 刪除一筆索引 */
 	function delRecord($id){
 		switch($this->backend){
+			case 'pdo_sqlite':
+				$sth = $this->index->prepare('DELETE FROM IndexFS WHERE imgName = ?');
+				return $sth->execute(array($id));
 			case 'log':
 				if(isset($this->index[$id])){ unset($this->index[$id]); $this->modified = true; return true; }
 				return false;
@@ -135,6 +170,9 @@ class IndexFS{
 	/* 取得目前索引之所有檔案大小 */
 	function getCurrentStorageSize(){
 		switch($this->backend){
+			case 'pdo_sqlite':
+				$size = $this->index->query('SELECT SUM(imgSize) FROM IndexFS');
+				return intval($size->fetchColumn());
 			case 'log':
 				$size = 0;
 				if(count($this->index)){

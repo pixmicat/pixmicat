@@ -1,5 +1,11 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+2012/04/08
+-[pio.mysql] 修正 MySQL 5.5+ 無法建立資料表的問題
+-[ifs] 修正 log 索引格式找不到預覽圖檔名的問題
+-[ifs] 新增 PDO SQLite 索引避免 PHP 5.4+ SQLite 無內建的問題
+-[ifs] 修正因 register_shutdown_function 可能造成的相對路徑檔案更新問題
+
 2012/01/02
 -[pixmicat] 修正usrdel()方法Authenticate掛載點呼叫太晚的問題
 
