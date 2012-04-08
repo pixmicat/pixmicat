@@ -44,7 +44,7 @@ class PIOmysql{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.6 (v20080920)';
+		return '0.6 (v20120408)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -64,7 +64,34 @@ class PIOmysql{
 	function dbInit($isAddInitData=true){
 		$this->dbPrepare();
 		if(mysql_num_rows(mysql_query("SHOW TABLES LIKE '".$this->tablename."'"))!=1){ // 資料表不存在
-			$result = "CREATE TABLE ".$this->tablename." (primary key(no),
+			if(version_compare(mysql_get_server_info(), '5.5', '>=')){ // 5.5+
+				$result = "CREATE TABLE ".$this->tablename." (primary key(no),
+	index (resto),index (root),index (time),
+	no int(1) not null auto_increment,
+	resto int(1) not null,
+	root timestamp null DEFAULT 0,
+	time int(1) not null,
+	md5chksum varchar(32) not null,
+	category varchar(255) not null,
+	tim bigint(1) not null,
+	ext varchar(4) not null,
+	imgw smallint(1) not null,
+	imgh smallint(1) not null,
+	imgsize varchar(10) not null,
+	tw smallint(1) not null,
+	th smallint(1) not null,
+	pwd varchar(8) not null,
+	now varchar(255) not null,
+	name varchar(255) not null,
+	email varchar(255) not null,
+	sub varchar(255) not null,
+	com text not null,
+	host varchar(255) not null,
+	status varchar(255) not null)
+	ENGINE = MYISAM
+	COMMENT = 'PIO Structure V3'";
+			}else{ // 5.5 以前版本
+				$result = "CREATE TABLE ".$this->tablename." (primary key(no),
 	index (resto),index (root),index (time),
 	no int(1) not null auto_increment,
 	resto int(1) not null,
@@ -89,6 +116,8 @@ class PIOmysql{
 	status varchar(255) not null)
 	TYPE = MYISAM
 	COMMENT = 'PIO Structure V3'";
+			}
+
 			$result2 = @mysql_query("SHOW CHARACTER SET like 'utf8'"); // 是否支援UTF-8 (MySQL 4.1.1開始支援)
 			if($result2 && mysql_num_rows($result2)){
 				$result .= ' CHARACTER SET utf8 COLLATE utf8_general_ci'; // 資料表追加UTF-8編碼
