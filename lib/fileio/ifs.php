@@ -115,7 +115,7 @@ class IndexFS{
 			case 'pdo_sqlite':
 				$sth = $this->index->prepare('SELECT * FROM IndexFS WHERE imgName = ?');
 				$sth->execute(array($id));
-				return $sth->fetchAll();
+				return $sth->fetch();
 			case 'log':
 				return isset($this->index[$id]) ? $this->index[$id] : false;
 			case 'sqlite2':
