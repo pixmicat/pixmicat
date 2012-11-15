@@ -44,7 +44,7 @@ class PIOmysql{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.6 (v20120408)';
+		return '0.6 (v20121115)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -134,7 +134,7 @@ class PIOmysql{
 	function dbPrepare($transaction=false){
 		if($this->prepared) return true;
 
-		if(@!$this->con = mysql_pconnect($this->server, $this->username, $this->password)) $this->_error_handler(array('Open database failed', __LINE__));
+		if(@!$this->con = mysql_connect($this->server, $this->username, $this->password)) $this->_error_handler(array('Open database failed', __LINE__));
 		@mysql_select_db($this->dbname, $this->con);
 		@mysql_query("SET NAMES 'utf8'"); // MySQL資料以UTF-8模式傳送
 		$this->useTransaction = $transaction;

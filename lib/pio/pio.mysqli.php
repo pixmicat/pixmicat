@@ -41,7 +41,7 @@ class PIOmysqli{
 
 	/* PIO模組版本 */
 	public function pioVersion(){
-		return '0.6 (v20120410)';
+		return '0.6 (v20121115)';
 	}
 
 	/* 處理連線字串/連接 */
