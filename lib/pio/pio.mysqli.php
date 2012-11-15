@@ -61,7 +61,7 @@ class PIOmysqli{
 	/* 初始化 */
 	public function dbInit($isAddInitData=true){
 		$this->dbPrepare();
-		if($this->con->query("SHOW COUNT(TABLES) LIKE '".$this->tablename."'")->num_rows == 0){ // 資料表不存在
+		if($this->con->query("SHOW TABLES LIKE '".$this->tablename."'")->num_rows == 0){ // 資料表不存在
 			$result = "CREATE TABLE ".$this->tablename." (primary key(no),
 	index (resto),index (root),index (time),
 	no int(1) not null auto_increment,
@@ -398,7 +398,7 @@ class PIOmysqli{
 			$root = '0';
 			if($age){ // 推文
 				$result = $this->con->prepare('UPDATE '.$this->tablename.' SET root = ? WHERE no = ?');
-				$result->bind_param('ii', $updatetime, $resto);
+				$result->bind_param('si', $updatetime, $resto);
 				$result->execute() or $this->_error_handler('Push the post failed', __LINE__);
 			}
 		}else $root = $updatetime; // 新增討論串, 討論串最後被更新時間
@@ -407,7 +407,7 @@ class PIOmysqli{
 				.' (resto,root,time,md5chksum,category,tim,ext,imgw,imgh,imgsize,tw,th,pwd,now,name,email,sub,com,host,status) VALUES '
 				.'(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
 		$stmt = $this->con->prepare($SQL);
-		$stmt->bind_param('iiissisiisiissssssss',
+		$stmt->bind_param('isissisiisiissssssss',
 			$resto,
 			$root,
 			$time,
