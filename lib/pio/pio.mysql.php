@@ -44,7 +44,7 @@ class PIOmysql{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.6 (v20121115)';
+		return '0.6 (v20121119)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -385,7 +385,7 @@ class PIOmysql{
 		$updatetime = gmdate('Y-m-d H:i:s'); // 更動時間 (UTC)
 		$resto = intval($resto);
 		if($resto){ // 新增回應
-			$root = '0';
+			$root = '0000-00-00 00:00:00';
 			if($age){ // 推文
 				$this->_mysql_call('UPDATE '.$this->tablename.' SET root = "'.$updatetime.'" WHERE no = '.$resto,
 					array('Push the post failed', __LINE__)); // 將被回應的文章往上移動

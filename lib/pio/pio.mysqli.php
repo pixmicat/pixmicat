@@ -41,7 +41,7 @@ class PIOmysqli{
 
 	/* PIO模組版本 */
 	public function pioVersion(){
-		return '0.6 (v20121115)';
+		return '0.6 (v20121119)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -395,7 +395,7 @@ class PIOmysqli{
 		$time = (int)substr($tim, 0, -3); // 13位數的數字串是檔名，10位數的才是時間數值
 		$updatetime = gmdate('Y-m-d H:i:s'); // 更動時間 (UTC)
 		if($resto){ // 新增回應
-			$root = '0';
+			$root = '0000-00-00 00:00:00';
 			if($age){ // 推文
 				$result = $this->con->prepare('UPDATE '.$this->tablename.' SET root = ? WHERE no = ?');
 				$result->bind_param('si', $updatetime, $resto);
