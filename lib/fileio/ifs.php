@@ -14,7 +14,7 @@ class IndexFS{
 
 	/* 建構元 */
 	function IndexFS($logfile){
-		$this->logfile = rtrim(dirname('.'), '/\\').DIRECTORY_SEPARATOR.$logfile; // 索引記錄檔位置
+		$this->logfile = realpath(rtrim(dirname('.'), '/\\').DIRECTORY_SEPARATOR.$logfile); // 索引記錄檔位置
 	}
 
 	/* 初始化 */
