@@ -21,7 +21,7 @@ class PIOmysqli{
 	}
 
 	public function __destruct(){
-		@mysqli_close($this->con);
+		if (!is_null($this->con)) @mysqli_close($this->con);
 	}
 
 	/* private 攔截SQL錯誤 */
@@ -41,7 +41,7 @@ class PIOmysqli{
 
 	/* PIO模組版本 */
 	public function pioVersion(){
-		return '0.6 (v20121119)';
+		return '0.6 (v20121122)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -128,7 +128,7 @@ class PIOmysqli{
 	}
 
 	/* 準備/讀入 */
-	public function dbPrepare($transaction=false){
+	public function dbPrepare($reload=false, $transaction=false){
 		if($this->prepared) return true;
 
 		$this->con = new mysqli($this->server, $this->username, $this->password, $this->dbname, $this->port);
