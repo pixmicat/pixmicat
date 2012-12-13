@@ -7,55 +7,17 @@
  * @package PMCLibrary
  * @version $Id$
  * @date $Date$
+ * @deprecated
  */
 
-class PIOlog{
+class PIOlog implements IPIO {
 	var $ENV, $logfile, $treefile, $porderfile; // Local Constant
 	var $logs, $trees, $LUT, $porder, $torder, $prepared; // Local Global
-	//var $memcached, $mid;
-
-	/* private 設定 memcached 資料
-	function _memcacheSet($isAnalysis=true){
-		if(!$this->_memcachedEstablish()) return false;
-		$this->memcached->set('pmc'.$this->mid.'_isset', true);
-		// 是否需要將每行資料分析為陣列
-		$this->memcached->set('pmc'.$this->mid.'_logs', ($isAnalysis ? array_map(array($this, '_AnalysisLogs'), $this->logs) : $this->logs));
-		$this->memcached->set('pmc'.$this->mid.'_trees', $this->trees);
-		$this->memcached->set('pmc'.$this->mid.'_LUT', $this->LUT);
-		$this->memcached->set('pmc'.$this->mid.'_porder', $this->porder);
-		$this->memcached->set('pmc'.$this->mid.'_torder', $this->torder);
-	}
-
-	/* private 取得 memcached 資料
-	function _memcacheGet(){
-		if(!$this->_memcachedEstablish()) return false;
-		if($this->memcached->get('pmc'.$this->mid.'_isset')){ // 有資料
-			$this->logs = $this->memcached->get('pmc'.$this->mid.'_logs');
-			$this->trees = $this->memcached->get('pmc'.$this->mid.'_trees');
-			$this->LUT = $this->memcached->get('pmc'.$this->mid.'_LUT');
-			$this->porder = $this->memcached->get('pmc'.$this->mid.'_porder');
-			$this->torder = $this->memcached->get('pmc'.$this->mid.'_torder');
-			return true;
-		}else return false;
-	}
-
-	/* private 建立 memcached 實體
-	function _memcachedEstablish(){
-		if(!extension_loaded('memcache')) return ($this->memcached = false);
-		if(is_null($this->memcached)){
-			$this->memcached = new Memcache;
-			if(!$this->memcached->pconnect('localhost')) return ($this->memcached = false);
-			return true;
-		}
-		return ($this->memcached===false) ? false : true;
-	}*/
 
 	function PIOlog($connstr='', $ENV){
 		$this->ENV = $ENV;
 		$this->logs = $this->trees = $this->LUT = $this->porder = $this->torder = array();
 		$this->prepared = 0;
-		//$this->mid = md5($_SERVER['SCRIPT_FILENAME']); // Unique ID
-		//$this->memcached = false; // memcached object (null: use, false: don't use)
 
 		if($connstr) $this->dbConnect($connstr);
 	}
@@ -135,7 +97,6 @@ class PIOlog{
 	function dbPrepare($reload=false, $transaction=true){
 		if($this->prepared && !$reload) return true;
 		if($reload && $this->prepared) $this->porder = $this->torder = $this->LUT = $this->logs = $this->trees = array();
-		//if($this->_memcacheGet()){ $this->prepared = 1; return true; } // 如果 memcache 有快取則直接使用
 
 		$this->logs = file($this->logfile); // Log每行原始資料
 		if(!file_exists($this->porderfile)){ // LUT不在，重生成
@@ -161,7 +122,6 @@ class PIOlog{
 			$this->torder[] = $tline[0]; // 討論串首篇編號陣列
 			$this->trees[$tline[0]] = $tline; // 特定編號討論串完整結構陣列
 		}
-		//$this->_memcacheSet(); // 把目前資料設定到 memcached 內
 		$this->prepared = 1;
 	}
 
@@ -189,7 +149,6 @@ class PIOlog{
 		for($tline = 0; $tline < $tcount; $tline++){
 			$tree .= $this->isThread($this->torder[$tline]) ? implode(',', $this->trees[$this->torder[$tline]])."\r\n" : '';
 		}
-		//$this->_memcacheSet(false); // 更新快取 (不需要再分析)
 
 		$fp = fopen($this->logfile, 'w'); // Log
 		stream_set_write_buffer($fp, 0);
@@ -347,7 +306,7 @@ class PIOlog{
 
 	/* 刪除舊附件 (輸出附件清單) */
 	function delOldAttachments($total_size, $storage_max, $warnOnly=true){
-		global $FileIO;
+		$FileIO = PMCLibrary::getFileIOInstance();
 		if(!$this->prepared) $this->dbPrepare();
 
 		$rpord = $this->porder; sort($rpord); // 由舊排到新 (小->大)
@@ -394,7 +353,7 @@ class PIOlog{
 
 	/* 刪除附件 (輸出附件清單) */
 	function removeAttachments($posts){
-		global $FileIO;
+		$FileIO = PMCLibrary::getFileIOInstance();
 		if(!$this->prepared) $this->dbPrepare();
 		if(count($posts)==0) return array();
 
@@ -458,7 +417,7 @@ class PIOlog{
 
 	/* 檢查是否重複貼圖 */
 	function isDuplicateAttachment($lcount, $md5hash){
-		global $FileIO;
+		$FileIO = PMCLibrary::getFileIOInstance();
 
 		$pcount = $this->postCount();
 		$lcount = ($pcount > $lcount) ? $lcount : $pcount;

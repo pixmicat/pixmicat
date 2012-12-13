@@ -1,9 +1,9 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 6th.Release'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 7th.Release'); // 版本資訊文字
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
-版權所有 © 2005-2011 Pixmicat! Development Team
+版權所有 © 2005-2012 Pixmicat! Development Team
 
 版權聲明：
 此程式是基於レッツPHP!<http://php.s3.to/>的gazou.php、
@@ -39,19 +39,17 @@ PHP 5.2.0 或更高版本並開啟 GD 和 Zlib 支援，如支援 ImageMagick �
 說明條目可資參考。
 */
 
-include_once('./config.php'); // 引入設定檔
-include_once('./lib/lib_language.php'); // 引入語系
-include_once('./lib/lib_common.php'); // 引入共通函式檔案
-include_once('./lib/lib_fileio.php'); // 引入FileIO
-include_once('./lib/lib_pio.php'); // 引入PIO
-include_once('./lib/lib_pms.php'); // 引入PMS
-include_once('./lib/lib_pte.php'); // 引入PTE外部函式庫
-
-$PTE = new PTELibrary(TEMPLATE_FILE); // PTE Library
+require './config.php'; // 引入設定檔
+require './lib/pmclibrary.php'; // 引入函式庫
+require './lib/lib_common.php'; // 引入共通函式檔案
 
 /* 更新記錄檔檔案／輸出討論串 */
 function updatelog($resno=0,$page_num=-1,$single_page=false){
-	global $PIO, $FileIO, $PTE, $PMS, $language, $LIMIT_SENSOR;
+	global $LIMIT_SENSOR;
+	$PIO = PMCLibrary::getPIOInstance();
+	$FileIO = PMCLibrary::getFileIOInstance();
+	$PTE = PMCLibrary::getPTEInstance();
+	$PMS = PMCLibrary::getPMSInstance();
 
 	$adminMode = adminAuthenticate('check') && $page_num != -1 && !$single_page; // 前端管理模式
 	$adminFunc = ''; // 前端管理選擇
@@ -258,7 +256,9 @@ function updatelog($resno=0,$page_num=-1,$single_page=false){
 
 /* 輸出討論串架構 */
 function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $arr_kill, $arr_old, $kill_sensor, $old_sensor, $showquotelink=true, $adminMode=false){
-	global $PIO, $FileIO, $PMS, $language;
+	$PIO = PMCLibrary::getPIOInstance();
+	$FileIO = PMCLibrary::getFileIOInstance();
+	$PMS = PMCLibrary::getPMSInstance();
 
 	$thdat = ''; // 討論串輸出碼
 	$posts_count = count($posts); // 迴圈次數
@@ -367,7 +367,11 @@ function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $
 
 /* 寫入記錄檔 */
 function regist(){
-	global $PIO, $FileIO, $PMS, $language, $BAD_STRING, $BAD_FILEMD5, $BAD_IPADDR, $LIMIT_SENSOR, $THUMB_SETTING;
+	global $BAD_STRING, $BAD_FILEMD5, $BAD_IPADDR, $LIMIT_SENSOR, $THUMB_SETTING;
+	$PIO = PMCLibrary::getPIOInstance();
+	$FileIO = PMCLibrary::getFileIOInstance();
+	$PMS = PMCLibrary::getPMSInstance();
+
 	$dest = ''; $mes = ''; $up_incomplete = 0; $is_admin = false;
 	$path = realpath('.').DIRECTORY_SEPARATOR; // 此目錄的絕對位置
 	$delta_totalsize = 0; // 總檔案大小的更動值
@@ -706,7 +710,10 @@ echo _T('regist_redirect',$mes,$RedirURL).'</div>
 
 /* 使用者刪除 */
 function usrdel(){
-	global $PIO, $FileIO, $PMS, $language;
+	$PIO = PMCLibrary::getPIOInstance();
+	$FileIO = PMCLibrary::getFileIOInstance();
+	$PMS = PMCLibrary::getPMSInstance();
+
 	// $pwd: 使用者輸入值, $pwdc: Cookie記錄密碼
 	$pwd = isset($_POST['pwd']) ? $_POST['pwd'] : '';
 	$pwdc = isset($_COOKIE['pwdc']) ? $_COOKIE['pwdc'] : '';
@@ -761,7 +768,8 @@ function usrdel(){
 
 /* 管理員密碼認證 */
 function valid(){
-	global $PMS, $language;
+	$PMS = PMCLibrary::getPMSInstance();
+
 	$pass = isset($_POST['pass']) ? $_POST['pass'] : ''; // 管理者密碼
 	$haveperm = false;
 	$isCheck = adminAuthenticate('check'); // 登入是否正確
@@ -812,7 +820,9 @@ function valid(){
 
 /* 管理文章模式 */
 function admindel(){
-	global $PIO, $FileIO, $PMS, $language;
+	$PIO = PMCLibrary::getPIOInstance();
+	$FileIO = PMCLibrary::getFileIOInstance();
+	$PMS = PMCLibrary::getPMSInstance();
 
 	$pass = isset($_POST['pass']) ? $_POST['pass'] : ''; // 管理者密碼
 	$page = isset($_REQUEST['page']) ? $_REQUEST['page'] : 0; // 切換頁數
@@ -938,13 +948,16 @@ _ADMINEOF_;
  * @deprecated Use FileIO->getCurrentStorageSize() / FileIO->updateStorageSize($delta) instead
  */
 function total_size($delta=0){
-	global $FileIO;
+	$FileIO = PMCLibrary::getFileIOInstance();
 	return $FileIO->getCurrentStorageSize($delta);
 }
 
 /* 搜尋(全文檢索)功能 */
 function search(){
-	global $PTE, $PIO, $FileIO, $PMS, $language;
+	$PIO = PMCLibrary::getPIOInstance();
+	$FileIO = PMCLibrary::getFileIOInstance();
+	$PTE = PMCLibrary::getPTEInstance();
+	$PMS = PMCLibrary::getPMSInstance();
 
 	if(!USE_SEARCH) error(_T('search_disabled'));
 	$searchKeyword = isset($_POST['keyword']) ? trim($_POST['keyword']) : ''; // 欲搜尋的文字
@@ -1000,7 +1013,11 @@ function search(){
 
 /* 利用類別標籤搜尋符合的文章 */
 function searchCategory(){
-	global $PTE, $PIO, $PMS, $FileIO, $language;
+	$PIO = PMCLibrary::getPIOInstance();
+	$FileIO = PMCLibrary::getFileIOInstance();
+	$PTE = PMCLibrary::getPTEInstance();
+	$PMS = PMCLibrary::getPMSInstance();
+
 	$category = isset($_GET['c']) ? strtolower(strip_tags(trim($_GET['c']))) : ''; // 搜尋之類別標籤
 	if(!$category) error(_T('category_nokeyword'));
 	$category_enc = urlencode($category); $category_md5 = md5($category);
@@ -1051,7 +1068,8 @@ function searchCategory(){
 
 /* 顯示已載入模組資訊 */
 function listModules(){
-	global $PMS, $language;
+	$PMS = PMCLibrary::getPMSInstance();
+
 	$dat = '';
 	head($dat);
 	$links = '[<a href="'.PHP_SELF2.'?'.time().'">'._T('return').'</a>]';
@@ -1088,7 +1106,12 @@ function deleteCache($no){
 
 /* 顯示系統各項資訊 */
 function showstatus(){
-	global $PTE, $PIO, $FileIO, $PMS, $language, $LIMIT_SENSOR, $THUMB_SETTING;
+	global $LIMIT_SENSOR, $THUMB_SETTING;
+	$PIO = PMCLibrary::getPIOInstance();
+	$FileIO = PMCLibrary::getFileIOInstance();
+	$PTE = PMCLibrary::getPTEInstance();
+	$PMS = PMCLibrary::getPMSInstance();
+
 	$countline = $PIO->postCount(); // 計算投稿文字記錄檔目前資料筆數
 	$counttree = $PIO->threadCount(); // 計算樹狀結構記錄檔目前資料筆數
 	$tmp_total_size = $FileIO->getCurrentStorageSize(); // 附加圖檔使用量總大小
@@ -1173,7 +1196,9 @@ function showstatus(){
 
 /* 程式首次執行之初始化 */
 function init(){
-	global $PIO, $FileIO, $language;
+	$PIO = PMCLibrary::getPIOInstance();
+	$FileIO = PMCLibrary::getFileIOInstance();
+
 	if(!is_writable(realpath('./'))) error(_T('init_permerror'));
 
 	$chkfolder = array(IMG_DIR, THUMB_DIR, 'cache/');

@@ -6,11 +6,11 @@
  * 由於使用到 mysqli_result::fetch_all，需要 PHP 5.3.0 以上版本。
  *
  * @package PMCLibrary
- * @version $Id: pio.mysql.php 822 2012-04-08 13:04:41Z scribe $
- * @date $Date: 2012-04-08 21:04:41 +0800 (星期日, 08 四月 2012) $
+ * @version $Id$
+ * @date $Date$
  */
 
-class PIOmysqli{
+class PIOmysqli implements IPIO {
 	private $ENV, $username, $password, $server, $port, $dbname, $tablename; // Local Constant
 	private $con, $prepared, $useTransaction; // Local Global
 
@@ -26,8 +26,12 @@ class PIOmysqli{
 
 	/* private 攔截SQL錯誤 */
 	private function _error_handler($errarray, $query=''){
-		$err = 'Pixmicat! SQL Error: '.$errarray[0].' on line '.$errarray[1];
-		//error_log($err."\n".$this->con->errno.': '.$this->con->error."\n".$query."\n\n", 3, 'error.log');
+		$err = sprintf('%s Error: %s on line %d.', __CLASS__, $errarray[0],
+			$errarray[1]);
+		if (defined('DEBUG') && DEBUG) {
+			$err .= sprintf("\nDescription: #%d: %s\nSQL: %s",
+				$this->con->errno, $this->con->error, $query);
+		}
 		trigger_error($err, E_USER_ERROR);
 		exit();
 	}
@@ -41,7 +45,7 @@ class PIOmysqli{
 
 	/* PIO模組版本 */
 	public function pioVersion(){
-		return '0.6 (v20121122)';
+		return '0.6 (v20121213)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -205,6 +209,7 @@ class PIOmysqli{
 		for($i = 0; $i < $data_count; $i++){
 			$line = array_map($replaceComma, explode(',', $data[$i])); // 取代 &#44; 為 ,
 			$tim = substr($line[5], 0, 10);
+			if ($line[2] == '0') $line[2] = '0000-00-00 00:00:00';
 			$stmt->bind_param('iisissisiisiissssssss',
 				$line[0],
 				$line[1],
@@ -337,7 +342,7 @@ class PIOmysqli{
 
 	/* 刪除舊附件 (輸出附件清單) */
 	public function delOldAttachments($total_size, $storage_max, $warnOnly=true){
-		global $FileIO;
+		$FileIO = PMCLibrary::getFileIOInstance();
 		if(!$this->prepared) $this->dbPrepare();
 
 		$arr_warn = $arr_kill = array(); // 警告 / 即將被刪除標記陣列
@@ -368,7 +373,7 @@ class PIOmysqli{
 
 	/* 刪除附件 (輸出附件清單) */
 	public function removeAttachments($posts, $recursion=false){
-		global $FileIO;
+		$FileIO = PMCLibrary::getFileIOInstance();
 		if(!$this->prepared) $this->dbPrepare();
 		if(count($posts)==0) return array();
 
@@ -433,7 +438,7 @@ class PIOmysqli{
 
 	/* 檢查是否連續投稿 */
 	public function isSuccessivePost($lcount, $com, $timestamp, $pass, $passcookie, $host, $isupload){
-		global $FileIO;
+		$FileIO = PMCLibrary::getFileIOInstance();
 		if(!$this->prepared) $this->dbPrepare();
 
 		if(!$this->ENV['PERIOD.POST']) return false; // 關閉連續投稿檢查
@@ -452,7 +457,7 @@ class PIOmysqli{
 
 	/* 檢查是否重複貼圖 */
 	public function isDuplicateAttachment($lcount, $md5hash){
-		global $FileIO;
+		$FileIO = PMCLibrary::getFileIOInstance();
 		if(!$this->prepared) $this->dbPrepare();
 
 		$result = $this->_mysql_call('SELECT tim,ext FROM '.$this->tablename." WHERE ext <> '' AND md5chksum = '$md5hash' ORDER BY no DESC",

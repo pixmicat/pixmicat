@@ -91,7 +91,7 @@ class FlagHelper{
 // 文章自動刪除機制
 include('./lib/lib_pio.cond.php');
 class PIOSensor{
-	public static function check($type, $condobj){
+	public static function check($type, array $condobj){
 		foreach($condobj as $i => $j){
 			// 有其中一個需要處理
 			if(call_user_func_array(array($i, 'check'), array($type, $j))===true) return true;
@@ -99,7 +99,7 @@ class PIOSensor{
 		return false;
 	}
 
-	public static function listee($type, $condobj){
+	public static function listee($type, array $condobj){
 		$tmparray = array(); // 項目陣列
 		foreach($condobj as $i => $j){
 			// 結果併進 $tmparray
@@ -109,7 +109,7 @@ class PIOSensor{
 		return array_unique($tmparray);
 	}
 
-	public static function info($condobj){
+	public static function info(array $condobj){
 		$sensorinfo='';
 		foreach($condobj as $i => $j){
 			$sensorinfo .= call_user_func_array(array($i, 'info'), array($j))."\n";
@@ -122,7 +122,6 @@ class PIOSensor{
 if(preg_match('/^(.*):\/\//i', CONNECTION_STRING, $backend)) define('PIXMICAT_BACKEND', $backend[1]);
 
 // 引入必要函式庫
-$pio_file = './lib/pio/pio.'.PIXMICAT_BACKEND.'.php';
 $PIOEnv = array( // PIO 環境常數
 	'BOARD' => '.',
 	'LUTCACHE' => './lutcache.dat',
@@ -132,9 +131,7 @@ $PIOEnv = array( // PIO 環境常數
 	'PERIOD.POST' => RENZOKU,
 	'PERIOD.IMAGEPOST' => RENZOKU2
 );
-if(is_file($pio_file)) include_once($pio_file);
 
-// PIO Kernel Switcher
-$pioSwitch = 'PIO'.PIXMICAT_BACKEND;
-$PIO = new $pioSwitch(CONNECTION_STRING, $PIOEnv);
+$pio_file = './lib/pio/pio.'.PIXMICAT_BACKEND.'.php';
+if(is_file($pio_file)) include($pio_file);
 ?>

@@ -1,5 +1,26 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
+
+2012/12/?? : 7th.Release
+- [config] 增加 DEBUG 除錯開關
+- [PMCLibrary] 抽出介面，面向介面設計，減低直接對實作的依賴
+- [PMCLibrary] PIO 實作介面 IPIO，並修改錯誤拋出機制
+- [PMCLibrary] PIO Condition 實作介面 IPIOCondition
+- [PMCLibrary] [#39171] 修正 PIO 匯入時間戳問題
+- [PMCLibrary] 新增 ILogger 介面及 SimpleLogger 實作，可作為除錯紀錄
+- [PMCLibrary] 新增 PIOLoggerInjector，攔截 PIO 錯誤訊息並可提供額外的函式除錯資訊
+- [PMCLibrary] Language 改寫為單例
+- [PMCLibrary] PMS 去除不必要的架構，僅留單檔 lib_pms.php
+- [PMCLibrary] 新增單例類別 PMCLibrary，取代原有各函式庫 global 變數
+- [PMCLibrary] 新增全域例外捕捉機制，並可產生除錯紀錄
+- [pixmicat] 修改函式庫載入方式
+
+2012/11/22
+- 修正 PIOmysqli 部分錯字
+- [#39169] 修正 PIO mysql_pconnect 關閉造成連線失敗
+- [#39171] 修正 PIO root 欄位參數 '0' 在 MySQL 嚴格設定下被拒絕的問題
+- [#39172] 修正 IFS 因 register_shutdown_function 造成回寫 log 內容時工作目錄跑掉的問題
+
 2012/08/02
 -[ifs] 修正 pdo_sqlite getRecord() 回傳陣列層級的問題使得處理圖檔部分錯誤
 

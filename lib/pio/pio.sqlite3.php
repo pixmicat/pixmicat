@@ -9,7 +9,7 @@
  * @date $Date$
  */
 
-class PIOsqlite3{
+class PIOsqlite3 implements IPIO {
 	private $ENV, $DSN, $tablename; // Local Constant
 	private $con, $prepared, $useTransaction; // Local Global
 
@@ -21,15 +21,18 @@ class PIOsqlite3{
 
 	/* private 攔截SQL錯誤 */
 	private function _error_handler($errtext, $errline){
-		$err = "Pixmicat! SQL Error: $errtext on line $errline";
-		//error_log($err."\n".print_r($this->con->errorInfo(),true)."\n", 3, 'error.log');
+		$err = sprintf('%s Error: %s on line %d.', __CLASS__, $errtext, $errline);
+		if (defined('DEBUG') && DEBUG) {
+			$err .= sprintf("\nDescription: %s",
+				print_r($this->con->errorInfo(), true));
+		}
 		trigger_error($err, E_USER_ERROR);
 		exit();
 	}
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.6 (v20120524)';
+		return '0.6 (v20121213)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -81,7 +84,7 @@ class PIOsqlite3{
 	}
 
 	/* 準備/讀入 */
-	public function dbPrepare($transaction=false){
+	public function dbPrepare($reload=false, $transaction=false){
 		if($this->prepared) return true;
 
 		($this->con = new PDO($this->DSN, '', '', array(PDO::ATTR_PERSISTENT => true))) or $this->_error_handler('Open database failed', __LINE__);
@@ -246,7 +249,7 @@ class PIOsqlite3{
 
 	/* 刪除舊附件 (輸出附件清單) */
 	public function delOldAttachments($total_size, $storage_max, $warnOnly=true){
-		global $FileIO;
+		$FileIO = PMCLibrary::getFileIOInstance();
 		if(!$this->prepared) $this->dbPrepare();
 
 		$arr_warn = $arr_kill = array(); // 警告 / 即將被刪除標記
@@ -272,7 +275,7 @@ class PIOsqlite3{
 
 	/* 刪除附件 (輸出附件清單) */
 	public function removeAttachments($posts, $recursion=false){
-		global $FileIO;
+		$FileIO = PMCLibrary::getFileIOInstance();
 		if(!$this->prepared) $this->dbPrepare();
 
 		$files = array();
@@ -331,7 +334,7 @@ class PIOsqlite3{
 
 	/* 檢查是否連續投稿 */
 	public function isSuccessivePost($lcount, $com, $timestamp, $pass, $passcookie, $host, $isupload){
-		global $FileIO;
+		$FileIO = PMCLibrary::getFileIOInstance();
 		if(!$this->prepared) $this->dbPrepare();
 
 		if(!$this->ENV['PERIOD.POST']) return false; // 關閉連續投稿檢查
@@ -350,7 +353,7 @@ class PIOsqlite3{
 
 	/* 檢查是否重複貼圖 */
 	public function isDuplicateAttachment($lcount, $md5hash){
-		global $FileIO;
+		$FileIO = PMCLibrary::getFileIOInstance();
 		if(!$this->prepared) $this->dbPrepare();
 
 		($result = $this->con->query('SELECT tim,ext FROM '.$this->tablename.' WHERE ext <> "" AND md5chksum = "'.$md5hash.'" ORDER BY no DESC'))

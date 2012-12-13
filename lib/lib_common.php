@@ -3,7 +3,7 @@
  * Pixmicat! Common Library
  *
  * 存放常用函式供主程式引入
- * 
+ *
  * @package PMCLibrary
  * @version $Id$
  * @date $Date$
@@ -11,7 +11,9 @@
 
 /* 輸出表頭 */
 function head(&$dat,$resno=0){
-	global $PTE, $PMS, $language;
+	$PTE = PMCLibrary::getPTEInstance();
+	$PMS = PMCLibrary::getPMSInstance();
+
 	$pte_vals = array('{$TITLE}'=>TITLE,'{$RESTO}'=>$resno?$resno:'');
 	$dat .= $PTE->ParseBlock('HEADER',$pte_vals);
 	$PMS->useModuleMethods('Head', array(&$dat,$resno)); // "Head" Hook Point
@@ -34,7 +36,10 @@ function head(&$dat,$resno=0){
 
 /* 發表用表單輸出 */
 function form(&$dat, $resno, $iscollapse=true, $retURL=PHP_SELF, $name='', $mail='', $sub='', $com='', $cat='', $mode='regist'){
-	global $PTE, $PMS, $ADDITION_INFO, $language;
+	global $ADDITION_INFO;
+	$PTE = PMCLibrary::getPTEInstance();
+	$PMS = PMCLibrary::getPMSInstance();
+
 	$pte_vals = array('{$SELF}'=>$retURL, '{$FORMTOP}'=>'', '{$MODE}'=>$mode);
 	$isedit = ($mode == 'edit'); // 是否為編輯模式
 	if($resno && !$isedit){
@@ -87,7 +92,9 @@ function form(&$dat, $resno, $iscollapse=true, $retURL=PHP_SELF, $name='', $mail
 
 /* 輸出頁尾文字 */
 function foot(&$dat){
-	global $PTE, $PMS, $language;
+	$PTE = PMCLibrary::getPTEInstance();
+	$PMS = PMCLibrary::getPMSInstance();
+
 	$pte_vals = array('{$FOOTER}'=>'<!-- GazouBBS v3.0 --><!-- ふたば改0.8 --><!-- Pixmicat! -->');
 	$PMS->useModuleMethods('Foot', array(&$pte_vals['{$FOOTER}'])); // "Foot" Hook Point
 	$pte_vals['{$FOOTER}'] .= '<small>- <a href="http://php.s3.to" rel="_top">GazouBBS</a> + <a href="http://www.2chan.net/" rel="_top">futaba</a> + <a href="http://pixmicat.openfoundry.org/" rel="_blank">Pixmicat!</a> -</small>';
@@ -95,7 +102,7 @@ function foot(&$dat){
 }
 
 /* 網址自動連結 */
-function auto_link_callback($matches){ 
+function auto_link_callback($matches){
 	return (strtolower($matches[3]) == "</a>") ? $matches[0] : preg_replace('/(https?|ftp|news)(:\/\/[\w\+\$\;\?\.\{\}%,!#~*\/:@&=_-]+)/u', '<a href="$1$2" rel="_blank">$1$2</a>', $matches[0]);
 }
 function auto_link($proto){
@@ -121,7 +128,8 @@ function anti_sakura($str){
 
 /* 輸出錯誤畫面 */
 function error($mes, $dest=''){
-	global $PTE;
+	$PTE = PMCLibrary::getPTEInstance();
+
 	if(is_file($dest)) unlink($dest);
 	$pte_vals = array('{$SELF2}'=>PHP_SELF2.'?'.time(), '{$MESG}'=>$mes, '{$RETURN_TEXT}'=>_T('return'), '{$BACK_TEXT}'=>_T('error_back'));
 	$dat = '';

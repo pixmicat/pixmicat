@@ -7,9 +7,10 @@
  * @package PMCLibrary
  * @version $Id$
  * @date $Date$
+ * @deprecated
  */
 
-class PIOmysql{
+class PIOmysql implements IPIO {
 	var $ENV, $username, $password, $server, $dbname, $tablename; // Local Constant
 	var $con, $prepared, $useTransaction; // Local Global
 
@@ -21,8 +22,12 @@ class PIOmysql{
 
 	/* private 攔截SQL錯誤 */
 	function _error_handler($errarray, $query=''){
-		$err = 'Pixmicat! SQL Error: '.$errarray[0].' on line '.$errarray[1];
-		//error_log($err."\n".mysql_errno().': '.mysql_error()."\n".$query."\n\n", 3, 'error.log');
+		$err = sprintf('%s Error: %s on line %d.', __CLASS__, $errarray[0],
+			$errarray[1]);
+		if (defined('DEBUG') && DEBUG) {
+			$err .= sprintf("\nDescription: #%d: %s\nSQL: %s", mysql_errno(),
+				mysql_error(), $query);
+		}
 		trigger_error($err, E_USER_ERROR);
 		exit();
 	}
@@ -44,7 +49,7 @@ class PIOmysql{
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.6 (v20121119)';
+		return '0.6 (v20121213)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -131,7 +136,7 @@ class PIOmysql{
 	}
 
 	/* 準備/讀入 */
-	function dbPrepare($transaction=false){
+	function dbPrepare($reload=false,$transaction=false){
 		if($this->prepared) return true;
 
 		if(@!$this->con = mysql_connect($this->server, $this->username, $this->password)) $this->_error_handler(array('Open database failed', __LINE__));
@@ -202,6 +207,7 @@ class PIOmysql{
 		$replaceComma = create_function('$txt', 'return str_replace("&#44;", ",", $txt);');
 		for($i = 0; $i < $data_count; $i++){
 			$line = array_map($replaceComma, explode(',', $data[$i])); // 取代 &#44; 為 ,
+			if ($line[2] == '0') $line[2] = '0000-00-00 00:00:00';
 			$SQL = 'INSERT INTO '.$this->tablename.' (no,resto,root,time,md5chksum,category,tim,ext,imgw,imgh,imgsize,tw,th,pwd,now,name,email,sub,com,host,status) VALUES ('.
 	$line[0].','.
 	$line[1].',\''.
@@ -326,7 +332,7 @@ class PIOmysql{
 
 	/* 刪除舊附件 (輸出附件清單) */
 	function delOldAttachments($total_size, $storage_max, $warnOnly=true){
-		global $FileIO;
+		$FileIO = PMCLibrary::getFileIOInstance();
 		if(!$this->prepared) $this->dbPrepare();
 
 		$arr_warn = $arr_kill = array(); // 警告 / 即將被刪除標記陣列
@@ -357,7 +363,7 @@ class PIOmysql{
 
 	/* 刪除附件 (輸出附件清單) */
 	function removeAttachments($posts, $recursion=false){
-		global $FileIO;
+		$FileIO = PMCLibrary::getFileIOInstance();
 		if(!$this->prepared) $this->dbPrepare();
 		if(count($posts)==0) return array();
 
@@ -412,7 +418,7 @@ class PIOmysql{
 
 	/* 檢查是否連續投稿 */
 	function isSuccessivePost($lcount, $com, $timestamp, $pass, $passcookie, $host, $isupload){
-		global $FileIO;
+		$FileIO = PMCLibrary::getFileIOInstance();
 		if(!$this->prepared) $this->dbPrepare();
 
 		if(!$this->ENV['PERIOD.POST']) return false; // 關閉連續投稿檢查
@@ -431,7 +437,7 @@ class PIOmysql{
 
 	/* 檢查是否重複貼圖 */
 	function isDuplicateAttachment($lcount, $md5hash){
-		global $FileIO;
+		$FileIO = PMCLibrary::getFileIOInstance();
 		if(!$this->prepared) $this->dbPrepare();
 
 		$result = $this->_mysql_call('SELECT tim,ext FROM '.$this->tablename." WHERE ext <> '' AND md5chksum = '$md5hash' ORDER BY no DESC",
