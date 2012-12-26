@@ -285,10 +285,47 @@ interface IPIOCondition {
  */
 interface ILogger {
 	/**
-	 * 紀錄執行資訊或錯誤資訊。
+	 * 檢查是否 logger 要記錄 DEBUG 等級。
 	 *
-	 * @param  string $level   紀錄等級 (DEBUG, INFO, ERROR)
-	 * @param  string $message 紀錄內容
+	 * @return boolean 要記錄 DEBUG 等級與否
 	 */
-	public function log($level, $message);
+	public function isDebugEnabled();
+
+	/**
+	 * 檢查是否 logger 要記錄 INFO 等級。
+	 *
+	 * @return boolean 要記錄 INFO 等級與否
+	 */
+	public function isInfoEnabled();
+
+	/**
+	 * 檢查是否 logger 要記錄 ERROR 等級。
+	 *
+	 * @return boolean 要記錄 ERROR 等級與否
+	 */
+	public function isErrorEnabled();
+
+	/**
+	 * 以 DEBUG 等級記錄訊息。
+	 *
+	 * @param string $format 格式化訊息內容
+	 * @param mixed $varargs 參數
+	 */
+	public function debug($format, $varargs = '');
+
+	/**
+	 * 以 INFO 等級記錄訊息。
+	 *
+	 * @param string $format 格式化訊息內容
+	 * @param mixed $varargs 參數
+	 */
+	public function info($format, $varargs = '');
+
+	/**
+	 * 以 ERROR 等級記錄訊息。
+	 *
+	 * @param string $format 格式化訊息內容
+	 * @param mixed $varargs 參數
+	 */
+	public function error($format, $varargs = '');
 }

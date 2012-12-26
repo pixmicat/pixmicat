@@ -86,6 +86,10 @@ class FlagHelper{
 		}
 		return implode(':', $newval);
 	}
+
+	public function __toString() {
+		return $this->toString();
+	}
 }
 
 // 文章自動刪除機制

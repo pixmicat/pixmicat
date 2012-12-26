@@ -14,7 +14,7 @@ function errorHandler($errno, $errstr, $errfile, $errline) {
 	try {
     	throw new ErrorException($errstr, $errno, 0, $errfile, $errline);
     } catch (Exception $e) {
-		PMCLibrary::getLoggerInstance()->log('ERROR', $e);
+		PMCLibrary::getLoggerInstance()->error((string) $e);
 		throw $e;
 	}
 }

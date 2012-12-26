@@ -14,17 +14,57 @@ class SimpleLogger implements ILogger {
 		$this->logName = $logName;
 	}
 
-	public function log($logLevel, $message) {
-		switch ($logLevel) {
-			case 'DEBUG':
-			case 'INFO':
-				if (!(defined('DEBUG') && DEBUG)) {
-					break;
-				}
-			case 'ERROR':
-				$dateTime = date('c');
-				error_log("[$dateTime] [$logLevel] $message\n", 3, $this->logName);
-				break;
-		}
+	public function isDebugEnabled() {
+		return (defined('DEBUG') && DEBUG);
+	}
+
+	public function isInfoEnabled() {
+		return (defined('DEBUG') && DEBUG);
+	}
+
+	public function isErrorEnabled() {
+		return true;
+	}
+
+	public function debug($format, $varargs = '') {
+		if (!$this->isDebugEnabled()) return;
+
+		if (is_array($varargs)) {
+			// Array into structure string
+			$varargs = array(var_export($varargs, true));
+		} else {
+			$varargs = func_get_args();
+  			array_shift($varargs);
+  		}
+  		$this->logFormat('DEBUG', $format, $varargs);
+	}
+
+	public function info($format, $varargs = '') {
+		if (!$this->isInfoEnabled()) return;
+
+		$varargs = func_get_args();
+  		array_shift($varargs);
+  		$this->logFormat(' INFO', $format, $varargs);
+	}
+
+	public function error($format, $varargs = '') {
+		if (!$this->isErrorEnabled()) return;
+
+		$varargs = func_get_args();
+  		array_shift($varargs);
+  		$this->logFormat('ERROR', $format, $varargs);
+	}
+
+	/**
+	 * Log with format message.
+	 *
+	 * @param  string $logLevel   Log level
+	 * @param  string $message Format message
+	 * @param  array  $vars    Prarameters
+	 */
+	private function logFormat($logLevel, $message, array $vars) {
+		$dateTime = date('c');
+		$message = vsprintf($message, $vars);
+		error_log("$dateTime $logLevel - $message\n", 3, $this->logName);
 	}
 }

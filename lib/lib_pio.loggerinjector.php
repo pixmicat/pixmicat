@@ -33,21 +33,17 @@ class PIOLoggerInjector {
 	public function __call($name, $args) {
 		if (method_exists($this->dataSource, $name)) {
 			$result = null;
-			// TODO: 儘管沒有被紀錄但是var_export仍會計算吃資源的問題
-			$this->logger->log('INFO', "Executing $name method");
-			if (defined('DEBUG') && DEBUG)
-				$this->logger->log('DEBUG', sprintf('Args: %s',	var_export($args, true)));
+			$this->logger->info('Executing %s method', $name);
+			$this->logger->debug('Args: %s', $args);
 
 			try {
 				$result = call_user_func_array(array($this->dataSource, $name), $args);
 			} catch (Exception $e) {
-				$this->logger->log('ERROR', $e);
+				$this->logger->error((string) $e);
 				throw $e;
 			}
 
-			if (defined('DEBUG') && DEBUG)
-				$this->logger->log('DEBUG', sprintf('Return: %s', var_export($result, true)));
-
+			$this->logger->debug('Return: %s', $result);
 			return $result;
 		}
     }
