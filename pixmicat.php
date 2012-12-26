@@ -1215,6 +1215,9 @@ function init(){
 if(GZIP_COMPRESS_LEVEL && ($Encoding = CheckSupportGZip())){ ob_start(); ob_implicit_flush(0); } // 支援且開啟Gzip壓縮就設緩衝區
 $mode = isset($_GET['mode']) ? $_GET['mode'] : (isset($_POST['mode']) ? $_POST['mode'] : ''); // 目前執行模式 (GET, POST)
 
+// 載入語言模組
+PMCLibrary::getLanguageInstance();
+
 //init(); // ←■■！程式環境初始化，跑過一次後請刪除此行！■■
 switch($mode){
 	case 'regist':
@@ -1251,6 +1254,12 @@ switch($mode){
 		searchCategory();
 		break;
 	case 'module':
+		$PMS = PMCLibrary::getPMSInstance();
+		// 為了舊版模組相容性而生成以下全域變數
+		$PIO = PMCLibrary::getPIOInstance();
+		$FileIO = PMCLibrary::getFileIOInstance();
+		$PTE = PMCLibrary::getPTEInstance();
+
 		$loadModule = isset($_GET['load']) ? $_GET['load'] : '';
 		if($PMS->onlyLoad($loadModule)) $PMS->moduleInstance[$loadModule]->ModulePage();
 		else echo '404 Not Found';
