@@ -20,16 +20,14 @@ class PIOsqlite implements IPIO {
 	}
 
 	/* private 攔截SQL錯誤 */
-	function _error_handler($errarray, $query=''){
-		$err = sprintf('%s Error: %s on line %d.', __CLASS__, $errarray[0],
-			$errarray[1]);
+	function _error_handler(array $errarray, $query=''){
+		$err = sprintf('%s on line %d.', $errarray[0], $errarray[1]);
+		$errno = sqlite_last_error($this->con);
 		if (defined('DEBUG') && DEBUG) {
-			$err .= sprintf("\nDescription: #%d: %s\nSQL: %s",
-				sqlite_last_error($this->con),
-				sqlite_error_string(sqlite_last_error($this->con)), $query);
+			$err .= sprintf(PHP_EOL."Description: #%d: %s".PHP_EOL.
+				"SQL: %s", $errno, sqlite_error_string($errno), $query);
 		}
-		trigger_error($err, E_USER_ERROR);
-		exit();
+		throw new RuntimeException($err, $errno);
 	}
 
 	/* private 使用SQL字串和SQLite要求 */

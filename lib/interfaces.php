@@ -285,6 +285,13 @@ interface IPIOCondition {
  */
 interface ILogger {
 	/**
+	 * 建構元。
+	 *
+	 * @param string $logName Logger 名稱
+	 * @param string $logFile 記錄檔案位置
+	 */
+	public function __construct($logName, $logFile);
+	/**
 	 * 檢查是否 logger 要記錄 DEBUG 等級。
 	 *
 	 * @return boolean 要記錄 DEBUG 等級與否

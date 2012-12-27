@@ -39,8 +39,7 @@ class PIOLoggerInjector {
 			try {
 				$result = call_user_func_array(array($this->dataSource, $name), $args);
 			} catch (Exception $e) {
-				$this->logger->error((string) $e);
-				throw $e;
+				$this->logger->error('[%s] %s', $name, $e);
 			}
 
 			$this->logger->debug('Return: %s', $result);

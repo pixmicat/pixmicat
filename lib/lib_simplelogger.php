@@ -9,9 +9,11 @@
 
 class SimpleLogger implements ILogger {
 	private $logName;
+	private $logFile;
 
-	public function __construct($logName) {
+	public function __construct($logName, $logFile) {
 		$this->logName = $logName;
+		$this->logFile = $logFile;
 	}
 
 	public function isDebugEnabled() {
@@ -65,6 +67,7 @@ class SimpleLogger implements ILogger {
 	private function logFormat($logLevel, $message, array $vars) {
 		$dateTime = date('c');
 		$message = vsprintf($message, $vars);
-		error_log("$dateTime $logLevel - $message\n", 3, $this->logName);
+		error_log("$dateTime $logLevel {$this->logName} - $message".PHP_EOL,
+			3, $this->logFile);
 	}
 }

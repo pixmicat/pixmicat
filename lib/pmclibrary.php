@@ -11,6 +11,8 @@
 
 require './lib/interfaces.php';
 require './lib/lib_errorhandler.php';
+require './lib/lib_simplelogger.php';
+require './lib/lib_compatible.php';
 
 class PMCLibrary {
 	/**
@@ -27,7 +29,7 @@ class PMCLibrary {
 			$pioExactClass = 'PIO'.PIXMICAT_BACKEND;
 			$instPIO = new PIOLoggerInjector(
 				new $pioExactClass(CONNECTION_STRING, $PIOEnv),
-				PMCLibrary::getLoggerInstance()
+				PMCLibrary::getLoggerInstance($pioExactClass)
 			);
 		}
 		return $instPIO;
@@ -91,15 +93,15 @@ class PMCLibrary {
 	/**
 	 * 取得 Logger 函式庫物件
 	 *
-	 * @return Logger Logger 函式庫物件
+	 * @param string $name 識別名稱
+	 * @return ILogger Logger 函式庫物件
 	 */
-	public static function getLoggerInstance() {
-		static $instLogger = null;
-		if ($instLogger == null) {
-			require './lib/lib_simplelogger.php';
-			$instLogger = new SimpleLogger('./error.log');
+	public static function getLoggerInstance($name) {
+		static $instLogger = array();
+		if (!array_key_exists($name, $instLogger)) {
+			$instLogger[$name] = new SimpleLogger($name, './error.log');
 		}
-		return $instLogger;
+		return $instLogger[$name];
 	}
 
 	/**

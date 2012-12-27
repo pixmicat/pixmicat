@@ -21,13 +21,12 @@ class PIOsqlite3 implements IPIO {
 
 	/* private 攔截SQL錯誤 */
 	private function _error_handler($errtext, $errline){
-		$err = sprintf('%s Error: %s on line %d.', __CLASS__, $errtext, $errline);
+		$err = sprintf('%s on line %d.', $errtext, $errline);
 		if (defined('DEBUG') && DEBUG) {
-			$err .= sprintf("\nDescription: %s",
+			$err .= sprintf(PHP_EOL."Description: %s",
 				print_r($this->con->errorInfo(), true));
 		}
-		trigger_error($err, E_USER_ERROR);
-		exit();
+		throw new RuntimeException($err);
 	}
 
 	/* PIO模組版本 */

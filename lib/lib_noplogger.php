@@ -8,6 +8,8 @@
  */
 
 class NopLogger implements ILogger {
+	public function __construct($logName, $logFile) {}
+
 	public function isDebugEnabled() {
 		return false;
 	}

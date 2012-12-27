@@ -25,15 +25,13 @@ class PIOmysqli implements IPIO {
 	}
 
 	/* private 攔截SQL錯誤 */
-	private function _error_handler($errarray, $query=''){
-		$err = sprintf('%s Error: %s on line %d.', __CLASS__, $errarray[0],
-			$errarray[1]);
+	private function _error_handler(array $errarray, $query=''){
+		$err = sprintf('%s on line %d.', $errarray[0], $errarray[1]);
 		if (defined('DEBUG') && DEBUG) {
-			$err .= sprintf("\nDescription: #%d: %s\nSQL: %s",
-				$this->con->errno, $this->con->error, $query);
+			$err .= sprintf(PHP_EOL."Description: #%d: %s".PHP_EOL.
+				"SQL: %s", $this->con->errno, $this->con->error, $query);
 		}
-		trigger_error($err, E_USER_ERROR);
-		exit();
+		throw new RuntimeException($err, $this->con->errno);
 	}
 
 	/* private 使用SQL字串和MySQL伺服器要求 */
@@ -232,7 +230,7 @@ class PIOmysqli implements IPIO {
 				$line[17],
 				$line[18],
 				$line[19]);
-			$stmt->execute() or $this->_error_handler('Insert a new post failed', __LINE__);
+			$stmt->execute() or $this->_error_handler(array('Insert a new post failed', __LINE__));
 		}
 		$this->dbCommit(); // 送交
 		return true;
@@ -404,7 +402,7 @@ class PIOmysqli implements IPIO {
 			if($age){ // 推文
 				$result = $this->con->prepare('UPDATE '.$this->tablename.' SET root = ? WHERE no = ?');
 				$result->bind_param('si', $updatetime, $resto);
-				$result->execute() or $this->_error_handler('Push the post failed', __LINE__);
+				$result->execute() or $this->_error_handler(array('Push the post failed', __LINE__));
 			}
 		}else $root = $updatetime; // 新增討論串, 討論串最後被更新時間
 
@@ -433,7 +431,7 @@ class PIOmysqli implements IPIO {
 			$com,
 			$host,
 			$status);
-		$stmt->execute() or $this->_error_handler('Insert a new post failed', __LINE__);
+		$stmt->execute() or $this->_error_handler(array('Insert a new post failed', __LINE__));
 	}
 
 	/* 檢查是否連續投稿 */

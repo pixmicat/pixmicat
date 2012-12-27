@@ -88,7 +88,7 @@ class FlagHelper{
 	}
 
 	public function __toString() {
-		return $this->toString();
+		return sprintf('%s {status = %s}', __CLASS__, $this->toString());
 	}
 }
 

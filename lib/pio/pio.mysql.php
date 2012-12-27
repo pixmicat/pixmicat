@@ -21,15 +21,13 @@ class PIOmysql implements IPIO {
 	}
 
 	/* private 攔截SQL錯誤 */
-	function _error_handler($errarray, $query=''){
-		$err = sprintf('%s Error: %s on line %d.', __CLASS__, $errarray[0],
-			$errarray[1]);
+	function _error_handler(array $errarray, $query=''){
+		$err = sprintf('%s on line %d.', $errarray[0], $errarray[1]);
 		if (defined('DEBUG') && DEBUG) {
-			$err .= sprintf("\nDescription: #%d: %s\nSQL: %s", mysql_errno(),
-				mysql_error(), $query);
+			$err .= sprintf(PHP_EOL."Description: #%d: %s".PHP_EOL.
+				"SQL: %s", mysql_errno(), mysql_error(), $query);
 		}
-		trigger_error($err, E_USER_ERROR);
-		exit();
+		throw new RuntimeException($err, mysql_errno());
 	}
 
 	/* private 使用SQL字串和MySQL伺服器要求 */
