@@ -31,7 +31,7 @@ class PIOsqlite3 implements IPIO {
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.6 (v20121213)';
+		return '0.6 (v20130102)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -242,7 +242,7 @@ class PIOsqlite3 implements IPIO {
 			$tmpSQL = 'SELECT '.$fields.' FROM '.$this->tablename.' WHERE no IN ('.$pno.') ORDER BY no';
 			if(count($postlist) > 1){ if($postlist[0] > $postlist[1]) $tmpSQL .= ' DESC'; } // 由大排到小
 		}else $tmpSQL = 'SELECT '.$fields.' FROM '.$this->tablename.' WHERE no = '.intval($postlist); // 取單串
-		$line = $this->con->query($tmpSQL)->fetchAll(PDO::FETCH_COLUMN);
+		$line = $this->con->query($tmpSQL)->fetchAll(PDO::FETCH_ASSOC);
 		return $line;
 	}
 
@@ -380,7 +380,7 @@ class PIOsqlite3 implements IPIO {
 		if($keyword_cnt > 1) for($i = 1; $i < $keyword_cnt; $i++) $SearchQuery .= " {$method} {$field} LIKE ".$this->con->quote('%'.$keyword[$i].'%'); // 多重字串交集 / 聯集搜尋
 		$SearchQuery .= ' ORDER BY no DESC'; // 按照號碼大小排序
 		($line = $this->con->query($SearchQuery)) or $this->_error_handler('Search the post failed', __LINE__);
-		return $line->fetchAll(PDO::FETCH_COLUMN);
+		return $line->fetchAll(PDO::FETCH_ASSOC);
 	}
 
 	/* 搜尋類別標籤 */
