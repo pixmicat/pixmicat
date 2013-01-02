@@ -34,5 +34,4 @@ function AttachLanguage($fcall){
 $PIO = PMCLibrary::getPIOInstance();
 $FileIO = PMCLibrary::getFileIOInstance();
 $PTE = PMCLibrary::getPTEInstance();
-$FMS = PMCLibrary::getPMSInstance();
-$PTE = PMCLibrary::getPTEInstance();
+$PMS = PMCLibrary::getPMSInstance();
