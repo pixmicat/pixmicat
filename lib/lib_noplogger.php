@@ -1,7 +1,8 @@
 <?php
 /**
- * NopLogger means it doesn't log everything.
+ * NopLogger means it doesn't log anything.
  * Only for production use. Do not use on testing enviroments.
+ * Because there is no traceable information left to provide for debugging.
  *
  * @package PMCLibrary
  * @version $Id: lib_simplelogger.php 833 2012-12-13 15:50:32Z scribe $
