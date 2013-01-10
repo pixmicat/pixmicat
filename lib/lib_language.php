@@ -24,12 +24,12 @@ class LanguageLoader {
 		static $inst = null;
 		if ($inst == null) {
 			$locale = PIXMICAT_LANGUAGE;
-			$langFile = "./lib/lang/$locale.php";
+			$langFile = ROOTPATH."lib/lang/$locale.php";
 			if (file_exists($langFile)){
 				require $langFile;
 			} else {
 				$locale = 'en_US';
-				require './lib/lang/en_US.php';
+				require ROOTPATH.'lib/lang/en_US.php';
 			}
 			$inst = new LanguageLoader($locale, $language);
 		}

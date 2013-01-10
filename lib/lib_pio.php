@@ -93,7 +93,7 @@ class FlagHelper{
 }
 
 // 文章自動刪除機制
-include('./lib/lib_pio.cond.php');
+include(ROOTPATH.'lib/lib_pio.cond.php');
 class PIOSensor{
 	public static function check($type, array $condobj){
 		foreach($condobj as $i => $j){
@@ -127,8 +127,8 @@ if(preg_match('/^(.*):\/\//i', CONNECTION_STRING, $backend)) define('PIXMICAT_BA
 
 // 引入必要函式庫
 $PIOEnv = array( // PIO 環境常數
-	'BOARD' => '.',
-	'LUTCACHE' => './lutcache.dat',
+	'BOARD' => ROOTPATH,
+	'LUTCACHE' => 'lutcache.dat',
 	'NONAME' => DEFAULT_NONAME,
 	'NOTITLE' => DEFAULT_NOTITLE,
 	'NOCOMMENT' => DEFAULT_NOCOMMENT,
@@ -136,6 +136,6 @@ $PIOEnv = array( // PIO 環境常數
 	'PERIOD.IMAGEPOST' => RENZOKU2
 );
 
-$pio_file = './lib/pio/pio.'.PIXMICAT_BACKEND.'.php';
+$pio_file = ROOTPATH.'lib/pio/pio.'.PIXMICAT_BACKEND.'.php';
 if(is_file($pio_file)) include($pio_file);
 ?>

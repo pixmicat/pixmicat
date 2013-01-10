@@ -5,7 +5,7 @@ FileIO Kernel Switcher
 */
 
 // 引入必要函式庫
-$fileio_file = './lib/fileio/fileio.'.FILEIO_BACKEND.'.php'; // FileIO Backend
+$fileio_file = ROOTPATH.'lib/fileio/fileio.'.FILEIO_BACKEND.'.php'; // FileIO Backend
 if(is_file($fileio_file)) require($fileio_file);
 
 // 擴充物件
@@ -29,7 +29,7 @@ class FileIOWrapper extends FileIO{
 	/* 回傳目前總檔案大小 */
 	function getCurrentStorageSize($delta=0){
 		$size = 0;
-		$cache_file = './sizecache.dat'; // 使用快取檔案記錄
+		$cache_file = ROOTPATH.'sizecache.dat'; // 使用快取檔案記錄
 
 		if(!is_file($cache_file)){ // 無快取，新增
 			$size = $this->IFS->getCurrentStorageSize();

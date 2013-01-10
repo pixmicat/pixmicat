@@ -68,9 +68,9 @@ class PIOlog implements IPIO {
 	/* 處理連線字串/連接 */
 	function dbConnect($connStr){
 		if(preg_match('/^log:\/\/(.*)\:(.*)\/$/i', $connStr, $linkinfos)){
-			$this->logfile = $this->ENV['BOARD'].'/'.$linkinfos[1]; // 投稿文字記錄檔檔名
-			$this->treefile = $this->ENV['BOARD'].'/'.$linkinfos[2]; // 樹狀結構記錄檔檔名
-			$this->porderfile = $this->ENV['LUTCACHE']; // LUT索引查找表暫存檔案
+			$this->logfile = $this->ENV['BOARD'].$linkinfos[1]; // 投稿文字記錄檔檔名
+			$this->treefile = $this->ENV['BOARD'].$linkinfos[2]; // 樹狀結構記錄檔檔名
+			$this->porderfile = $this->ENV['BOARD'].$this->ENV['LUTCACHE']; // LUT索引查找表暫存檔案
 		}
 	}
 

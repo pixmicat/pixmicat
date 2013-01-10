@@ -7,6 +7,7 @@
  * @package PMCLibrary
  * @version $Id$
  * @date $Date$
+ * @deprecated
  */
 
 class FileIO{

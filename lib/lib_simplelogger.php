@@ -13,9 +13,7 @@ class SimpleLogger implements ILogger {
 
 	public function __construct($logName, $logFile) {
 		$this->logName = $logName;
-		// Get the absolute root directory (../lib)
-		$this->logFile = dirname(dirname(realpath(__FILE__))).
-			DIRECTORY_SEPARATOR.$logFile;
+		$this->logFile = $logFile;
 	}
 
 	public function isDebugEnabled() {

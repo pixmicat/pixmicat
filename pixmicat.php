@@ -1,5 +1,6 @@
 <?php
 define("PIXMICAT_VER", 'Pixmicat!-PIO 7th.Release'); // 版本資訊文字
+define("PHP_SELF", basename(__FILE__)); // 主程式名
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
@@ -40,8 +41,8 @@ PHP 5.2.0 或更高版本並開啟 GD 和 Zlib 支援，如支援 ImageMagick �
 */
 
 require './config.php'; // 引入設定檔
-require './lib/pmclibrary.php'; // 引入函式庫
-require './lib/lib_common.php'; // 引入共通函式檔案
+require ROOTPATH.'lib/pmclibrary.php'; // 引入函式庫
+require ROOTPATH.'lib/lib_common.php'; // 引入共通函式檔案
 
 /* 更新記錄檔檔案／輸出討論串 */
 function updatelog($resno=0,$page_num=-1,$single_page=false){
@@ -114,7 +115,7 @@ function updatelog($resno=0,$page_num=-1,$single_page=false){
 
 		if(USE_RE_CACHE && !$adminMode){ // 檢查快取是否仍可使用 / 頁面有無更動
 			$cacheETag = md5(($AllRes ? 'all' : $page_num).'-'.$tree_count); // 最新狀態快取用 ETag
-			$cacheFile = './cache/'.$resno.'-'.($AllRes ? 'all' : $page_num).'.'; // 暫存快取檔位置
+			$cacheFile = ROOTPATH.'cache/'.$resno.'-'.($AllRes ? 'all' : $page_num).'.'; // 暫存快取檔位置
 			$cacheGzipPrefix = extension_loaded('zlib') ? 'compress.zlib://' : ''; // 支援 Zlib Compression Stream 就使用
 			$cacheControl = isset($_SERVER['HTTP_CACHE_CONTROL']) ? $_SERVER['HTTP_CACHE_CONTROL'] : ''; // 瀏覽器快取控制
 			if(isset($_SERVER['HTTP_IF_NONE_MATCH']) && $_SERVER['HTTP_IF_NONE_MATCH'] == '"'.$cacheETag.'"'){ // 再度瀏覽而快取無更動
@@ -373,7 +374,6 @@ function regist(){
 	$PMS = PMCLibrary::getPMSInstance();
 
 	$dest = ''; $mes = ''; $up_incomplete = 0; $is_admin = false;
-	$path = realpath('.').DIRECTORY_SEPARATOR; // 此目錄的絕對位置
 	$delta_totalsize = 0; // 總檔案大小的更動值
 
 	if($_SERVER['REQUEST_METHOD'] != 'POST') error(_T('regist_notpost')); // 非正規POST方式
@@ -441,7 +441,7 @@ function regist(){
 	// 如果有上傳檔案則處理附加圖檔
 	if($upfile && (@is_uploaded_file($upfile) || @is_file($upfile))){
 		// 一‧先儲存檔案
-		$dest = $path.$tim.'.tmp';
+		$dest = ROOTPATH.$tim.'.tmp';
 		@move_uploaded_file($upfile, $dest) or @copy($upfile, $dest);
 		@chmod($dest, 0666);
 		if(!is_file($dest)) error(_T('regist_upload_filenotfound'), $dest);
@@ -645,11 +645,11 @@ function regist(){
 	setcookie('pwdc', $pwd, time()+7*24*3600);
 	setcookie('emailc', $email, time()+7*24*3600);
 	if($dest && is_file($dest)){
-		$destFile = $path.IMG_DIR.$tim.$ext; // 圖檔儲存位置
-		$thumbFile = $path.THUMB_DIR.$tim.'s.'.$THUMB_SETTING['Format']; // 預覽圖儲存位置
+		$destFile = ROOTPATH.IMG_DIR.$tim.$ext; // 圖檔儲存位置
+		$thumbFile = ROOTPATH.THUMB_DIR.$tim.'s.'.$THUMB_SETTING['Format']; // 預覽圖儲存位置
 		if(USE_THUMB !== 0){ // 生成預覽圖
 			$thumbType = USE_THUMB; if(USE_THUMB==1){ $thumbType = 'gd'; } // 與舊設定相容
-			require('./lib/thumb/thumb.'.$thumbType.'.php');
+			require(ROOTPATH.'lib/thumb/thumb.'.$thumbType.'.php');
 			$thObj = new ThumbWrapper($dest, $imgW, $imgH);
 			$thObj->setThumbnailConfig($W, $H, $THUMB_SETTING);
 			$thObj->makeThumbnailtoFile($thumbFile);
@@ -1129,7 +1129,7 @@ function showstatus(){
 	$func_thumbInfo = '(No thumbnail)';
 	if(USE_THUMB !== 0){
 		$thumbType = USE_THUMB; if(USE_THUMB==1){ $thumbType = 'gd'; }
-		require('./lib/thumb/thumb.'.$thumbType.'.php');
+		require(ROOTPATH.'lib/thumb/thumb.'.$thumbType.'.php');
 		$thObj = new ThumbWrapper();
 		if($thObj->isWorking()) $func_thumbWork = '<span style="color: blue;">'._T('info_functional').'</span>';
 		$func_thumbInfo = $thObj->getClass();
@@ -1199,7 +1199,7 @@ function init(){
 	$PIO = PMCLibrary::getPIOInstance();
 	$FileIO = PMCLibrary::getFileIOInstance();
 
-	if(!is_writable(realpath('./'))) error(_T('init_permerror'));
+	if(!is_writable(ROOTPATH)) error(_T('init_permerror'));
 
 	$chkfolder = array(IMG_DIR, THUMB_DIR, 'cache/');
 	// 逐一自動建置資料夾

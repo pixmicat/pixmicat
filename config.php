@@ -22,7 +22,7 @@ http://pixmicat.openfoundry.org/
 /*---- Part 1：程式基本設定 ----*/
 // 伺服器常態設定
 define("DEBUG", false); // 是否產生詳細 DEBUG 訊息
-define("PHP_SELF", 'pixmicat.php'); // 主程式名 (若是修改了主程式名，請配合修改)
+define("ROOTPATH", dirname(__FILE__).DIRECTORY_SEPARATOR); // 主程式根目錄
 define("TIME_ZONE", '+8'); // 時區設定 (GMT時區，參照 http://wwp.greenwichmeantime.com/ )
 define("PIXMICAT_LANGUAGE", 'zh_TW'); // 語系語定
 define("HTTP_UPLOAD_DIFF", 50); // HTTP上傳所有位元組與實際位元組之允許誤差值

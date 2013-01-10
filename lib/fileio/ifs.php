@@ -14,7 +14,8 @@ class IndexFS{
 
 	/* 建構元 */
 	function IndexFS($logfile){
-		$this->logfile = realpath(rtrim(dirname('.'), '/\\').DIRECTORY_SEPARATOR.$logfile); // 索引記錄檔位置
+		// 索引記錄檔位置
+		$this->logfile = $logfile;
 	}
 
 	/* 初始化 */
@@ -46,15 +47,18 @@ class IndexFS{
 	function openIndex(){
 		if(extension_loaded('pdo_sqlite')){
 			$this->backend = 'pdo_sqlite';
+			PMCLibrary::getLoggerInstance('IFS')->info('SQLite3 path: %s', $this->logfile);
 			$this->index = new PDO('sqlite:'.$this->logfile);
 			if($this->index->query("SELECT COUNT(name) FROM sqlite_master WHERE name LIKE 'IndexFS'")->fetchColumn() === '0') $this->init();
 		}else if(extension_loaded('SQLite')){
 			$this->backend = 'sqlite2';
+			PMCLibrary::getLoggerInstance('IFS')->info('SQLite2 path: %s', $this->logfile);
 			$this->index = sqlite_open($this->logfile, 0666);
 			if(sqlite_num_rows(sqlite_query($this->index, "SELECT name FROM sqlite_master WHERE name LIKE 'IndexFS'"))===0) $this->init();
 		}else{
 			$this->backend = 'log';
 			$this->modified = false;
+			PMCLibrary::getLoggerInstance('IFS')->info('Log path: %s', $this->logfile);
 			if(!file_exists($this->logfile)){ $this->init(); return; }
 			if(filesize($this->logfile)==0) return;
 			$indexlog = file($this->logfile); $indexlog_count = count($indexlog); // 讀入索引檔並計算目前筆數

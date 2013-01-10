@@ -9,10 +9,10 @@
  * @since 7th.Release
  */
 
-require './lib/interfaces.php';
-require './lib/lib_errorhandler.php';
-require './lib/lib_simplelogger.php';
-require './lib/lib_compatible.php';
+require ROOTPATH.'lib/interfaces.php';
+require ROOTPATH.'lib/lib_errorhandler.php';
+require ROOTPATH.'lib/lib_simplelogger.php';
+require ROOTPATH.'lib/lib_compatible.php';
 
 class PMCLibrary {
 	/**
@@ -24,8 +24,8 @@ class PMCLibrary {
 		global $PIOEnv;
 		static $instPIO = null;
 		if ($instPIO == null) {
-			require './lib/lib_pio.php';
-			require './lib/lib_pio.loggerinjector.php';
+			require ROOTPATH.'lib/lib_pio.php';
+			require ROOTPATH.'lib/lib_pio.loggerinjector.php';
 			$pioExactClass = 'PIO'.PIXMICAT_BACKEND;
 			$instPIO = new PIOLoggerInjector(
 				new $pioExactClass(CONNECTION_STRING, $PIOEnv),
@@ -43,8 +43,8 @@ class PMCLibrary {
 	public static function getPTEInstance() {
 		static $instPTE = null;
 		if ($instPTE == null) {
-			require './lib/lib_pte.php';
-			$instPTE = new PTELibrary(TEMPLATE_FILE);
+			require ROOTPATH.'lib/lib_pte.php';
+			$instPTE = new PTELibrary(ROOTPATH.TEMPLATE_FILE);
 		}
 		return $instPTE;
 	}
@@ -58,9 +58,9 @@ class PMCLibrary {
 		global $ModuleList;
 		static $instPMS = null;
 		if ($instPMS == null) {
-			require './lib/lib_pms.php';
+			require ROOTPATH.'lib/lib_pms.php';
 			$instPMS = new PMS(array( // PMS 環境常數
-				'MODULE.PATH' => './module/',
+				'MODULE.PATH' => ROOTPATH.'module/',
 				'MODULE.PAGE' => PHP_SELF.'?mode=module&amp;load=',
 				'MODULE.LOADLIST' => $ModuleList
 			));
@@ -76,12 +76,12 @@ class PMCLibrary {
 	public static function getFileIOInstance() {
 		static $instFileIO = null;
 		if ($instFileIO == null) {
-			require './lib/lib_fileio.php';
+			require ROOTPATH.'lib/lib_fileio.php';
 			$instFileIO = new FileIOWrapper(unserialize(FILEIO_PARAMETER),
 				array( // FileIO 環境常數
-					'IFS.PATH' => './lib/fileio/ifs.php',
-					'IFS.LOG' => FILEIO_INDEXLOG,
-					'PATH' => realpath('.').DIRECTORY_SEPARATOR,
+					'IFS.PATH' => ROOTPATH.'lib/fileio/ifs.php',
+					'IFS.LOG' => ROOTPATH.FILEIO_INDEXLOG,
+					'PATH' => ROOTPATH,
 					'IMG' => IMG_DIR,
 					'THUMB' => THUMB_DIR
 				)
@@ -96,10 +96,10 @@ class PMCLibrary {
 	 * @param string $name 識別名稱
 	 * @return ILogger Logger 函式庫物件
 	 */
-	public static function getLoggerInstance($name) {
+	public static function getLoggerInstance($name = 'Global') {
 		static $instLogger = array();
 		if (!array_key_exists($name, $instLogger)) {
-			$instLogger[$name] = new SimpleLogger($name, './error.log');
+			$instLogger[$name] = new SimpleLogger($name, ROOTPATH.'error.log');
 		}
 		return $instLogger[$name];
 	}
@@ -112,7 +112,7 @@ class PMCLibrary {
 	public static function getLanguageInstance() {
 		static $instLanguage = null;
 		if ($instLanguage == null) {
-			require './lib/lib_language.php';
+			require ROOTPATH.'lib/lib_language.php';
 			$instLanguage = LanguageLoader::getInstance();
 		}
 		return $instLanguage;
