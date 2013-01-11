@@ -42,6 +42,7 @@ PHP 5.2.0 或更高版本並開啟 GD 和 Zlib 支援，如支援 ImageMagick �
 
 require './config.php'; // 引入設定檔
 require ROOTPATH.'lib/pmclibrary.php'; // 引入函式庫
+require ROOTPATH.'lib/lib_compatible.php'; // 引入相容函式庫
 require ROOTPATH.'lib/lib_common.php'; // 引入共通函式檔案
 
 /* 更新記錄檔檔案／輸出討論串 */

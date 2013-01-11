@@ -10,9 +10,9 @@
  */
 
 require ROOTPATH.'lib/interfaces.php';
-require ROOTPATH.'lib/lib_errorhandler.php';
 require ROOTPATH.'lib/lib_simplelogger.php';
-require ROOTPATH.'lib/lib_compatible.php';
+require ROOTPATH.'lib/lib_errorhandler.php';
+require ROOTPATH.'lib/lib_loggerinterceptor.php';
 
 class PMCLibrary {
 	/**
@@ -25,11 +25,10 @@ class PMCLibrary {
 		static $instPIO = null;
 		if ($instPIO == null) {
 			require ROOTPATH.'lib/lib_pio.php';
-			require ROOTPATH.'lib/lib_pio.loggerinjector.php';
 			$pioExactClass = 'PIO'.PIXMICAT_BACKEND;
-			$instPIO = new PIOLoggerInjector(
+			$instPIO = new LoggerInjector(
 				new $pioExactClass(CONNECTION_STRING, $PIOEnv),
-				PMCLibrary::getLoggerInstance($pioExactClass)
+				new LoggerInterceptor($pioExactClass)
 			);
 		}
 		return $instPIO;

@@ -13,9 +13,11 @@
  * @see LanguageLoader->getTranslation
  */
 function _T(/*$args[]*/) {
+	// 因為 5.3 以前 func_get_args 無法直接指派，故需要由變數 $args 承接再帶入
+	$args = func_get_args();
 	return call_user_func_array(
 		array(PMCLibrary::getLanguageInstance(), 'getTranslation'),
-		func_get_args());
+		$args);
 }
 
 /**
