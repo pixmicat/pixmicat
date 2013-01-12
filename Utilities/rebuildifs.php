@@ -1,8 +1,9 @@
 <?php
 include('./config.php');
-include('./lib/fileio/ifs.php');
+include ROOTPATH.'lib/pmclibrary.php';
 
 @unlink(FILEIO_INDEXLOG);
+$FileIO = PMCLibrary::getFileIOInstance();
 $fio = new IndexFS(FILEIO_INDEXLOG);
 
 $fio->openIndex();

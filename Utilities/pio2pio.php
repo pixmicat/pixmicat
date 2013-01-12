@@ -10,7 +10,9 @@
  * @date $Date$
  */
 include('./config.php');
-define('PIO_ANOTHER_CONNSTR', 'sqlite://pixmicat.db/imglog/'); // Another-PIO 連線字串 (此來源必須無任何資料，全新)
+require ROOTPATH.'lib/pmclibrary.php';
+
+define('PIO_ANOTHER_CONNSTR', 'sqlite3://another-pixmicat.db3/imglog/'); // Another-PIO 連線字串 (此來源必須無任何資料，全新)
 $PIOEnv = array( // PIO 環境常數
 	'BOARD' => '.',
 	'LUTCACHE' => './lutcache.dat',
@@ -35,7 +37,7 @@ $PIOEnv = array( // PIO 環境常數
 請選擇下列一項進行操作：
 <ul>
 	<li><a href="?mode=export">匯出目前 PIO 資料成中介檔案</a></li>
-	<li><a href="?mode=import">匯入目前中介檔案到 Another-PIO (見此頁原始碼設定)</a></li>
+	<li><a href="?mode=import">匯入目前中介檔案到 Another-PIO (請修改此頁 PHP 設定)</a></li>
 	<li><a href="?mode=convert">將目前 PIO 資料轉換到 Another-PIO</a></li>
 </ul>
 <hr />

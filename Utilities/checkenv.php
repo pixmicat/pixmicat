@@ -1,6 +1,8 @@
 <?php
 /**
- * Pixmicat! PIO 公用程式 - 檢查伺服器執行環境支援 (SQLite, PDO, PostgreSQL, MySQL, GD, Imagick, MagickWand, ImageMagick, repng2jpeg)
+ * Pixmicat! PIO 公用程式 - 檢查伺服器執行環境支援
+ * - PIO: SQLite 2, PDO SQLite, PostgreSQL, MySQL, MySQL Improved
+ * - Thumbnail: GD, Imagick, MagickWand, ImageMagick, repng2jpeg
  *
  * 本公用程式可為您檢查伺服器支援的項目，讓您選擇最適合的 PIO 資料來源後端和預覽圖生成物件。
  * - 伺服器資訊: 得知伺服器的基本資訊，如伺服器版本、PHP 版本等
@@ -157,15 +159,24 @@ class CheckEnvironment{
 		if($newexec = $this->_findfile($_exec)){ $_exec = $newexec; } // ImageMagick "convert" Binary Location
 
 		@exec("\"$_exec\" -version", $status, $retval);
-		$a = null;
-		if(preg_match('/^Version: (.*)/', $status[0], $a)){
-			return $a[1]."\n\t\t".'- Location guessed: '.$_exec;
-		}else{ return false; }
+		// 可能呼叫成 Windows 內建的 convert.exe 導致無輸出
+		if(count($status) != 0){
+			$a = null;
+			if(preg_match('/^Version: (.*)/', $status[0], $a)){
+				return $a[1]."\n\t\t".'- Location guessed: '.$_exec;
+			}
+		}
+		return false;
 	}
 
 	/* 檢查 MySQL 可用性 */
 	function checkPIOMySQL(){
-		return (extension_loaded('mysql') && function_exists('mysql_pconnect'));
+		return (extension_loaded('mysql') && function_exists('mysql_connect'));
+	}
+
+	/* 檢查 MySQLi 可用性 */
+	function checkPIOMySQLi(){
+		return (extension_loaded('mysqli') && class_exists('mysqli'));
 	}
 
 	/* 檢查 SQLite 可用性 */
@@ -212,6 +223,7 @@ PIO Check:
 
 	SQLite Support: <?php echo $objChk->checkPIOSQLite(); ?> 
 	MySQL Support: <?php echo $objChk->checkPIOMySQL(); ?> 
+	MySQL Improved Support: <?php echo $objChk->checkPIOMySQLi(); ?> 
 	PDO SQLite3 Support: <?php echo $objChk->checkPIOPDOSQLite3(); ?> 
 	PostgreSQL Support: <?php echo $objChk->checkPIOPostgreSQL(); ?> 
 

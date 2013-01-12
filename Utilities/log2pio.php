@@ -14,6 +14,9 @@ include_once('./config.php');
 define('DEL_ZOMBIE', true); // 如果有文章沒有出現在樹狀結構，是否不要轉換直接刪除？
 define('SAVE_LOG', true); // 是否儲存新結構 (舊結構將保留並更名)
 
+if (!defined('LOGFILE'))
+	die('This php is for Pixmicat!-Log only.');
+
 // 各資料儲存檔位置
 $logimg = file(LOGFILE); $logimg_cnt = count($logimg);
 $trees = array(); // 文章回應對應編號陣列 (回應No. => 首篇No.)

@@ -39,7 +39,8 @@ define("FILEIO_PARAMETER", ''); // FileIO參數 (本機端儲存)
 // PIO資料來源設定
 //define("CONNECTION_STRING", 'log://img.log:tree.log/'); // PIO 連線字串 (Log)
 //define("CONNECTION_STRING", 'mysql://pixmicat:pass@localhost/test/imglog/'); // PIO 連線字串 (MySQL)
-define("CONNECTION_STRING", 'sqlite://pixmicat.db/imglog/'); // PIO 連線字串 (SQLite)
+define("CONNECTION_STRING", 'sqlite3://pixmicat.db3/imglog/'); // PIO 連線字串 (PDO SQLite)
+//define("CONNECTION_STRING", 'sqlite://pixmicat.db/imglog/'); // PIO 連線字串 (SQLite 2)
 //define("CONNECTION_STRING", 'pgsql://pixmicat:1234@localhost/pixmicat_use/imglog/'); // PIO 連線字串 (PostgreSQL)
 
 /*---- Part 2：板面各項細部功能設定 ----*/

@@ -13,11 +13,12 @@
 class LoggerInterceptor implements MethodInterceptor {
 	private $LOG;
 
-	public function __construct($name) {
-		if (empty($name)) {
-			throw new InvalidArgumentException('No name given on contructor.');
-		}
-		$this->LOG = PMCLibrary::getLoggerInstance($name);
+	public function __construct(ILogger $logger) {
+		$this->setLogger($logger);
+	}
+
+	private function setLogger(ILogger $logger) {
+		$this->LOG = $logger;
 	}
 
 	public function invoke(array $callable, array $args) {
@@ -73,5 +74,5 @@ class LoggerInjector {
 			return;
 		}
 		return $this->mi->invoke(array($this->principalClass, $name), $args);
-    }
+	}
 }

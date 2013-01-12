@@ -11,7 +11,6 @@
 
 require ROOTPATH.'lib/interfaces.php';
 require ROOTPATH.'lib/lib_simplelogger.php';
-require ROOTPATH.'lib/lib_errorhandler.php';
 require ROOTPATH.'lib/lib_loggerinterceptor.php';
 
 class PMCLibrary {
@@ -28,7 +27,7 @@ class PMCLibrary {
 			$pioExactClass = 'PIO'.PIXMICAT_BACKEND;
 			$instPIO = new LoggerInjector(
 				new $pioExactClass(CONNECTION_STRING, $PIOEnv),
-				new LoggerInterceptor($pioExactClass)
+				new LoggerInterceptor(PMCLibrary::getLoggerInstance($pioExactClass))
 			);
 		}
 		return $instPIO;

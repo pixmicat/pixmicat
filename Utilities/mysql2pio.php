@@ -12,6 +12,9 @@
  */
 include_once('./config.php');
 
+if (!defined('MYSQL_SERVER'))
+	die('This php is for Pixmicat!-MySQL only.');
+
 $dirimg = realpath('.').DIRECTORY_SEPARATOR.IMG_DIR; // 圖檔存放位置
 
 /* 取得圖檔的寬長以存入資料 */
