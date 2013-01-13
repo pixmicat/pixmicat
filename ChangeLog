@@ -1,18 +1,20 @@
 ﻿Pixmicat!-PIO 修改紀錄
 ----------------------
 
-2012/12/?? : 7th.Release
+2013/?? : 7th.Release
 - [config] 增加 DEBUG 除錯開關
+- [config] 增加 ROOTPATH 根目錄絕對位置常數
+- [config] 增加 TRUST_HTTP_X_FORWARDED_FOR 開關
 - [PMCLibrary] 抽出介面，面向介面設計，減低直接對實作的依賴
 - [PMCLibrary] PIO 實作介面 IPIO，並修改錯誤拋出機制
 - [PMCLibrary] PIO Condition 實作介面 IPIOCondition
 - [PMCLibrary] [#39171] 修正 PIO 匯入時間戳問題
 - [PMCLibrary] 新增 ILogger 介面及 SimpleLogger 實作，可作為除錯紀錄
-- [PMCLibrary] 新增 PIOLoggerInjector，攔截 PIO 錯誤訊息並可提供額外的函式除錯資訊
+- [PMCLibrary] 新增 LoggerInjector，攔截錯誤訊息並可提供額外的函式除錯資訊
 - [PMCLibrary] Language 改寫為單例
 - [PMCLibrary] PMS 去除不必要的架構，僅留單檔 lib_pms.php
 - [PMCLibrary] 新增單例類別 PMCLibrary，取代原有各函式庫 global 變數
-- [PMCLibrary] 新增全域例外捕捉機制，並可產生除錯紀錄
+- [pixmicat] 新增全域例外捕捉機制，並可產生除錯紀錄
 - [pixmicat] 修改函式庫載入方式
 
 2012/11/22

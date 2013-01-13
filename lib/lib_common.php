@@ -254,13 +254,16 @@ function adminAuthenticate($mode){
 
 /* 取得 (Transparent) Proxy 提供之 IP 參數 */
 function getREMOTE_ADDR(){
-	// 同時有 VIA 和 FORWARDED_FOR 較可能為 Proxy
-	if(isset($_SERVER['HTTP_VIA']) && isset($_SERVER['HTTP_X_FORWARDED_FOR'])){
-		$tmp = preg_split('/[ ,]+/', $_SERVER['HTTP_X_FORWARDED_FOR']);
-		// 防止 Squid "unknown" 問題，此種情況直接使用 REMOTE_ADDR
-		// 如果結果為 Private IP 或 Reserved IP，捨棄改用 REMOTE_ADDR
-		if(filter_var($tmp[0], FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)){
-			return $tmp[0];
+	// 確定有需要才使用 HTTP_X_FORWARDED_FOR
+	if(defined('TRUST_HTTP_X_FORWARDED_FOR') && TRUST_HTTP_X_FORWARDED_FOR) {
+		// 同時有 VIA 和 FORWARDED_FOR 較可能為 Proxy
+		if(isset($_SERVER['HTTP_VIA']) && isset($_SERVER['HTTP_X_FORWARDED_FOR'])){
+			$tmp = preg_split('/[ ,]+/', $_SERVER['HTTP_X_FORWARDED_FOR']);
+			// 防止 Squid "unknown" 問題，此種情況直接使用 REMOTE_ADDR
+			// 如果結果為 Private IP 或 Reserved IP，捨棄改用 REMOTE_ADDR
+			if(filter_var($tmp[0], FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)){
+				return $tmp[0];
+			}
 		}
 	}
 	return $_SERVER['REMOTE_ADDR'];
