@@ -1,6 +1,5 @@
 <?php
 require_once dirname(__FILE__).'/prerequire.php';
-require_once ROOTPATH.'lib/lib_compatible.php';
 
 class PMSTest extends PHPUnit_Framework_TestCase {
 	public $PMS;
