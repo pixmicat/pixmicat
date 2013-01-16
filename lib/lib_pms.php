@@ -205,4 +205,13 @@ abstract class ModuleHelper implements IModule {
 	protected function callCHP($chpName, array $params) {
 		self::$PMS->callCHP($chpName, $params);
 	}
+
+	/**
+	 * 附加翻譯資源字串。
+	 *
+	 * @param  array  $lang 翻譯資源字串陣列
+	 */
+	protected function attachLanguage(array $lang) {
+		PMCLibrary::getLanguageInstance()->attachLanguage($lang);
+	}
 }

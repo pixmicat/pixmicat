@@ -39,6 +39,7 @@ class LanguageLoader {
 	/**
 	 * 取得語系設定。
 	 *
+	 * @see PIXMICAT_LANGUAGE
 	 * @return string 語系代表字串
 	 */
 	public function getLocale() {
