@@ -140,7 +140,7 @@ abstract class ModuleHelper implements IModule {
 	public abstract function getModuleName();
 	public abstract function getModuleVersionInfo();
 
-	protected function __construct($PMS) {
+	public function __construct($PMS) {
 		// 儲存 $PMS 參考
 		if (self::$PMS == null) {
 			self::$PMS = $PMS;
