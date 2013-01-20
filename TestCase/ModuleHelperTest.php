@@ -44,6 +44,16 @@ class mod_test extends ModuleHelper {
 		);
 	}
 
+	public function testAttachLanguageAnd_T() {
+		$this->attachLanguage(
+			array(
+				'var01' => '001',
+				'var02' => '002 %s'
+			)
+		);
+		return $this->_T('var02', 'Tom');
+	}
+
 	public function testStaticPMS() {
 		return self::$PMS;
 	}
@@ -105,6 +115,10 @@ class ModuleHelperTest extends PHPUnit_Framework_TestCase {
 		$this->mod->testAttachLanguage();
 		$afterCount = count(PMCLibrary::getLanguageInstance()->getLanguage());
 		$this->assertEquals($beforeCount + 2, $afterCount);
+	}
+
+	public function testAttachLanguageAnd_T() {
+		$this->assertEquals('002 Tom', $this->mod->testAttachLanguageAnd_T());
 	}
 
 	public function testStaticPMS() {
