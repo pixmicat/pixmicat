@@ -212,6 +212,30 @@ abstract class ModuleHelper implements IModule {
 	 * @param  array  $lang 翻譯資源字串陣列
 	 */
 	protected function attachLanguage(array $lang) {
+		$langKeys = array_keys($lang);
+		// 為字串資源鍵值加上模組名前綴
+		foreach ($langKeys as $k) {
+			$lang[$this->clazz.'_'.$k] = $lang[$k];
+			unset($lang[$k]);
+		}
+
 		PMCLibrary::getLanguageInstance()->attachLanguage($lang);
+	}
+
+	/**
+	 * 取出翻譯資源檔對應字串。
+	 *
+	 * @param args 翻譯資源檔索引、其餘變數
+	 * @see LanguageLoader->getTranslation
+	 */
+	protected function _T() {
+		$args = func_get_args();
+		// 為字串資源鍵值加上模組名前綴
+		if (isset($args[0]) && !empty($args[0])) {
+			$args[0] = $this->clazz.'_'.$args[0];
+		}
+		return call_user_func_array(
+			array(PMCLibrary::getLanguageInstance(), 'getTranslation'),
+			$args);
 	}
 }

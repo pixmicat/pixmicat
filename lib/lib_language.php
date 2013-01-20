@@ -9,6 +9,8 @@
 class LanguageLoader {
 	private $locale;
 	private $language;
+	private $languageFallback;
+	private $hasFallback;
 
 	private function __construct($locale, array $language) {
 		$this->locale = $locale;
@@ -19,21 +21,40 @@ class LanguageLoader {
 	 * 取得語言物件之單例。
 	 *
 	 * @return LanguageLoader 語言物件
+	 * @throws InvalidArgumentException 如果找不到設定語言
 	 */
 	public static function getInstance() {
 		static $inst = null;
 		if ($inst == null) {
 			$locale = PIXMICAT_LANGUAGE;
-			$langFile = ROOTPATH."lib/lang/$locale.php";
-			if (file_exists($langFile)){
+			$langFile = ROOTPATH."lib/lang/{$locale}.php";
+			if (file_exists($langFile)) {
 				require $langFile;
 			} else {
-				$locale = 'en_US';
-				require ROOTPATH.'lib/lang/en_US.php';
+				throw new InvalidArgumentException(
+					sprintf('Assigned locale: %s not found.', $locale)
+				);
 			}
 			$inst = new LanguageLoader($locale, $language);
+			$inst->setFallback('en_US');
 		}
 		return $inst;
+	}
+
+	/**
+	 * 設定備用語系。
+	 *
+	 * @param string $localeFallback 備用語系
+	 */
+	public function setFallback($localeFallback = 'en_US') {
+		if ($localeFallback != $this->getLocale()) {
+			require ROOTPATH."lib/lang/{$localeFallback}.php";
+			$this->hasFallback = true;
+			$this->languageFallback = $language;
+		} else {
+			// 備用無效
+			$this->hasFallback = false;
+		}
 	}
 
 	/**
@@ -62,10 +83,11 @@ class LanguageLoader {
 	 * @return string        對應文字
 	 */
 	private function getTranslationBody($index) {
+		$str = $index;
 		if (array_key_exists($index, $this->language)) {
 			$str = $this->language[$index];
-		} else {
-			$str = $index;
+		} else if ($this->hasFallback && array_key_exists($index, $this->languageFallback)) {
+			$str = $this->languageFallback[$index];
 		}
 		return $str;
 	}

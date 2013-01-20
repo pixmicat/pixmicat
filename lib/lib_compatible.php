@@ -3,7 +3,7 @@
  * Pixmicat! compatible components
  *
  * @package PMCLibrary
- * @version $Id: lib_language.php 833 2012-12-13 15:50:32Z scribe $
+ * @version $Id$
  */
 
 /**
