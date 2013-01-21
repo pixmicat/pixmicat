@@ -210,8 +210,21 @@ abstract class ModuleHelper implements IModule {
 	 * 附加翻譯資源字串。
 	 *
 	 * @param  array  $lang 翻譯資源字串陣列
+	 * @param  string $fallbackLang 備用語系
+	 * @throws InvalidArgumentException 如果找不到設定備用語系
 	 */
-	protected function attachLanguage(array $lang) {
+	protected function attachLanguage(array $lang, $fallbackLang = 'en_US') {
+		// 取出使用語言，如果不存在則用備用
+		if (isset($lang[PIXMICAT_LANGUAGE])) {
+			$lang = $lang[PIXMICAT_LANGUAGE];
+		} else if (isset($lang[$fallbackLang])) {
+			$lang = $lang[$fallbackLang];
+		} else {
+			throw new InvalidArgumentException(
+				sprintf('Assigned locale: %s not found.', $fallbackLang)
+			);
+		}
+
 		$langKeys = array_keys($lang);
 		// 為字串資源鍵值加上模組名前綴
 		foreach ($langKeys as $k) {
