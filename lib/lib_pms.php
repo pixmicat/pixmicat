@@ -137,9 +137,6 @@ abstract class ModuleHelper implements IModule {
 	protected static $PMS;
 	private $clazz;
 
-	public abstract function getModuleName();
-	public abstract function getModuleVersionInfo();
-
 	public function __construct($PMS) {
 		// 儲存 $PMS 參考
 		if (self::$PMS == null) {
