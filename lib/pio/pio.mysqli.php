@@ -43,7 +43,7 @@ class PIOmysqli implements IPIO {
 
 	/* PIO模組版本 */
 	public function pioVersion(){
-		return '0.6 (v20121213)';
+		return '0.6 (v20130131)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -496,7 +496,8 @@ class PIOmysqli implements IPIO {
 
 		$foundPosts = array();
 		$result = $this->con->prepare('SELECT no FROM '.$this->tablename.' WHERE lower(category) LIKE ? ORDER BY no DESC');
-		$result->bind_param('s', '%,'.strtolower($category).',%');
+		$param = '%,'.strtolower($category).',%';
+		$result->bind_param('s', $param);
 		$result->execute();
 		while($rows = $result->fetch_row()) $foundPosts[] = $rows[0];
 		$result->free();
