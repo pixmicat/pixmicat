@@ -3,7 +3,6 @@
  * PIO MySQL improved API
  *
  * 提供存取以 MySQL 資料庫構成的資料結構後端的物件 (使用 MySQL improved extension)
- * 由於使用到 mysqli_result::fetch_all，需要 PHP 5.3.0 以上版本。
  *
  * @package PMCLibrary
  * @version $Id$
@@ -41,9 +40,29 @@ class PIOmysqli implements IPIO {
 		else return $resource;
 	}
 
+	/**
+	 * mysqli_result::fetch_all < PHP 5.3 的相容方法。
+	 * 如果 < PHP 5.3，使用傳統 for 迴圈取得全部陣列。
+	 *
+	 * @param mysqli_result $result mysqli_result 物件
+	 * @param int $resulttype 回傳陣列類型
+	 * @return array 結果陣列
+	 */
+	private function _mysqli_fetch_all(mysqli_result $result, $resulttype = MYSQLI_NUM) {
+		if (method_exists($result, 'fetch_all')) {
+			$res = $result->fetch_all($resulttype);
+		} else {
+			$res = array();
+			while ($row = $result->fetch_array($resulttype)) {
+				$res[] = $row;
+			}
+		}
+		return $res;
+	}
+
 	/* PIO模組版本 */
 	public function pioVersion(){
-		return '0.6 (v20130131)';
+		return '0.6 (v20130202)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -335,7 +354,7 @@ class PIOmysqli implements IPIO {
 			if(count($postlist) > 1){ if($postlist[0] > $postlist[1]) $tmpSQL .= ' DESC'; } // 由大排到小
 		}else $tmpSQL = 'SELECT '.$fields.' FROM '.$this->tablename.' WHERE no = '.intval($postlist); // 取單串
 		$line = $this->_mysql_call($tmpSQL, array('Fetch the post content failed', __LINE__));
-		return $line->fetch_all(MYSQLI_ASSOC); // 輸出陣列結構
+		return $this->_mysqli_fetch_all($line, MYSQLI_ASSOC); // 輸出陣列結構
 	}
 
 	/* 刪除舊附件 (輸出附件清單) */
@@ -487,7 +506,7 @@ class PIOmysqli implements IPIO {
 		}
 		$SearchQuery .= ' ORDER BY no DESC'; // 按照號碼大小排序
 		$line = $this->_mysql_call($SearchQuery, array('Search the post failed', __LINE__));
-		return $line->fetch_all(MYSQLI_ASSOC); // 輸出陣列結構
+		return $this->_mysqli_fetch_all($line, MYSQLI_ASSOC); // 輸出陣列結構
 	}
 
 	/* 搜尋類別標籤 */
@@ -498,9 +517,9 @@ class PIOmysqli implements IPIO {
 		$result = $this->con->prepare('SELECT no FROM '.$this->tablename.' WHERE lower(category) LIKE ? ORDER BY no DESC');
 		$param = '%,'.strtolower($category).',%';
 		$result->bind_param('s', $param);
+		$result->bind_result($no);
 		$result->execute();
-		while($rows = $result->fetch_row()) $foundPosts[] = $rows[0];
-		$result->free();
+		while($rows = $result->fetch()) $foundPosts[] = $no;
 		return $foundPosts;
 	}
 
