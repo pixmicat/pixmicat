@@ -62,7 +62,7 @@ class PIOmysqli implements IPIO {
 
 	/* PIO模組版本 */
 	public function pioVersion(){
-		return '0.6 (v20130202)';
+		return '0.6 (v20130221)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -227,7 +227,7 @@ class PIOmysqli implements IPIO {
 			$line = array_map($replaceComma, explode(',', $data[$i])); // 取代 &#44; 為 ,
 			$tim = substr($line[5], 0, 10);
 			if ($line[2] == '0') $line[2] = '0000-00-00 00:00:00';
-			$stmt->bind_param('iisissisiisiissssssss',
+			$stmt->bind_param('iisdssisiisiissssssss',
 				$line[0],
 				$line[1],
 				$line[2],
@@ -429,7 +429,7 @@ class PIOmysqli implements IPIO {
 				.' (resto,root,time,md5chksum,category,tim,ext,imgw,imgh,imgsize,tw,th,pwd,now,name,email,sub,com,host,status) VALUES '
 				.'(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
 		$stmt = $this->con->prepare($SQL);
-		$stmt->bind_param('isissisiisiissssssss',
+		$stmt->bind_param('isissdsiisiissssssss',
 			$resto,
 			$root,
 			$time,
