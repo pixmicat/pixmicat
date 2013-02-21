@@ -45,7 +45,7 @@ class PIOsqlite implements IPIO {
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.6 (v20121213)';
+		return '0.6 (v20130221)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -98,7 +98,7 @@ class PIOsqlite implements IPIO {
 	}
 
 	/* 準備/讀入 */
-	function dbPrepare($reload=false, $transaction=true){
+	function dbPrepare($reload=false, $transaction=false){
 		if($this->prepared) return true;
 
 		if(@!$this->con=sqlite_popen($this->dbname, 0666)) $this->_error_handler(array('Open database failed', __LINE__));
