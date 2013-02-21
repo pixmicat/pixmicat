@@ -31,7 +31,7 @@ class PIOsqlite3 implements IPIO {
 
 	/* PIO模組版本 */
 	function pioVersion(){
-		return '0.6 (v20130102)';
+		return '0.6 (v20130221)';
 	}
 
 	/* 處理連線字串/連接 */
@@ -86,7 +86,7 @@ class PIOsqlite3 implements IPIO {
 	public function dbPrepare($reload=false, $transaction=false){
 		if($this->prepared) return true;
 
-		($this->con = new PDO($this->DSN, '', '', array(PDO::ATTR_PERSISTENT => true))) or $this->_error_handler('Open database failed', __LINE__);
+		($this->con = new PDO($this->DSN)) or $this->_error_handler('Open database failed', __LINE__);
 		$this->useTransaction = $transaction;
 		if($transaction) @$this->con->beginTransaction(); // 啟動交易性能模式
 
