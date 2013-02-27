@@ -1,6 +1,4 @@
 <?php
-require_once dirname(__FILE__).'/prerequire.php';
-
 class TempClass {
 	public function printMessage($msg) {
 		return "Hello, $msg!";

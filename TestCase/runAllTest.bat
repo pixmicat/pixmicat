@@ -1,4 +1,4 @@
 @ECHO OFF
-set PHPDIR=..\..\..\php
-%PHPDIR%\php phpunit.phar --no-globals-backup --verbose %1 %2 %~dp0
+set PHPDIR=D:\XAMPP\php
+%PHPDIR%\php phpunit.phar -c phpunit.xml %1 %2
 pause

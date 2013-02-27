@@ -1,6 +1,4 @@
 <?php
-require_once dirname(__FILE__).'/prerequire.php';
-
 class LoggerInterceptorTest extends PHPUnit_Framework_TestCase {
 	public function testInstance() {
 		$obj = new LoggerInterceptor(PMCLibrary::getLoggerInstance('Test'));

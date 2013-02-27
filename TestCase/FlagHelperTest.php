@@ -1,6 +1,4 @@
 <?php
-require_once dirname(__FILE__).'/prerequire.php';
-
 class FlagHelperTest extends PHPUnit_Framework_TestCase {
 	public static function setUpBeforeClass() {
 		// Let the system load lib_pio (FlagHelper)

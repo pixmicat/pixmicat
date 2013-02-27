@@ -1,6 +1,4 @@
 <?php
-require_once dirname(__FILE__).'/prerequire.php';
-
 class mod_test extends ModuleHelper {
 	public function __construct($PMS) {
 		parent::__construct($PMS);
@@ -38,8 +36,10 @@ class mod_test extends ModuleHelper {
 	public function testAttachLanguage() {
 		$this->attachLanguage(
 			array(
-				'ABB' => '001',
-				'BBC' => '002 %s'
+				'en_US' => array(
+					'ABB' => '001',
+					'BBC' => '002 %s'
+				)
 			)
 		);
 	}
@@ -47,8 +47,10 @@ class mod_test extends ModuleHelper {
 	public function testAttachLanguageAnd_T() {
 		$this->attachLanguage(
 			array(
-				'var01' => '001',
-				'var02' => '002 %s'
+				'en_US' => array(
+					'var01' => '001',
+					'var02' => '002 %s'
+				)
 			)
 		);
 		return $this->_T('var02', 'Tom');

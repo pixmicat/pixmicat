@@ -1,6 +1,4 @@
 <?php
-require_once dirname(__FILE__).'/prerequire.php';
-
 class PMSTest extends PHPUnit_Framework_TestCase {
 	public $PMS;
 

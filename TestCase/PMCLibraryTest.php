@@ -1,6 +1,4 @@
 <?php
-require_once dirname(__FILE__).'/prerequire.php';
-
 class PMCLibraryTest extends PHPUnit_Framework_TestCase {
 	public function testGetPIOInstance() {
 		$PIO1 = PMCLibrary::getPIOInstance();
