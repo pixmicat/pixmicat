@@ -1,12 +1,16 @@
 <?php
 /**
- * FileIO Normal 本機儲存 API
+ * FileIO Normal (5th.Release) 本機儲存 API
  *
  * 以本機硬碟空間作為圖檔儲存的方式，並提供一套方法供程式管理圖片
  *
+ * 此版還原至舊版 (5th.Release) 的行為，判斷圖檔時仍使用檔案 I/O 來確認，
+ * 避免特定環境下 IFS 出現錯誤造成圖檔無法顯示的問題。
+ * 但統計圖檔儲存量仍需要 IFS 支援。因此會有部分問題。
+ *
  * @package PMCLibrary
- * @version $Id$
- * @date $Date$
+ * @version $Id: fileio.normal.php 808 2011-04-15 14:39:47Z scribe $
+ * @date $Date: 2011-04-15 22:39:47 +0800 (週五, 15 四月 2011) $
  */
 
 class FileIO{
@@ -38,7 +42,7 @@ class FileIO{
 	}
 
 	function imageExists($imgname){
-		return $this->IFS->beRecord($imgname);
+		return file_exists($this->_getImagePhysicalPath($imgname));
 	}
 
 	function deleteImage($imgname){
@@ -66,8 +70,7 @@ class FileIO{
 	}
 
 	function getImageFilesize($imgname){
-		if($rc = $this->IFS->getRecord($imgname)) return $rc['imgSize'];
-		return false;
+		return @filesize($this->_getImagePhysicalPath($imgname));
 	}
 
 	function getImageURL($imgname){
@@ -75,7 +78,8 @@ class FileIO{
 	}
 
 	function resolveThumbName($thumbPattern){
-		return $this->IFS->findThumbName($thumbPattern);
+		$find = glob($this->thumbPath.$thumbPattern.'s.*');
+		return ($find !== false && count($find) != 0) ? basename($find[0]) : false;
 	}
 }
 ?>

@@ -105,5 +105,9 @@ class FileIO{
 		if(!$this->parameter[7] && strpos($imgname, 's.') !== false) return $this->getImageLocalURL($imgname);
 		return $this->IFS->beRecord($imgname) ? $this->parameter[6].$imgname : false;
 	}
+
+	function resolveThumbName($thumbPattern){
+		return $this->IFS->findThumbName($thumbPattern);
+	}
 }
 ?>

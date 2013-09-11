@@ -49,10 +49,5 @@ class FileIOWrapper extends FileIO{
 	function updateStorageSize($delta){
 		$this->getCurrentStorageSize($delta);
 	}
-
-	/* 搜尋預覽圖檔之完整檔名 */
-	function resolveThumbName($thumbPattern){
-		return $this->IFS->findThumbName($thumbPattern);
-	}
 }
 ?>
