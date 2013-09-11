@@ -67,7 +67,10 @@ class SimpleLogger implements ILogger {
 	private function logFormat($logLevel, $message, array $vars) {
 		$dateTime = date('c');
 		$message = vsprintf($message, $vars);
-		error_log("$dateTime $logLevel {$this->logName} - $message".PHP_EOL,
-			3, $this->logFile);
+		file_put_contents(
+			$this->logFile,
+			"$dateTime $logLevel {$this->logName} - $message".PHP_EOL,
+			FILE_APPEND
+		);
 	}
 }
