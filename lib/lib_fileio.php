@@ -1,53 +1,154 @@
 <?php
+
 /*
-FileIO - Pixmicat! File I/O
-FileIO Kernel Switcher
-*/
+  FileIO - Pixmicat! File I/O
+  FileIO Kernel Switcher
+ */
 
-// 引入必要函式庫
-$fileio_file = ROOTPATH.'lib/fileio/fileio.'.FILEIO_BACKEND.'.php'; // FileIO Backend
-if(is_file($fileio_file)) require($fileio_file);
+/**
+ * 抽象 FileIO，預先實作好本地圖檔相關方法。
+ */
+abstract class AbstractFileIO implements IFileIO {
 
-// 擴充物件
-class FileIOWrapper extends FileIO{
-	var $absoluteURL; // 伺服器絕對位置
-	function _getAbsoluteURL(){
-		return 'http://'.$_SERVER['HTTP_HOST'].substr($_SERVER['PHP_SELF'], 0, strpos($_SERVER['PHP_SELF'], PHP_SELF));
-	}
+    /** @var ILogger */
+    var $LOG;
 
-	function getImageLocalURL($imgname){
-		if(!isset($this->absoluteURL)) $this->absoluteURL = $this->_getAbsoluteURL();
+    /**
+     * 伺服器絕對位置
+     *
+     * @var string
+     */
+    private $absoluteUrl;
 
-		return $this->absoluteURL.(strpos($imgname, 's.') !== false ? THUMB_DIR : IMG_DIR).$imgname;
-	}
+    /**
+     * 圖檔總容量快取檔案位置
+     *
+     * @var string
+     */
+    private $cacheFile;
 
-	/* 檢查遠端檔案是否存在 */
-	function remoteImageExists($img){
-		return (@file_get_contents($img, false, null, 0, 1) !== false);
-	}
+    public function __construct() {
+        $this->LOG = PMCLibrary::getLoggerInstance('AbstractFileIO');
+        $this->absoluteUrl = $this->getAbsoluteUrl();
+        $this->cacheFile = $this->getCacheFile();
+    }
 
-	/* 回傳目前總檔案大小 */
-	function getCurrentStorageSize($delta=0){
-		$size = 0;
-		$cache_file = ROOTPATH.'sizecache.dat'; // 使用快取檔案記錄
+    private function getAbsoluteUrl() {
+        $phpSelf = filter_input(INPUT_SERVER, 'PHP_SELF');
+        return sprintf(
+                'http://%s%s', filter_input(INPUT_SERVER, 'HTTP_HOST'), substr($phpSelf, 0, strpos($phpSelf, PHP_SELF))
+        );
+    }
 
-		if(!is_file($cache_file)){ // 無快取，新增
-			$size = $this->IFS->getCurrentStorageSize();
-			file_put_contents($cache_file, $size, LOCK_EX);
-			@chmod($cache_file, 0666);
-		}else{ // 使用快取
-			$size = file_get_contents($cache_file);
-			if($delta != 0){ // 快取值更動
-				$size += $delta;
-				file_put_contents($cache_file, $size, LOCK_EX);
-			}
-		}
-		return intval($size / 1024);
-	}
+    private function getCacheFile() {
+        return ROOTPATH . 'sizecache.dat';
+    }
 
-	/* 更新總檔案大小數值 */
-	function updateStorageSize($delta){
-		$this->getCurrentStorageSize($delta);
-	}
+    protected function getImageLocalURL($imgname) {
+        return $this->absoluteUrl .
+                (strpos($imgname, 's.') !== false ? THUMB_DIR : IMG_DIR) .
+                $imgname;
+    }
+
+    protected function remoteImageExists($img) {
+        try {
+            $result = file_get_contents($img, false, null, 0, 1);
+        } catch (Exception $ignored) {
+            $this->LOG->error("remoteImageExists -> file_get_contents failed");
+            return false;
+        }
+
+        return ($result !== false);
+    }
+
+    public function getCurrentStorageSize() {
+        $size = 0;
+        if (!is_file($this->cacheFile)) {
+            $size = $this->updateStorageSize();
+        } else {
+            $size = file_get_contents($this->cacheFile);
+        }
+        return intval($size / 1024);
+    }
+
+    public function updateStorageSize($delta = 0) {
+        if (!is_file($this->cacheFile)) {
+            $sizeNow = $this->getCurrentStorageSizeNoCache();
+        } else {
+            $sizeNow = file_get_contents($this->cacheFile) + $delta;
+            if ($delta == 0) {
+                return $sizeNow;
+            }
+        }
+
+        $this->writeToCache($sizeNow);
+        return $sizeNow;
+    }
+
+    /**
+     * 不依賴圖檔總容量快取檔案，取得目前圖檔所占空間 (單位 byte)
+     *
+     * @return int 圖檔所占空間
+     */
+    protected abstract function getCurrentStorageSizeNoCache();
+
+    /**
+     * 寫入到圖檔總容量快取檔案。
+     *
+     * @param int $sizeNow
+     */
+    private function writeToCache($sizeNow) {
+        file_put_contents(
+                $this->cacheFile, $sizeNow, LOCK_EX
+        );
+        chmod($this->cacheFile, 0666);
+    }
+
 }
-?>
+
+/**
+ * 抽象 FileIO + IFS。
+ */
+abstract class AbstractIfsFileIO extends AbstractFileIO {
+    /** @var IndexFS */
+    protected $IFS;
+
+    public function __construct($parameter, $ENV) {
+        parent::__construct();
+
+        require($ENV['IFS.PATH']);
+        $this->IFS = new IndexFS($ENV['IFS.LOG']);
+        $this->IFS->openIndex();
+        register_shutdown_function(array($this, 'saveIndex'));
+    }
+
+    /**
+     * 儲存索引檔
+     */
+    private function saveIndex() {
+        $this->IFS->saveIndex();
+    }
+
+    public function imageExists($imgname) {
+        return $this->IFS->beRecord($imgname);
+    }
+
+    public function getImageFilesize($imgname) {
+        $rc = $this->IFS->getRecord($imgname);
+        if (!is_null($rc)) {
+            return $rc['imgSize'];
+        }
+        return 0;
+    }
+
+    public function resolveThumbName($thumbPattern) {
+        return $this->IFS->findThumbName($thumbPattern);
+    }
+
+    protected function getCurrentStorageSizeNoCache() {
+        return $this->IFS->getCurrentStorageSize();
+    }
+}
+
+// 引入實作
+require ROOTPATH . 'lib/fileio/fileio.' . FILEIO_BACKEND . '.php';

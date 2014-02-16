@@ -69,13 +69,15 @@ class PMCLibrary {
 	/**
 	 * 取得 FileIO 函式庫物件
 	 *
-	 * @return FileIO FileIO 函式庫物件
+	 * @return IFileIO FileIO 函式庫物件
 	 */
 	public static function getFileIOInstance() {
 		static $instFileIO = null;
 		if ($instFileIO == null) {
 			require ROOTPATH.'lib/lib_fileio.php';
-			$instFileIO = new FileIOWrapper(unserialize(FILEIO_PARAMETER),
+                        $fileIoExactClass = 'FileIO'.FILEIO_BACKEND;
+			$instFileIO = new $fileIoExactClass(
+                                unserialize(FILEIO_PARAMETER),
 				array( // FileIO 環境常數
 					'IFS.PATH' => ROOTPATH.'lib/fileio/ifs.php',
 					'IFS.LOG' => ROOTPATH.FILEIO_INDEXLOG,
