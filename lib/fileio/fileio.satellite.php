@@ -125,7 +125,7 @@ class FileIOsatellite extends AbstractIfsFileIO {
 
         set_time_limit(120); // 執行時間 120 秒 (傳輸過程可能很長)
         $this->userAgent = 'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.1)'; // Just for fun ;-)
-        $this->thumbLocalPath = $ENV['PATH'] . $ENV['THUMB']; // 預覽圖本機位置
+        $this->thumbLocalPath = $ENV['THUMB']; // 預覽圖本機位置
         $this->parameter = $parameter; // 將參數重新解析
         $this->parameter[0] = parse_url($this->parameter[0]); // URL 位置拆解
         /*

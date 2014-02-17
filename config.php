@@ -2,7 +2,7 @@
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
-版權所有 © 2005-2013 Pixmicat! Development Team
+版權所有 © 2005-2014 Pixmicat! Development Team
 
 版權聲明：
 此程式是基於レッツPHP!<http://php.s3.to/>的gazou.php、
@@ -23,6 +23,7 @@ http://pixmicat.openfoundry.org/
 // 伺服器常態設定
 define("DEBUG", false); // 是否產生詳細 DEBUG 訊息
 define("ROOTPATH", dirname(__FILE__).DIRECTORY_SEPARATOR); // 主程式根目錄
+define("STORAGE_PATH", ROOTPATH); // 圖檔、快取儲存目錄 (需具有讀寫權限 777)
 define("TIME_ZONE", '+8'); // 時區設定 (GMT時區，參照 http://wwp.greenwichmeantime.com/ )
 define("PIXMICAT_LANGUAGE", 'zh_TW'); // 語系語定
 define("HTTP_UPLOAD_DIFF", 50); // HTTP上傳所有位元組與實際位元組之允許誤差值
@@ -44,8 +45,8 @@ define("CONNECTION_STRING", 'sqlite3://pixmicat.db3/imglog/'); // PIO 連線字�
 //define("CONNECTION_STRING", 'pgsql://pixmicat:1234@localhost/pixmicat_use/imglog/'); // PIO 連線字串 (PostgreSQL)
 
 /*---- Part 2：板面各項細部功能設定 ----*/
-define("IMG_DIR", 'src/'); // 圖片存放目錄
-define("THUMB_DIR", 'thumb/'); // 預覽圖存放目錄
+define("IMG_DIR", STORAGE_PATH . 'src/'); // 圖片存放目錄
+define("THUMB_DIR", STORAGE_PATH . 'thumb/'); // 預覽圖存放目錄
 define("PHP_SELF2", 'index.htm'); // 入口檔名
 define("PHP_EXT", '.htm'); // 第一頁以後生成檔案之副檔名
 define("TITLE", 'Pixmicat!-PIO'); // 網頁標題

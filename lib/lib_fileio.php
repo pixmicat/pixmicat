@@ -41,12 +41,12 @@ abstract class AbstractFileIO implements IFileIO {
     }
 
     private function getCacheFile() {
-        return ROOTPATH . 'sizecache.dat';
+        return STORAGE_PATH . 'sizecache.dat';
     }
 
     protected function getImageLocalURL($imgname) {
         return $this->absoluteUrl .
-                (strpos($imgname, 's.') !== false ? THUMB_DIR : IMG_DIR) .
+                (strpos($imgname, 's.') !== false ? basename(THUMB_DIR) : basename(IMG_DIR)).'/'.
                 $imgname;
     }
 
@@ -125,7 +125,7 @@ abstract class AbstractIfsFileIO extends AbstractFileIO {
     /**
      * 儲存索引檔
      */
-    private function saveIndex() {
+    public function saveIndex() {
         $this->IFS->saveIndex();
     }
 

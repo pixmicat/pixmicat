@@ -117,7 +117,7 @@ function updatelog($resno=0,$page_num=-1,$single_page=false){
 
 		if(USE_RE_CACHE && !$adminMode){ // 檢查快取是否仍可使用 / 頁面有無更動
 			$cacheETag = md5(($AllRes ? 'all' : $page_num).'-'.$tree_count); // 最新狀態快取用 ETag
-			$cacheFile = ROOTPATH.'cache/'.$resno.'-'.($AllRes ? 'all' : $page_num).'.'; // 暫存快取檔位置
+			$cacheFile = STORAGE_PATH .'cache/'.$resno.'-'.($AllRes ? 'all' : $page_num).'.'; // 暫存快取檔位置
 			$cacheGzipPrefix = extension_loaded('zlib') ? 'compress.zlib://' : ''; // 支援 Zlib Compression Stream 就使用
 			$cacheControl = isset($_SERVER['HTTP_CACHE_CONTROL']) ? $_SERVER['HTTP_CACHE_CONTROL'] : ''; // 瀏覽器快取控制
 			if(isset($_SERVER['HTTP_IF_NONE_MATCH']) && $_SERVER['HTTP_IF_NONE_MATCH'] == '"'.$cacheETag.'"'){ // 再度瀏覽而快取無更動
@@ -233,11 +233,11 @@ function updatelog($resno=0,$page_num=-1,$single_page=false){
 		if($single_page || ($page_num == -1 && !$resno)){ // 靜態快取頁面生成
 			if($page==0) $logfilename = PHP_SELF2;
 			else $logfilename = $page.PHP_EXT;
-			$fp = fopen($logfilename, 'w');
+			$fp = fopen(STORAGE_PATH.$logfilename, 'w');
 			stream_set_write_buffer($fp, 0);
 			fwrite($fp, $dat);
 			fclose($fp);
-			@chmod($logfilename, 0666);
+			@chmod(STORAGE_PATH.$logfilename, 0666);
 			if(STATIC_HTML_UNTIL != -1 && STATIC_HTML_UNTIL==$page) break; // 頁面數目限制
 		}else{ // PHP 輸出 (回應模式/一般動態輸出)
 			if(USE_RE_CACHE && !$adminMode && $resno && !isset($_GET['upseries'])){ // 更新快取
@@ -443,7 +443,7 @@ function regist(){
 	// 如果有上傳檔案則處理附加圖檔
 	if($upfile && (@is_uploaded_file($upfile) || @is_file($upfile))){
 		// 一‧先儲存檔案
-		$dest = ROOTPATH.$tim.'.tmp';
+		$dest = STORAGE_PATH .$tim.'.tmp';
 		@move_uploaded_file($upfile, $dest) or @copy($upfile, $dest);
 		@chmod($dest, 0666);
 		if(!is_file($dest)) error(_T('regist_upload_filenotfound'), $dest);
@@ -647,8 +647,8 @@ function regist(){
 	setcookie('pwdc', $pwd, time()+7*24*3600);
 	setcookie('emailc', $email, time()+7*24*3600);
 	if($dest && is_file($dest)){
-		$destFile = ROOTPATH.IMG_DIR.$tim.$ext; // 圖檔儲存位置
-		$thumbFile = ROOTPATH.THUMB_DIR.$tim.'s.'.$THUMB_SETTING['Format']; // 預覽圖儲存位置
+		$destFile = IMG_DIR.$tim.$ext; // 圖檔儲存位置
+		$thumbFile = THUMB_DIR.$tim.'s.'.$THUMB_SETTING['Format']; // 預覽圖儲存位置
 		if(USE_THUMB !== 0){ // 生成預覽圖
 			$thumbType = USE_THUMB; if(USE_THUMB==1){ $thumbType = 'gd'; } // 與舊設定相容
 			require(ROOTPATH.'lib/thumb/thumb.'.$thumbType.'.php');
@@ -1201,11 +1201,22 @@ function init(){
 	$PIO = PMCLibrary::getPIOInstance();
 	$FileIO = PMCLibrary::getFileIOInstance();
 
-	if(!is_writable(ROOTPATH)) error(_T('init_permerror'));
+	if (!is_writable(STORAGE_PATH)) {
+		error(_T('init_permerror'));
+	}
 
-	$chkfolder = array(IMG_DIR, THUMB_DIR, 'cache/');
+	$chkfolder = array(
+		IMG_DIR,
+		THUMB_DIR,
+		STORAGE_PATH.'cache/'
+	);
 	// 逐一自動建置資料夾
-	foreach($chkfolder as $value) if(!is_dir($value)){ mkdir($value); @chmod($value, 0777); }  // 沒有就建立
+	foreach ($chkfolder as $value) {
+		if (!is_dir($value)) {
+			 mkdir($value);
+			@chmod($value, 0777);
+		}
+	}
 
 	$PIO->dbInit(); // PIO Init
 	$FileIO->init(); // FileIO Init

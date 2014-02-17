@@ -80,8 +80,7 @@ class PMCLibrary {
                                 unserialize(FILEIO_PARAMETER),
 				array( // FileIO 環境常數
 					'IFS.PATH' => ROOTPATH.'lib/fileio/ifs.php',
-					'IFS.LOG' => ROOTPATH.FILEIO_INDEXLOG,
-					'PATH' => ROOTPATH,
+					'IFS.LOG' => STORAGE_PATH.FILEIO_INDEXLOG,
 					'IMG' => IMG_DIR,
 					'THUMB' => THUMB_DIR
 				)
@@ -99,7 +98,7 @@ class PMCLibrary {
 	public static function getLoggerInstance($name = 'Global') {
 		static $instLogger = array();
 		if (!array_key_exists($name, $instLogger)) {
-			$instLogger[$name] = new SimpleLogger($name, ROOTPATH.'error.log');
+			$instLogger[$name] = new SimpleLogger($name, STORAGE_PATH .'error.log');
 		}
 		return $instLogger[$name];
 	}

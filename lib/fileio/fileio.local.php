@@ -14,14 +14,13 @@
  * @since 8th.Release
  */
 class FileIOlocal extends AbstractFileIO {
-    var $path, $imgPath, $thumbPath;
+    var $imgPath, $thumbPath;
 
     public function __construct($parameter, $ENV) {
         parent::__construct();
 
-        $this->path = $ENV['PATH'];
-        $this->imgPath = $this->path . $ENV['IMG'];
-        $this->thumbPath = $this->path . $ENV['THUMB'];
+        $this->imgPath = $ENV['IMG'];
+        $this->thumbPath = $ENV['THUMB'];
     }
 
     public function init() {
@@ -47,7 +46,7 @@ class FileIOlocal extends AbstractFileIO {
         }
         return $size;
     }
-    
+
     private function getImagePhysicalPath($imgname) {
         return (strpos($imgname, 's.') !== false ? $this->thumbPath : $this->imgPath) . $imgname;
     }

@@ -10,14 +10,13 @@
  * @date $Date$
  */
 class FileIOnormal extends AbstractIfsFileIO {
-    var $path, $imgPath, $thumbPath;
+    var $imgPath, $thumbPath;
 
     public function __construct($parameter, $ENV) {
         parent::__construct($parameter, $ENV);
 
-        $this->path = $ENV['PATH'];
-        $this->imgPath = $this->path . $ENV['IMG'];
-        $this->thumbPath = $this->path . $ENV['THUMB'];
+        $this->imgPath = $ENV['IMG'];
+        $this->thumbPath = $ENV['THUMB'];
     }
 
     public function init() {
