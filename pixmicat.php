@@ -723,7 +723,7 @@ function usrdel(){
 	$delno = array();
 	reset($_POST);
 	while($item = each($_POST)){ if($item[1]=='delete' && $item[0] != 'func') array_push($delno, $item[0]); }
-	$haveperm = ($pwd==ADMIN_PASS) || adminAuthenticate('check');
+	$haveperm = passwordVerify($pwd) || adminAuthenticate('check');
 	$PMS->useModuleMethods('Authenticate', array($pwd,'userdel',&$haveperm));
 	if($haveperm && isset($_POST['func'])){ // 前端管理功能
 		$message = '';
@@ -776,7 +776,7 @@ function valid(){
 	$haveperm = false;
 	$isCheck = adminAuthenticate('check'); // 登入是否正確
 	if(!$isCheck && $pass){
-		$haveperm = ($pass == ADMIN_PASS);
+		$haveperm = passwordVerify($pass);
 		$PMS->useModuleMethods('Authenticate', array($pass,'admin',&$haveperm));
 		if($haveperm){ adminAuthenticate('login'); $isCheck = true; }
 		else error(_T('admin_wrongpassword'));
@@ -1196,39 +1196,10 @@ function showstatus(){
 	echo $dat;
 }
 
-/* 程式首次執行之初始化 */
-function init(){
-	$PIO = PMCLibrary::getPIOInstance();
-	$FileIO = PMCLibrary::getFileIOInstance();
-
-	if (!is_writable(STORAGE_PATH)) {
-		error(_T('init_permerror'));
-	}
-
-	$chkfolder = array(
-		IMG_DIR,
-		THUMB_DIR,
-		STORAGE_PATH.'cache/'
-	);
-	// 逐一自動建置資料夾
-	foreach ($chkfolder as $value) {
-		if (!is_dir($value)) {
-			 mkdir($value);
-			@chmod($value, 0777);
-		}
-	}
-
-	$PIO->dbInit(); // PIO Init
-	$FileIO->init(); // FileIO Init
-
-	error(_T('init_inited'));
-}
-
 /*-----------程式各項功能主要判斷-------------*/
 if(GZIP_COMPRESS_LEVEL && ($Encoding = CheckSupportGZip())){ ob_start(); ob_implicit_flush(0); } // 支援且開啟Gzip壓縮就設緩衝區
 $mode = isset($_GET['mode']) ? $_GET['mode'] : (isset($_POST['mode']) ? $_POST['mode'] : ''); // 目前執行模式 (GET, POST)
 
-//init(); // ←■■！程式環境初始化，跑過一次後請刪除此行！■■
 switch($mode){
 	case 'regist':
 		regist();

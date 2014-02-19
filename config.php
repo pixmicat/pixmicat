@@ -38,10 +38,10 @@ define("FILEIO_PARAMETER", ''); // FileIO參數 (本機端儲存)
 //define("FILEIO_PARAMETER", serialize(array('http://www.example.com/~demo/satellite.cgi', true, '12345678', 'http://www.example.com/~demo/src/', true))); // FileIO參數 (Satellite)
 
 // PIO資料來源設定
-//define("CONNECTION_STRING", 'log://img.log:tree.log/'); // PIO 連線字串 (Log)
+//define("CONNECTION_STRING", 'log://'.STORAGE_PATH.'img.log:'.STORAGE_PATH.'tree.log/'); // PIO 連線字串 (Log)
 //define("CONNECTION_STRING", 'mysql://pixmicat:pass@localhost/test/imglog/'); // PIO 連線字串 (MySQL)
-define("CONNECTION_STRING", 'sqlite3://pixmicat.db3/imglog/'); // PIO 連線字串 (PDO SQLite)
-//define("CONNECTION_STRING", 'sqlite://pixmicat.db/imglog/'); // PIO 連線字串 (SQLite 2)
+define("CONNECTION_STRING", 'sqlite3://'.STORAGE_PATH.'pixmicat.db3/imglog/'); // PIO 連線字串 (PDO SQLite)
+//define("CONNECTION_STRING", 'sqlite://'.STORAGE_PATH.'pixmicat.db/imglog/'); // PIO 連線字串 (SQLite 2)
 //define("CONNECTION_STRING", 'pgsql://pixmicat:1234@localhost/pixmicat_use/imglog/'); // PIO 連線字串 (PostgreSQL)
 
 /*---- Part 2：板面各項細部功能設定 ----*/
@@ -52,7 +52,7 @@ define("PHP_EXT", '.htm'); // 第一頁以後生成檔案之副檔名
 define("TITLE", 'Pixmicat!-PIO'); // 網頁標題
 define("HOME", '../'); // 回首頁的連結
 define("TOP_LINKS", ''); // 頁面右上方的額外連結，請直接以[<a href="網址" rel="_blank">名稱</a>]格式鍵入，如果不需要開新視窗可刪除rel一段
-define("ADMIN_PASS", 'futaba'); // 管理員密碼
+define("ADMIN_HASH", 'TO-BE-COMPUTED-BY-GENHASH'); // 管理者密碼 (Hash 加入 Salt)
 define("IDSEED", 'id種'); // 生成ID之隨機種子
 
 // 管理員キャップ(Cap)設定 (啟用條件：開啟使用；名稱輸入識別名稱，E-mail輸入#啟動密碼)

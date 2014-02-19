@@ -231,10 +231,21 @@ function matchCIDR($addr, $cidr) {
 	return (ip2long($addr) >> (32 - $mask) == ip2long($ip.str_repeat('.0', 3 - substr_count($ip, '.'))) >> (32 - $mask));
 }
 
+/**
+ * 針對輸入密碼驗證。
+ * 
+ * @param string $passwordInput 使用者輸入密碼
+ * @return bool 是否通過驗證
+ * @since 8th.Release
+ */
+function passwordVerify($passwordInput) {
+    return (crypt($passwordInput, ADMIN_HASH) === ADMIN_HASH);
+}
+
 /* 後端登入權限管理 */
 function adminAuthenticate($mode){
 	@session_start();
-	$loginkey = md5($_SERVER['HTTP_USER_AGENT'].ADMIN_PASS.$_SERVER['REMOTE_ADDR']);
+	$loginkey = md5($_SERVER['HTTP_USER_AGENT'].ADMIN_HASH.$_SERVER['REMOTE_ADDR']);
 	switch($mode){
 		case 'logout':
 			if(isset($_SESSION['pmcLogin'])) unset($_SESSION['pmcLogin']);
@@ -293,6 +304,7 @@ function getRemoteAddrThroughProxy() {
  * (OpenShift) 取得 Client IP Address
  *
  * @return string IP Address
+ * @since 8th.Release
  */
 function getRemoteAddrOpenShift() {
     if (filter_has_var(INPUT_ENV, 'OPENSHIFT_REPO_DIR')) {
