@@ -75,7 +75,7 @@ class PIOlog implements IPIO {
 	}
 
 	/* 初始化 */
-	function dbInit(){
+	function dbInit($isAddInitData = true){
 		$chkfile = array($this->logfile, $this->treefile, $this->porderfile);
 		// 自動建置
 		foreach($chkfile as $value){
@@ -352,7 +352,7 @@ class PIOlog implements IPIO {
 	}
 
 	/* 刪除附件 (輸出附件清單) */
-	function removeAttachments($posts){
+	function removeAttachments($posts, $recursion = false){
 		$FileIO = PMCLibrary::getFileIOInstance();
 		if(!$this->prepared) $this->dbPrepare();
 		if(count($posts)==0) return array();
