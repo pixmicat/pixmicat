@@ -30,7 +30,7 @@ define("HTTP_UPLOAD_DIFF", 50); // HTTP上傳所有位元組與實際位元組�
 ini_set("memory_limit", '128M'); // PHP運行的最大記憶體使用量 (php內定128M/無限:-1)
 
 // FileIO設定
-define("FILEIO_BACKEND", 'normal'); // FileIO後端指定
+define("FILEIO_BACKEND", 'local'); // FileIO後端指定 (local, normal, ftp)
 define("FILEIO_INDEXLOG", 'fileioindex.dat'); // FileIO索引記錄檔 (儲存在本機端)
 define("FILEIO_PARAMETER", ''); // FileIO參數 (本機端儲存)
 //define("FILEIO_PARAMETER", serialize(array('ftp.example.com', 21, 'demo', 'demo', 'PASV', '/pwd/', 'http://www.example.com/~demo/pwd/', true))); // FileIO參數 (FTP)
