@@ -231,6 +231,35 @@ function matchCIDR($addr, $cidr) {
 	return (ip2long($addr) >> (32 - $mask) == ip2long($ip.str_repeat('.0', 3 - substr_count($ip, '.'))) >> (32 - $mask));
 }
 
+//refer https://stackoverflow.com/questions/7951061/matching-ipv6-address-to-a-cidr-subnet
+
+// converts inet_pton output to string with bits
+function inet_to_bits($inet) 
+{
+    $unpacked = unpack('A16', $inet);
+    $unpacked = str_split($unpacked[1]);
+    $binaryip = '';
+    foreach ($unpacked as $char) {
+        $binaryip .= str_pad(decbin(ord($char)), 8, '0', STR_PAD_LEFT);
+    }
+    return $binaryip;
+}
+
+function matchCIDRv6($addr, $cidr) {
+    list($net, $mask) = explode('/', $cidr);
+    $ip = inet_pton($addr);
+    $binaryip=inet_to_bits($ip);
+    $net=inet_pton($net);
+    $binarynet=inet_to_bits($net);
+    $ip_net_bits=substr($binaryip,0,$mask);
+    $net_bits   =substr($binarynet,0,$mask);
+
+    if($ip_net_bits!==$net_bits) {
+        return false;
+    }
+    return true;
+}
+
 /**
  * 針對輸入密碼驗證。
  * 
@@ -264,6 +293,11 @@ function adminAuthenticate($mode){
 }
 
 function getREMOTE_ADDR(){
+    $ipCloudFlare = getRemoteAddrCloudFlare();
+    if (!empty($ipCloudFlare)) {
+        return $ipCloudFlare;
+    }
+
     $ipOpenShift = getRemoteAddrOpenShift();
     if (!empty($ipOpenShift)) {
         return $ipOpenShift;
@@ -309,6 +343,27 @@ function getRemoteAddrThroughProxy() {
 function getRemoteAddrOpenShift() {
     if (filter_has_var(INPUT_ENV, 'OPENSHIFT_REPO_DIR')) {
         return filter_input(INPUT_SERVER, 'HTTP_X_FORWARDED_FOR');
+    }
+    return '';
+}
+
+function getRemoteAddrCloudFlare() {
+    $addr = filter_input(INPUT_SERVER, 'REMOTE_ADDR');
+    $cloudflare_v4 = array('199.27.128.0/21', '173.245.48.0/20', '103.21.244.0/22', '103.22.200.0/22', '103.31.4.0/22', '141.101.64.0/18', '108.162.192.0/18', '190.93.240.0/20', '188.114.96.0/20', '197.234.240.0/22', '198.41.128.0/17', '162.158.0.0/15', '104.16.0.0/12');
+    $cloudflare_v6 = array('2400:cb00::/32', '2606:4700::/32', '2803:f800::/32', '2405:b500::/32', '2405:8100::/32');
+
+    if(filter_var($addr, FILTER_VALIDATE_IP,FILTER_FLAG_IPV4)) { //v4 address
+        foreach ($cloudflare_v4 as &$cidr) {
+            if(matchCIDR($addr, $cidr)) {
+                return filter_input(INPUT_SERVER, 'HTTP_CF_CONNECTING_IP');
+            }
+        }
+    } else { // v6 address
+        foreach ($cloudflare_v6 as &$cidr) {
+            if(matchCIDRv6($addr, $cidr)) {
+                return filter_input(INPUT_SERVER, 'HTTP_CF_CONNECTING_IP');
+            }
+        }
     }
     return '';
 }
