@@ -373,4 +373,3 @@ function getRemoteAddrCloudFlare() {
     }
     return '';
 }
-?>
