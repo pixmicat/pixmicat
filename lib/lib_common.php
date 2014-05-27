@@ -1,4 +1,4 @@
-<php
+<?php
 /**
  * Pixmicat! Common Library
  *
@@ -373,3 +373,4 @@ function getRemoteAddrCloudFlare() {
     }
     return '';
 }
+?>
