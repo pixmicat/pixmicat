@@ -53,6 +53,7 @@ define("TITLE", 'Pixmicat!-PIO'); // 網頁標題
 define("HOME", '../'); // 回首頁的連結
 define("TOP_LINKS", ''); // 頁面右上方的額外連結，請直接以[<a href="網址" rel="_blank">名稱</a>]格式鍵入，如果不需要開新視窗可刪除rel一段
 define("ADMIN_HASH", 'TO-BE-COMPUTED-BY-GENHASH'); // 管理者密碼 (Hash 加入 Salt)
+define("ADMIN_SALT","SALT");
 define("IDSEED", 'id種'); // 生成ID之隨機種子
 
 // 管理員キャップ(Cap)設定 (啟用條件：開啟使用；名稱輸入識別名稱，E-mail輸入#啟動密碼)
@@ -96,7 +97,7 @@ $BAD_FILEMD5 = array("dummy","dummy2"); // 限制上傳附加圖檔之MD5檢查�
 define("MAX_KB", 2000); // 附加圖檔上傳容量限制KB (php內定為最高2MB)
 define("STORAGE_LIMIT", 1); // 附加圖檔總容量限制功能 (啟動：1 關閉：0)
 define("STORAGE_MAX", 30000); // 附加圖檔總容量限制上限大小 (單位：KB)
-define("ALLOW_UPLOAD_EXT", 'GIF|JPG|PNG|BMP|SWF'); // 接受之附加圖檔副檔名 (送出前表單檢查用，用 | 分隔)
+define("ALLOW_UPLOAD_EXT", 'GIF|JPG|JPEG|PNG|BMP|SWF'); // 接受之附加圖檔副檔名 (送出前表單檢查用，用 | 分隔)
 
 // 連續投稿時間限制
 define("RENZOKU", 60); // 連續投稿間隔秒數
