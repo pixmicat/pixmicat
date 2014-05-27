@@ -245,6 +245,7 @@ class ThumbWrapper{
 				ImageGIF($im_out, $destFile);
 				break;
 			case 'jpg':
+			case 'jpeg':
 			default:
 				ImageJPEG($im_out, $destFile, $this->thumbQuality);
 				break;
