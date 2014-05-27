@@ -87,7 +87,7 @@ function c(){
 		if(upfilevalue){
 			ext_allowed = 0; ext_length = ext.length;
 			for(j = 0; j < ext_length; j++){
-				if(upfilevalue.substr(upfilevalue.lastIndexOf('.')).toUpperCase()===ext[j]){
+				if(upfilevalue.substr(upfilevalue.lastIndexOf('.')+1).toUpperCase()===ext[j]){
 					ext_allowed = 1;
 					break;
 				}
