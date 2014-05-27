@@ -1,4 +1,4 @@
-<?php
+<php
 /**
  * Pixmicat! Common Library
  *
@@ -268,7 +268,8 @@ function matchCIDRv6($addr, $cidr) {
  * @since 8th.Release
  */
 function passwordVerify($passwordInput) {
-    return (crypt($passwordInput, ADMIN_HASH) === ADMIN_HASH);
+//add admin SALT
+    return (crypt($passwordInput, ADMIN_SALT) === ADMIN_HASH);
 }
 
 /* 後端登入權限管理 */

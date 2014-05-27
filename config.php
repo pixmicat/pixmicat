@@ -53,6 +53,7 @@ define("TITLE", 'Pixmicat!-PIO'); // 網頁標題
 define("HOME", '../'); // 回首頁的連結
 define("TOP_LINKS", ''); // 頁面右上方的額外連結，請直接以[<a href="網址" rel="_blank">名稱</a>]格式鍵入，如果不需要開新視窗可刪除rel一段
 define("ADMIN_HASH", 'TO-BE-COMPUTED-BY-GENHASH'); // 管理者密碼 (Hash 加入 Salt)
+define("ADMIN_SALT","SALT");
 define("IDSEED", 'id種'); // 生成ID之隨機種子
 
 // 管理員キャップ(Cap)設定 (啟用條件：開啟使用；名稱輸入識別名稱，E-mail輸入#啟動密碼)
