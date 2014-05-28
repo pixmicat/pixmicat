@@ -96,7 +96,7 @@ $BAD_FILEMD5 = array("dummy","dummy2"); // 限制上傳附加圖檔之MD5檢查�
 define("MAX_KB", 2000); // 附加圖檔上傳容量限制KB (php內定為最高2MB)
 define("STORAGE_LIMIT", 1); // 附加圖檔總容量限制功能 (啟動：1 關閉：0)
 define("STORAGE_MAX", 30000); // 附加圖檔總容量限制上限大小 (單位：KB)
-define("ALLOW_UPLOAD_EXT", 'GIF|JPG|PNG|BMP|SWF'); // 接受之附加圖檔副檔名 (送出前表單檢查用，用 | 分隔)
+define("ALLOW_UPLOAD_EXT", 'GIF|JPG|JPEG|PNG|BMP|SWF'); // 接受之附加圖檔副檔名 (送出前表單檢查用，用 | 分隔)
 
 // 連續投稿時間限制
 define("RENZOKU", 60); // 連續投稿間隔秒數
