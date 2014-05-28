@@ -486,7 +486,6 @@ function regist(){
 			case 4 : $ext = ".swf"; break;
 			case 5 : $ext = ".psd"; break;
 			case 6 : $ext = ".bmp"; break;
-			case 7 : $ext = ".jpeg"; break;
 			case 13 : $ext = ".swf"; break;
 			default : $ext = ".xxx"; error(_T('regist_upload_notsupport'), $dest);
 		}
