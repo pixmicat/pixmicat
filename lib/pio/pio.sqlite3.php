@@ -130,7 +130,7 @@ class PIOsqlite3 implements IPIO {
 		$data = explode("\r\n", $data);
 		$data_count = count($data) - 1;
 		$replaceComma = create_function('$txt', 'return str_replace("&#44;", ",", $txt);');
-		$SQL = 'INSERT INTO '.$this->tablename.' (tim,no,resto,root,time,md5chksum,category,tim,ext,imgw,imgh,imgsize,tw,th,pwd,now,name,email,sub,com,host,status) VALUES '
+		$SQL = 'INSERT INTO '.$this->tablename.' (tim,no,resto,root,time,md5chksum,category,ext,imgw,imgh,imgsize,tw,th,pwd,now,name,email,sub,com,host,status) VALUES '
 				.'('.$line[5].', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
 		$PDOStmt = $this->con->prepare($SQL);
 		for($i = 0; $i < $data_count; $i++){
