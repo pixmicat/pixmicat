@@ -130,8 +130,8 @@ class PIOsqlite3 implements IPIO {
 		$data = explode("\r\n", $data);
 		$data_count = count($data) - 1;
 		$replaceComma = create_function('$txt', 'return str_replace("&#44;", ",", $txt);');
-		$SQL = 'INSERT INTO '.$this->tablename.' (no,resto,root,time,md5chksum,category,tim,ext,imgw,imgh,imgsize,tw,th,pwd,now,name,email,sub,com,host,status) VALUES '
-				.'(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+		$SQL = 'INSERT INTO '.$this->tablename.' (tim,no,resto,root,time,md5chksum,category,tim,ext,imgw,imgh,imgsize,tw,th,pwd,now,name,email,sub,com,host,status) VALUES '
+				.'('.$line[5].', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
 		$PDOStmt = $this->con->prepare($SQL);
 		for($i = 0; $i < $data_count; $i++){
 			$line = array_map($replaceComma, explode(',', $data[$i])); // 取代 &#44; 為 ,
@@ -142,21 +142,21 @@ class PIOsqlite3 implements IPIO {
 			$PDOStmt->bindValue(4, $tim, PDO::PARAM_INT);
 			$PDOStmt->bindValue(5, $line[3], PDO::PARAM_STR);
 			$PDOStmt->bindValue(6, $line[4], PDO::PARAM_STR);
-			$PDOStmt->bindValue(7, floatval($line[5])); // 13-digit BIGINT workground
-			$PDOStmt->bindValue(8, $line[6], PDO::PARAM_STR);
-			$PDOStmt->bindValue(9, $line[7], PDO::PARAM_INT);
-			$PDOStmt->bindValue(10, $line[8], PDO::PARAM_INT);
-			$PDOStmt->bindValue(11, $line[9], PDO::PARAM_STR);
-			$PDOStmt->bindValue(12, $line[10], PDO::PARAM_INT);
-			$PDOStmt->bindValue(13, $line[11], PDO::PARAM_INT);
-			$PDOStmt->bindValue(14, $line[12], PDO::PARAM_STR);
-			$PDOStmt->bindValue(15, $line[13], PDO::PARAM_STR);
-			$PDOStmt->bindValue(16, $line[14], PDO::PARAM_STR);
-			$PDOStmt->bindValue(17, $line[15], PDO::PARAM_STR);
-			$PDOStmt->bindValue(18, $line[16], PDO::PARAM_STR);
-			$PDOStmt->bindValue(19, $line[17], PDO::PARAM_STR);
-			$PDOStmt->bindValue(20, $line[18], PDO::PARAM_STR);
-			$PDOStmt->bindValue(21, $line[19], PDO::PARAM_STR);
+			//$PDOStmt->bindValue(7, floatval($line[5])); // 13-digit BIGINT workground
+			$PDOStmt->bindValue(7, $line[6], PDO::PARAM_STR);
+			$PDOStmt->bindValue(8, $line[7], PDO::PARAM_INT);
+			$PDOStmt->bindValue(9, $line[8], PDO::PARAM_INT);
+			$PDOStmt->bindValue(10, $line[9], PDO::PARAM_STR);
+			$PDOStmt->bindValue(11, $line[10], PDO::PARAM_INT);
+			$PDOStmt->bindValue(12, $line[11], PDO::PARAM_INT);
+			$PDOStmt->bindValue(13, $line[12], PDO::PARAM_STR);
+			$PDOStmt->bindValue(14, $line[13], PDO::PARAM_STR);
+			$PDOStmt->bindValue(15, $line[14], PDO::PARAM_STR);
+			$PDOStmt->bindValue(16, $line[15], PDO::PARAM_STR);
+			$PDOStmt->bindValue(17, $line[16], PDO::PARAM_STR);
+			$PDOStmt->bindValue(18, $line[17], PDO::PARAM_STR);
+			$PDOStmt->bindValue(19, $line[18], PDO::PARAM_STR);
+			$PDOStmt->bindValue(20, $line[19], PDO::PARAM_STR);
 			$PDOStmt->execute() or $this->_error_handler('Insert a new post failed', __LINE__);
 		}
 		$this->dbCommit(); // 送交
@@ -305,29 +305,29 @@ class PIOsqlite3 implements IPIO {
 			}
 		}else $root = $updatetime; // 新增討論串, 討論串最後被更新時間
 
-		$SQL = 'INSERT INTO '.$this->tablename.' (resto,root,time,md5chksum,category,tim,ext,imgw,imgh,imgsize,tw,th,pwd,now,name,email,sub,com,host,status) VALUES '
-				.'(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+		$SQL = 'INSERT INTO '.$this->tablename.' (tim,resto,root,time,md5chksum,category,ext,imgw,imgh,imgsize,tw,th,pwd,now,name,email,sub,com,host,status) VALUES '
+				.'('.$tim.', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'; //we cannot use float on ANY database in IEEE suggestion.
 		$PDOStmt = $this->con->prepare($SQL);
 		$PDOStmt->bindValue(1, $resto, PDO::PARAM_INT);
 		$PDOStmt->bindValue(2, $root, PDO::PARAM_STR);
 		$PDOStmt->bindValue(3, $time, PDO::PARAM_INT);
 		$PDOStmt->bindValue(4, $md5chksum, PDO::PARAM_STR);
 		$PDOStmt->bindValue(5, $category, PDO::PARAM_STR);
-		$PDOStmt->bindValue(6, floatval($tim)); // 13-digit BIGINT workground
-		$PDOStmt->bindValue(7, $ext, PDO::PARAM_STR);
-		$PDOStmt->bindValue(8, $imgw, PDO::PARAM_INT);
-		$PDOStmt->bindValue(9, $imgh, PDO::PARAM_INT);
-		$PDOStmt->bindValue(10, $imgsize, PDO::PARAM_STR);
-		$PDOStmt->bindValue(11, $tw, PDO::PARAM_INT);
-		$PDOStmt->bindValue(12, $th, PDO::PARAM_INT);
-		$PDOStmt->bindValue(13, $pwd, PDO::PARAM_STR);
-		$PDOStmt->bindValue(14, $now, PDO::PARAM_STR);
-		$PDOStmt->bindValue(15, $name, PDO::PARAM_STR);
-		$PDOStmt->bindValue(16, $email, PDO::PARAM_STR);
-		$PDOStmt->bindValue(17, $sub, PDO::PARAM_STR);
-		$PDOStmt->bindValue(18, $com, PDO::PARAM_STR);
-		$PDOStmt->bindValue(19, $host, PDO::PARAM_STR);
-		$PDOStmt->bindValue(20, $status, PDO::PARAM_STR);
+		//$PDOStmt->bindValue(6, floatval($tim)); // 13-digit BIGINT workground
+		$PDOStmt->bindValue(6, $ext, PDO::PARAM_STR);
+		$PDOStmt->bindValue(7, $imgw, PDO::PARAM_INT);
+		$PDOStmt->bindValue(8, $imgh, PDO::PARAM_INT);
+		$PDOStmt->bindValue(9, $imgsize, PDO::PARAM_STR);
+		$PDOStmt->bindValue(10, $tw, PDO::PARAM_INT);
+		$PDOStmt->bindValue(11, $th, PDO::PARAM_INT);
+		$PDOStmt->bindValue(12, $pwd, PDO::PARAM_STR);
+		$PDOStmt->bindValue(13, $now, PDO::PARAM_STR);
+		$PDOStmt->bindValue(14, $name, PDO::PARAM_STR);
+		$PDOStmt->bindValue(15, $email, PDO::PARAM_STR);
+		$PDOStmt->bindValue(16, $sub, PDO::PARAM_STR);
+		$PDOStmt->bindValue(17, $com, PDO::PARAM_STR);
+		$PDOStmt->bindValue(18, $host, PDO::PARAM_STR);
+		$PDOStmt->bindValue(19, $status, PDO::PARAM_STR);
 		$PDOStmt->execute() or $this->_error_handler('Insert a new post failed', __LINE__);
 	}
 
