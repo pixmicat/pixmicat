@@ -686,8 +686,8 @@ function regist(){
 
 	echo '<?xml version="1.0" encoding="UTF-8"?>'."\n";
 	echo <<< _REDIR_
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="zh-tw">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"> 
+<html xmlns='http://www.w3.org/1999/xhtml' xmlns:lang="zh-TW">
 <head>
 <title></title>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
@@ -1252,7 +1252,8 @@ switch($mode){
 		break;
 	default:
 		// 如果瀏覽器支援XHTML標準MIME就輸出
-		header('Content-Type: '.((USE_XHTML && strpos($_SERVER['HTTP_ACCEPT'],'application/xhtml+xml')!==FALSE) ? 'application/xhtml+xml' : 'text/html').'; charset=utf-8');
+		//header('Content-Type: '.((USE_XHTML && strpos($_SERVER['HTTP_ACCEPT'],'application/xhtml+xml')!==FALSE) ? 'application/xhtml+xml' : 'text/html').'; charset=utf-8');
+		header('Content-Type: '.'text/html'.'; charset=utf-8');
 		$res = isset($_GET['res']) ? $_GET['res'] : 0; // 欲回應編號
 		if($res){ // 回應模式輸出
 			$page = isset($_GET['page_num']) ? $_GET['page_num'] : 'RE_PAGE_MAX';

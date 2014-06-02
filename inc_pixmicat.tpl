@@ -1,10 +1,9 @@
 <!--&THEMENAME-->futaba Theme<!--/&THEMENAME-->
 <!--&THEMEVER-->v20110703<!--/&THEMEVER-->
 <!--&THEMEAUTHOR-->Pixmicat! Development Team<!--/&THEMEAUTHOR-->
-
 <!--&HEADER--><?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="zh-tw">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"> 
+<html xmlns='http://www.w3.org/1999/xhtml' xmlns:lang="zh-TW">
 <head>
 <meta http-equiv="Cache-Control" content="max-age=0; must-revalidate" />
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
@@ -105,7 +104,7 @@ var ext="{$ALLOW_UPLOAD_EXT}".toUpperCase().split("|");
 <!--&THREAD-->
 <div class="threadpost" id="r{$NO}">
 {$IMG_BAR}<!--&IF($IMG_BAR,'<br />','')-->{$IMG_SRC}<input type="checkbox" name="{$NO}" value="delete" /><span class="title">{$SUB}</span>
-{$NAME_TEXT}<span class="name">{$NAME}</span> [{$NOW}] {$QUOTEBTN}&nbsp;{$REPLYBTN}
+{$NAME_TEXT}<span class="name">{$NAME}</span> [{$NOW}] {$QUOTEBTN}&#xA0;{$REPLYBTN}
 <div class="quote">{$COM}</div>
 <!--&IF($CATEGORY,'<div class="category">{$CATEGORY_TEXT}{$CATEGORY}</div>','')-->
 {$WARN_OLD}{$WARN_BEKILL}{$WARN_ENDREPLY}{$WARN_HIDEPOST}</div>
@@ -113,7 +112,7 @@ var ext="{$ALLOW_UPLOAD_EXT}".toUpperCase().split("|");
 
 <!--&REPLY-->
 <div class="reply" id="r{$NO}"><div class="replywrap">
-<input type="checkbox" name="{$NO}" value="delete" /><span class="title">{$SUB}</span> {$NAME_TEXT}<span class="name">{$NAME}</span> [{$NOW}] {$QUOTEBTN} &nbsp;<!--&IF($IMG_BAR,'<br />&nbsp;','')-->{$IMG_BAR} {$IMG_SRC}
+<input type="checkbox" name="{$NO}" value="delete" /><span class="title">{$SUB}</span> {$NAME_TEXT}<span class="name">{$NAME}</span> [{$NOW}] {$QUOTEBTN} &#xA0;<!--&IF($IMG_BAR,'<br />&#xA0;','')-->{$IMG_BAR} {$IMG_SRC}
 <div class="quote">{$COM}</div>
 <!--&IF($CATEGORY,'<div class="category">{$CATEGORY_TEXT}{$CATEGORY}</div>','')-->
 {$WARN_BEKILL}</div></div>

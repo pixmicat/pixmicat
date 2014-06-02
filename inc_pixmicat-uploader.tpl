@@ -2,11 +2,10 @@
 <!--&THEMENAME-->Pixmicat! Uploader-liked Theme<!--/&THEMENAME-->
 <!--&THEMEVER-->v20110703<!--/&THEMEVER-->
 <!--&THEMEAUTHOR-->Pixmicat! Development Team<!--/&THEMEAUTHOR-->
-
 <!-- Theme Blocks -->
 <!--&HEADER--><?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="zh-tw">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"> 
+<html xmlns='http://www.w3.org/1999/xhtml' xmlns:lang="zh-TW">
 <head>
 <meta http-equiv="Cache-Control" content="max-age=0; must-revalidate" />
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
@@ -131,7 +130,7 @@ var boxclicked=0;
 
 <!--&REPLY-->
 <div class="reply" id="r{$NO}"><div class="replywrap">
-<input type="checkbox" name="{$NO}" value="delete" onclick="boxclicked=1;" /><span class="title">{$SUB}</span> {$NAME_TEXT}<span class="name">{$NAME}</span> [{$NOW}] {$QUOTEBTN}&nbsp;<!--&IF($IMG_BAR,'<br />&nbsp;','')-->{$IMG_BAR} {$IMG_SRC}
+<input type="checkbox" name="{$NO}" value="delete" onclick="boxclicked=1;" /><span class="title">{$SUB}</span> {$NAME_TEXT}<span class="name">{$NAME}</span> [{$NOW}] {$QUOTEBTN}&#xA0;<!--&IF($IMG_BAR,'<br />&#xA0;','')-->{$IMG_BAR} {$IMG_SRC}
 {$WARN_BEKILL}<div class="quote">{$COM}</div>
 <!--&IF($CATEGORY,'<div class="category">{$CATEGORY_TEXT}{$CATEGORY}</div>','')-->
 </div></div>
@@ -168,7 +167,7 @@ var boxclicked=0;
 
 <!--&MAIN-->
 <div id="contents">
-<form action="{$SELF}" method="POST">
+<form action="{$SELF}" method="post">
 <div id="threads">
 {$THREADFRONT}
 <!--&IF($RESTO,'','<table width="100%" style="clear:both"><tr><th>Del</th><th>No.</th><th>Name</th><th>Title</th><th>Date/ID</th><th>File</th><th>Reply</th></tr>')-->
