@@ -142,7 +142,7 @@ class PIOsqlite3 implements IPIO {
 			$PDOStmt->bindValue(4, $tim, PDO::PARAM_INT);
 			$PDOStmt->bindValue(5, $line[3], PDO::PARAM_STR);
 			$PDOStmt->bindValue(6, $line[4], PDO::PARAM_STR);
-			$PDOStmt->bindValue(7, floatval($line[5])); // 13-digit BIGINT workground
+			$PDOStmt->bindValue(7, $line[5], PDO::PARAM_STR ); // 13-digit BIGINT workground //refix at 201406
 			$PDOStmt->bindValue(8, $line[6], PDO::PARAM_STR);
 			$PDOStmt->bindValue(9, $line[7], PDO::PARAM_INT);
 			$PDOStmt->bindValue(10, $line[8], PDO::PARAM_INT);
@@ -313,7 +313,7 @@ class PIOsqlite3 implements IPIO {
 		$PDOStmt->bindValue(3, $time, PDO::PARAM_INT);
 		$PDOStmt->bindValue(4, $md5chksum, PDO::PARAM_STR);
 		$PDOStmt->bindValue(5, $category, PDO::PARAM_STR);
-		$PDOStmt->bindValue(6, floatval($tim)); // 13-digit BIGINT workground
+		$PDOStmt->bindValue(6, $tim, PDO::PARAM_STR); // 13-digit BIGINT workground//refix at 201406
 		$PDOStmt->bindValue(7, $ext, PDO::PARAM_STR);
 		$PDOStmt->bindValue(8, $imgw, PDO::PARAM_INT);
 		$PDOStmt->bindValue(9, $imgh, PDO::PARAM_INT);
