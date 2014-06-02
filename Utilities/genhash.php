@@ -18,7 +18,7 @@ if (!empty($str) && !empty($salt)) {
     </head>
     <body>
         <div class="container">
-            <form method="POST" role="form" id="generator">
+            <form method="post" role="form" id="generator">
                 <div class="panel panel-default">
                     <div class="panel-body">
                         <input type="password" name="str" class="form-control" placeholder="Password" required>
