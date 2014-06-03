@@ -684,13 +684,12 @@ function regist(){
 	}
 	$RedirforJS = strtr($RedirURL, array("&amp;"=>"&")); // JavaScript用轉址目標
 
-	//echo '<?xml version="1.0" encoding="UTF-8"? >'."\n";
 	echo <<< _REDIR_
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
+<meta charset="utf-8">
 <title></title>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <meta http-equiv="Refresh" content="1;URL=$RedirURL" />
 <script type="text/javascript">
 // Redirection (use JS)
@@ -1267,9 +1266,6 @@ switch($mode){
 		header('Location: '.fullURL().PHP_SELF2.'?'.time());
 		break;
 	default:
-		// 如果瀏覽器支援XHTML標準MIME就輸出
-		//header('Content-Type: '.((USE_XHTML && strpos($_SERVER['HTTP_ACCEPT'],'application/xhtml+xml')!==FALSE) ? 'application/xhtml+xml' : 'text/html').'; charset=utf-8');
-		// html5  header
 		header('Content-Type: text/html; charset=utf-8');
 
 		$res = isset($_GET['res']) ? $_GET['res'] : 0; // 欲回應編號

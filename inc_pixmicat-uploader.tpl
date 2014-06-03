@@ -1,6 +1,6 @@
 <!-- Theme Description -->
 <!--&THEMENAME-->Pixmicat! Uploader-liked Theme<!--/&THEMENAME-->
-<!--&THEMEVER-->v20110703<!--/&THEMEVER-->
+<!--&THEMEVER-->v20140603<!--/&THEMEVER-->
 <!--&THEMEAUTHOR-->Pixmicat! Development Team<!--/&THEMEAUTHOR-->
 <!-- Theme Blocks -->
 <!--&HEADER--><!DOCTYPE html>
