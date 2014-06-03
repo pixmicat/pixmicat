@@ -101,20 +101,6 @@ function c(){
 	if($g('fname').value){ setCookie('namec', $g('fname').value); } // Cookies寫入名稱
 }
 
-/* 動態改變超連結的視窗目標 */
-function fixalllinks(){
-	if(!document.getElementsByTagName){ return; }
-	var anchor, anchors = document.getElementsByTagName('a');
-	var anchors_length = anchors.length;
-	for(var i = 0; i < anchors_length; i++){
-		anchor = anchors[i];
-		if(anchor.getAttribute('href')){
-			if(anchor.getAttribute('rel') === '_top'){ anchor.target = '_top'; }
-			if(anchor.getAttribute('rel') === '_blank'){ anchor.target = '_blank'; }
-		}
-	}
-}
-
 /* 顯示發文表單 */
 function showform(){
 	$g("postform").className = '';
@@ -162,7 +148,6 @@ function hookPresetFunction(func){
 function preset(){
 	var i, l = arrPresetFunc.length, f;
 
-	fixalllinks(); // 修正連結目標
 	for(i = 0; i < l; i++){ f = arrPresetFunc[i]; if(typeof f==='function'){ f(); } }
 	var url = location.href;
 	if(url.indexOf('?res=')){
