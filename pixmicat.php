@@ -181,8 +181,8 @@ function updatelog($resno=0,$page_num=-1,$single_page=false){
 		$next = ($resno ? $page_num : $page) + 1;
 		if($resno){ // 回應分頁
 			if(RE_PAGE_DEF > 0){ // 回應分頁開啟
-				$pte_vals['{$PAGENAV}'] .= '<table border="1"><tr><td style="white-space: nowrap;">';
-				$pte_vals['{$PAGENAV}'] .= ($prev >= 0) ? '<a href="'.PHP_SELF.'?res='.$resno.'&amp;page_num='.$prev.'">'._T('prev_page').'</a>' : _T('first_page');
+				$pte_vals['{$PAGENAV}'] .= '<table style="border: 1px solid gray" ><tr><td style="white-space: nowrap;">';
+				$pte_vals['{$PAGENAV}'] .= ($prev >= 0) ? '<a rel="prev" href="'.PHP_SELF.'?res='.$resno.'&amp;page_num='.$prev.'">'._T('prev_page').'</a>' : _T('first_page');
 				$pte_vals['{$PAGENAV}'] .= "</td><td>";
 				if($tree_count==0) $pte_vals['{$PAGENAV}'] .= '[<b>0</b>] '; // 無回應
 				else{
@@ -197,7 +197,7 @@ function updatelog($resno=0,$page_num=-1,$single_page=false){
 				$pte_vals['{$PAGENAV}'] .= '</td></tr></table>'."\n";
 			}
 		}else{ // 一般分頁
-			$pte_vals['{$PAGENAV}'] .= '<table border="1"><tr>';
+			$pte_vals['{$PAGENAV}'] .= '<table style="border: 1px solid gray" ><tr>';
 			if($prev >= 0){
 				if(!$adminMode && $prev==0) $pte_vals['{$PAGENAV}'] .= '<td><form action="'.PHP_SELF2.'" method="get">';
 				else{
@@ -306,16 +306,16 @@ function arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno=0, $
 			$imageURL = $FileIO->getImageURL($tim.$ext); // image URL
 			$thumbName = $FileIO->resolveThumbName($tim); // thumb Name
 
-			$imgsrc = '<a href="'.$imageURL.'" rel="_blank"><img src="nothumb.gif" class="img" alt="'.$imgsize.'" title="'.$imgsize.'" /></a>'; // 預設顯示圖樣式 (無預覽圖時)
+			$imgsrc = '<a href="'.$imageURL.'" target="_blank" rel="nofollow"><img src="nothumb.gif" class="img" alt="'.$imgsize.'" title="'.$imgsize.'" /></a>'; // 預設顯示圖樣式 (無預覽圖時)
 			if($tw && $th){
 				if($thumbName != false){ // 有預覽圖
 					$thumbURL = $FileIO->getImageURL($thumbName); // thumb URL
 					$img_thumb = '<small>'._T('img_sample').'</small>';
-					$imgsrc = '<a href="'.$imageURL.'" rel="_blank"><img src="'.$thumbURL.'" style="width: '.$tw.'px; height: '.$th.'px;" class="img" alt="'.$imgsize.'" title="'.$imgsize.'" /></a>';
+					$imgsrc = '<a href="'.$imageURL.'" target="_blank" rel="nofollow"><img src="'.$thumbURL.'" style="width: '.$tw.'px; height: '.$th.'px;" class="img" alt="'.$imgsize.'" title="'.$imgsize.'" /></a>';
 				}elseif($ext=='.swf') $imgsrc = ''; // swf檔案不需預覽圖
 			}
 			if(SHOW_IMGWH) $imgwh_bar = ', '.$imgw.'x'.$imgh; // 顯示附加圖檔之原檔長寬尺寸
-			$IMG_BAR = _T('img_filename').'<a href="'.$imageURL.'" rel="_blank">'.$tim.$ext.'</a>-('.$imgsize.$imgwh_bar.') '.$img_thumb;
+			$IMG_BAR = _T('img_filename').'<a href="'.$imageURL.'" target="_blank" rel="nofollow">'.$tim.$ext.'</a>-('.$imgsize.$imgwh_bar.') '.$img_thumb;
 		}
 
 		// 設定回應 / 引用連結
@@ -684,10 +684,10 @@ function regist(){
 	}
 	$RedirforJS = strtr($RedirURL, array("&amp;"=>"&")); // JavaScript用轉址目標
 
-	echo '<?xml version="1.0" encoding="UTF-8"?>'."\n";
+	//echo '<?xml version="1.0" encoding="UTF-8"? >'."\n";
 	echo <<< _REDIR_
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="zh-tw">
+<!DOCTYPE html>
+<html lang="zh-TW">
 <head>
 <title></title>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
@@ -797,7 +797,7 @@ function valid(){
 <input type="radio" name="admin" value="optimize" />'._T('admin_optimize').'
 <input type="radio" name="admin" value="check" />'._T('admin_check').'
 <input type="radio" name="admin" value="repair" />'._T('admin_repair').'
-<input type="radio" name="admin" value="export" />'._T('admin_export').'<p />
+<input type="radio" name="admin" value="export" />'._T('admin_export').'<br />
 <input type="hidden" name="mode" value="admin" />
 <input type="password" name="pass" size="8" />
 <input type="submit" value="'._T('admin_verify_btn').'" />
@@ -811,7 +811,7 @@ function valid(){
 <input type="radio" name="admin" value="check" />'._T('admin_check').'
 <input type="radio" name="admin" value="repair" />'._T('admin_repair').'
 <input type="radio" name="admin" value="export" />'._T('admin_export').'
-<input type="radio" name="admin" value="logout" />'._T('admin_logout').'<p />
+<input type="radio" name="admin" value="logout" />'._T('admin_logout').'<br />
 <input type="hidden" name="mode" value="admin" />
 <input type="submit" value="'._T('admin_submit_btn').'" />
 </div>
@@ -869,7 +869,11 @@ function admindel(){
 <input type="hidden" name="admin" value="del" />
 <div style="text-align: left;">'._T('admin_notices').'</div>
 <div>'.$message.'</div>
-<table border="1" cellspacing="0" style="margin: 0px auto;">
+<style type="text/css" scoped="scoped">
+.html5Table {border-collapse:collapse;  border-spacing: 1; margin: 0px auto;}
+.html5Table TD {border:2px solid gray }
+</style>
+<table class="html5Table" >
 <tr style="background-color: #6080f6;">'._T('admin_list_header').'</tr>
 ';
 
@@ -895,7 +899,7 @@ function admindel(){
 
 		// 從記錄抽出附加圖檔使用量並生成連結
 		if($ext && $FileIO->imageExists($tim.$ext)){
-			$clip = '<a href="'.$FileIO->getImageURL($tim.$ext).'" rel="_blank">'.$tim.$ext.'</a>';
+			$clip = '<a href="'.$FileIO->getImageURL($tim.$ext).'" target="_blank">'.$tim.$ext.'</a>';
 			$size = $FileIO->getImageFilesize($tim.$ext);
 			$thumbName = $FileIO->resolveThumbName($tim);
 			if($thumbName != false) $size += $FileIO->getImageFilesize($thumbName);
@@ -907,7 +911,7 @@ function admindel(){
 		// 印出介面
 		echo <<< _ADMINEOF_
 <tr class="$bg" align="left">
-<th align="center">$modFunc</th><th align="center">$THstop</th><th><input type="checkbox" name="clist[]" value="$no" />$no</th><td><small>$now</small></td><td>$sub</td><td><b>$name</b></td><td><small>$com</small></td><td>$host</td><td align="center">$clip ($size)<br />$md5chksum</td>
+<th style="text-align:center">$modFunc</th><th style="text-align:center">$THstop</th><th><input type="checkbox" name="clist[]" value="$no" />$no</th><td><small>$now</small></td><td>$sub</td><td><b>$name</b></td><td><small>$com</small></td><td>$host</td><td style="text-align:center">$clip ($size)<br />$md5chksum</td>
 </tr>
 
 _ADMINEOF_;
@@ -929,7 +933,11 @@ _ADMINEOF_;
 
 	$countline = $PIO->postCount(); // 總文章數
 	$page_max = ceil($countline / ADMIN_PAGE_DEF) - 1; // 總頁數
-	echo '<table border="1" style="float: left;"><tr>';
+	echo '<style type="text/css" scoped="scoped">
+.html5Table {border-collapse:collapse;  border-spacing: 1; margin: 0px auto; text-align: left;}
+.html5Table TD {border:2px solid gray }
+</style>
+	<table class="html5Table" ><tr>';
 	if($page) echo '<td><a href="'.PHP_SELF.'?mode=admin&amp;admin=del&amp;page='.($page - 1).'">'._T('prev_page').'</a></td>';
 	else echo '<td style="white-space: nowrap;">'._T('first_page').'</td>';
 	echo '<td>';
@@ -1051,7 +1059,7 @@ function searchCategory(){
 		$dat .= arrangeThread($PTE, ($posts[0]['resto'] ? $posts[0]['resto'] : $posts[0]['no']), null, $posts, 0, $loglist_cut[$i], array(), array(), false, false, false); // 逐個輸出 (引用連結不顯示)
 	}
 
-	$dat .= '<table border="1"><tr>';
+	$dat .= '<table style="border: 1px solid gray"><tr>';
 	if($page > 1) $dat .= '<td><form action="'.PHP_SELF.'?mode=category&amp;c='.$category_enc.'&amp;p='.($page - 1).'" method="post"><div><input type="submit" value="'._T('prev_page').'" /></div></form></td>';
 	else $dat .= '<td style="white-space: nowrap;">'._T('first_page').'</td>';
 	$dat .= '<td>';
@@ -1152,8 +1160,15 @@ function showstatus(){
 
 	$dat .= '
 <div id="status-table" style="text-align: center;">
-<table border="1" style="margin: 0px auto; text-align: left;">
-<tr><td align="center" colspan="4">'._T('info_basic').'</td></tr>
+<style type="text/css" scoped="scoped">
+.admTable {border-collapse:collapse;  border-spacing: 1; margin: 0px auto; text-align: left;}
+.admTable TD {border:2px solid gray }
+</style>
+<table class="admTable">
+<thead>
+<tr><td style="text-align:center" colspan="4">'._T('info_basic').'</td></tr>
+</thead>
+<tbody>
 <tr><td style="width: 240px;">'._T('info_basic_ver').'</td><td colspan="3"> '.PIXMICAT_VER.' </td></tr>
 <tr><td>'._T('info_basic_pio').'</td><td colspan="3"> '.PIXMICAT_BACKEND.' : '.$PIO->pioVersion().'</td></tr>
 <tr><td>'._T('info_basic_threadsperpage').'</td><td colspan="3"> '.PAGE_DEF.' '._T('info_basic_threads').'</td></tr>
@@ -1171,23 +1186,24 @@ function showstatus(){
 <tr><td>'._T('info_basic_cr_limit').'</td><td colspan="3"> '.BR_CHECK._T('info_basic_cr_after').'</td></tr>
 <tr><td>'._T('info_basic_timezone').'</td><td colspan="3"> GMT '.TIME_ZONE.'</td></tr>
 <tr><td>'._T('info_basic_theme').'</td><td colspan="3"> '.$PTE->BlockValue('THEMENAME').' '.$PTE->BlockValue('THEMEVER').'<br/>by '.$PTE->BlockValue('THEMEAUTHOR').'</td></tr>
-<tr><td align="center" colspan="4">'._T('info_dsusage_top').'</td></tr>
-<tr align="center"><td>'._T('info_basic_threadcount').'</td><td colspan="'.(isset($piosensorInfo)?'2':'3').'"> '.$counttree.' '._T('info_basic_threads').'</td>'.(isset($piosensorInfo)?'<td rowspan="2">'.$piosensorInfo.'</td>':'').'</tr>
-<tr align="center"><td>'._T('info_dsusage_count').'</td><td colspan="'.(isset($piosensorInfo)?'2':'3').'">'.$countline.'</td></tr>
-<tr><td align="center" colspan="4">'._T('info_fileusage_top').STORAGE_LIMIT.' '._T('info_0disable1enable').'</td></tr>';
+<tr><td style="text-align:center" colspan="4">'._T('info_dsusage_top').'</td></tr>
+<tr style="text-align:center"><td>'._T('info_basic_threadcount').'</td><td colspan="'.(isset($piosensorInfo)?'2':'3').'"> '.$counttree.' '._T('info_basic_threads').'</td>'.(isset($piosensorInfo)?'<td rowspan="2">'.$piosensorInfo.'</td>':'').'</tr>
+<tr style="text-align:center"><td>'._T('info_dsusage_count').'</td><td colspan="'.(isset($piosensorInfo)?'2':'3').'">'.$countline.'</td></tr>
+<tr><td style="text-align:center" colspan="4">'._T('info_fileusage_top').STORAGE_LIMIT.' '._T('info_0disable1enable').'</td></tr>';
 
 	if(STORAGE_LIMIT){
 		$dat .= '
-<tr align="center"><td>'._T('info_fileusage_limit').'</td><td colspan="2">'.STORAGE_MAX.' KB</td><td rowspan="2">'._T('info_dsusage_usage').'<br /><span style="color: #'.$clrflag_sl.'">'.substr(($tmp_ts_ratio * 100), 0, 6).'</span> %</td></tr>
-<tr align="center"><td>'._T('info_fileusage_count').'</td><td colspan="2"><span style="color: #'.$clrflag_sl.'">'.$tmp_total_size.' KB</span></td></tr>';
+<tr style="text-align:center"><td>'._T('info_fileusage_limit').'</td><td colspan="2">'.STORAGE_MAX.' KB</td><td rowspan="2">'._T('info_dsusage_usage').'<br /><span style="color: #'.$clrflag_sl.'">'.substr(($tmp_ts_ratio * 100), 0, 6).'</span> %</td></tr>
+<tr style="text-align:center"><td>'._T('info_fileusage_count').'</td><td colspan="2"><span style="color: #'.$clrflag_sl.'">'.$tmp_total_size.' KB</span></td></tr>';
 	}else{
 		$dat .= '
-<tr align="center"><td>'._T('info_fileusage_count').'</td><td>'.$tmp_total_size.' KB</td><td colspan="2">'._T('info_dsusage_usage').'<br /><span style="color: green;">'._T('info_fileusage_unlimited').'</span></td></tr>';
+<tr style="text-align:center"><td>'._T('info_fileusage_count').'</td><td>'.$tmp_total_size.' KB</td><td colspan="2">'._T('info_dsusage_usage').'<br /><span style="color: green;">'._T('info_fileusage_unlimited').'</span></td></tr>';
 	}
 
 	$dat .= '
-<tr><td align="center" colspan="4">'._T('info_server_top').'</td></tr>
-<tr align="center"><td colspan="3">'.$func_thumbInfo.'</td><td>'.$func_thumbWork.'</td></tr>
+<tr><td style="text-align:center" colspan="4">'._T('info_server_top').'</td></tr>
+<tr style="text-align:center"><td colspan="3">'.$func_thumbInfo.'</td><td>'.$func_thumbWork.'</td></tr>
+</tbody>
 </table>
 <hr />
 </div>'."\n";
@@ -1252,7 +1268,10 @@ switch($mode){
 		break;
 	default:
 		// 如果瀏覽器支援XHTML標準MIME就輸出
-		header('Content-Type: '.((USE_XHTML && strpos($_SERVER['HTTP_ACCEPT'],'application/xhtml+xml')!==FALSE) ? 'application/xhtml+xml' : 'text/html').'; charset=utf-8');
+		//header('Content-Type: '.((USE_XHTML && strpos($_SERVER['HTTP_ACCEPT'],'application/xhtml+xml')!==FALSE) ? 'application/xhtml+xml' : 'text/html').'; charset=utf-8');
+		// html5  header
+		header('Content-Type: text/html; charset=utf-8');
+
 		$res = isset($_GET['res']) ? $_GET['res'] : 0; // 欲回應編號
 		if($res){ // 回應模式輸出
 			$page = isset($_GET['page_num']) ? $_GET['page_num'] : 'RE_PAGE_MAX';

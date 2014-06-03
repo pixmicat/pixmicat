@@ -1,14 +1,10 @@
 <!--&THEMENAME-->futaba Theme<!--/&THEMENAME-->
 <!--&THEMEVER-->v20110703<!--/&THEMEVER-->
 <!--&THEMEAUTHOR-->Pixmicat! Development Team<!--/&THEMEAUTHOR-->
-
-<!--&HEADER--><?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="zh-tw">
+<!--&HEADER--><!DOCTYPE html>
+<html lang="zh-TW">
 <head>
-<meta http-equiv="Cache-Control" content="max-age=0; must-revalidate" />
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<meta http-equiv="Content-Language" content="zh-tw" />
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=yes" />
 <title>{$TITLE}</title>
 <link rel="stylesheet" type="text/css" href="mainstyle.css" />
@@ -51,7 +47,7 @@ var ext="{$ALLOW_UPLOAD_EXT}".toUpperCase().split("|");
 <input type="hidden" name="upfile_path" value="" />
 <!--&IF($RESTO,'{$RESTO}','')-->
 <div style="text-align: center;">
-<table cellpadding="1" cellspacing="1" id="postform_tbl" style="margin: 0px auto; text-align: left;">
+<table id="postform_tbl" style="padding: 10px;border-spacing; 10px; margin: 0px auto; text-align: left;">
 <tr><td class="Form_bg"><b>{$FORM_NAME_TEXT}</b></td><td>{$FORM_NAME_FIELD}</td></tr>
 <tr><td class="Form_bg"><b>{$FORM_EMAIL_TEXT}</b></td><td>{$FORM_EMAIL_FIELD}</td></tr>
 <tr><td class="Form_bg"><b>{$FORM_TOPIC_TEXT}</b></td><td>{$FORM_TOPIC_FIELD}{$FORM_SUBMIT}</td></tr>
@@ -105,7 +101,7 @@ var ext="{$ALLOW_UPLOAD_EXT}".toUpperCase().split("|");
 <!--&THREAD-->
 <div class="threadpost" id="r{$NO}">
 {$IMG_BAR}<!--&IF($IMG_BAR,'<br />','')-->{$IMG_SRC}<input type="checkbox" name="{$NO}" value="delete" /><span class="title">{$SUB}</span>
-{$NAME_TEXT}<span class="name">{$NAME}</span> [{$NOW}] {$QUOTEBTN}&nbsp;{$REPLYBTN}
+{$NAME_TEXT}<span class="name">{$NAME}</span> [{$NOW}] {$QUOTEBTN}&#160;{$REPLYBTN}
 <div class="quote">{$COM}</div>
 <!--&IF($CATEGORY,'<div class="category">{$CATEGORY_TEXT}{$CATEGORY}</div>','')-->
 {$WARN_OLD}{$WARN_BEKILL}{$WARN_ENDREPLY}{$WARN_HIDEPOST}</div>
@@ -113,7 +109,7 @@ var ext="{$ALLOW_UPLOAD_EXT}".toUpperCase().split("|");
 
 <!--&REPLY-->
 <div class="reply" id="r{$NO}"><div class="replywrap">
-<input type="checkbox" name="{$NO}" value="delete" /><span class="title">{$SUB}</span> {$NAME_TEXT}<span class="name">{$NAME}</span> [{$NOW}] {$QUOTEBTN} &nbsp;<!--&IF($IMG_BAR,'<br />&nbsp;','')-->{$IMG_BAR} {$IMG_SRC}
+<input type="checkbox" name="{$NO}" value="delete" /><span class="title">{$SUB}</span> {$NAME_TEXT}<span class="name">{$NAME}</span> [{$NOW}] {$QUOTEBTN} &#160;<!--&IF($IMG_BAR,'<br />&#160;','')-->{$IMG_BAR} {$IMG_SRC}
 <div class="quote">{$COM}</div>
 <!--&IF($CATEGORY,'<div class="category">{$CATEGORY_TEXT}{$CATEGORY}</div>','')-->
 {$WARN_BEKILL}</div></div>
@@ -140,7 +136,7 @@ var ext="{$ALLOW_UPLOAD_EXT}".toUpperCase().split("|");
 <!--&DELFORM-->
 <div id="del">
 <table style="float: right;">
-<tr><td align="center" style="white-space: nowrap;">
+<tr><td style="text-align:center;white-space: nowrap;">
 {$DEL_HEAD_TEXT}[{$DEL_IMG_ONLY_FIELD}<label for="onlyimgdel">{$DEL_IMG_ONLY_TEXT}</label>]<br />
 {$DEL_PASS_TEXT}{$DEL_PASS_FIELD}{$DEL_SUBMIT_BTN}
 </td></tr>

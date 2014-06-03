@@ -24,7 +24,7 @@ function head(&$dat,$resno=0){
 	$dat .= $PTE->ParseBlock('JSHEADER',$pte_vals);
 	$dat .= '</head>';
 	$pte_vals += array('{$TOP_LINKS}' => TOP_LINKS,
-		'{$HOME}' => '[<a href="'.HOME.'" rel="_top">'._T('head_home').'</a>]',
+		'{$HOME}' => '[<a href="'.HOME.'" target="_top">'._T('head_home').'</a>]',
 		'{$STATUS}' => '[<a href="'.PHP_SELF.'?mode=status">'._T('head_info').'</a>]',
 		'{$ADMIN}' => '[<a href="'.PHP_SELF.'?mode=admin">'._T('head_admin').'</a>]',
 		'{$REFRESH}' => '[<a href="'.PHP_SELF2.'?">'._T('head_refresh').'</a>]',
@@ -70,7 +70,7 @@ function form(&$dat, $resno, $iscollapse=true, $retURL=PHP_SELF, $name='', $mail
 	$PMS->useModuleMethods('PostForm', array(&$pte_vals['{$FORM_EXTRA_COLUMN}'])); // "PostForm" Hook Point
 	if(!$isedit && (RESIMG || !$resno)){
 		$pte_vals += array('{$FORM_ATTECHMENT_TEXT}' => _T('form_attechment'),
-			'{$FORM_ATTECHMENT_FIELD}' => '<input type="file" name="upfile" id="fupfile" size="25" /><input class="hide" type="checkbox" name="reply" value="yes" />',
+			'{$FORM_ATTECHMENT_FIELD}' => '<input type="file" name="upfile" id="fupfile"/><input class="hide" type="checkbox" name="reply" value="yes" />',
 			'{$FORM_NOATTECHMENT_TEXT}' => _T('form_noattechment'),
 			'{$FORM_NOATTECHMENT_FIELD}' => '<input type="checkbox" name="noimg" id="noimg" value="on" />');
 		if(USE_UPSERIES) { // 啟動連貼機能
@@ -97,13 +97,13 @@ function foot(&$dat){
 
 	$pte_vals = array('{$FOOTER}'=>'<!-- GazouBBS v3.0 --><!-- ふたば改0.8 --><!-- Pixmicat! -->');
 	$PMS->useModuleMethods('Foot', array(&$pte_vals['{$FOOTER}'])); // "Foot" Hook Point
-	$pte_vals['{$FOOTER}'] .= '<small>- <a href="http://php.s3.to" rel="_top">GazouBBS</a> + <a href="http://www.2chan.net/" rel="_top">futaba</a> + <a href="http://pixmicat.openfoundry.org/" rel="_blank">Pixmicat!</a> -</small>';
+	$pte_vals['{$FOOTER}'] .= '<small>- <a rel="nofollow noreferrer license" href="http://php.s3.to" target="_blank">GazouBBS</a> + <a rel="nofollow noreferrer license" href="http://www.2chan.net/" target="_blank">futaba</a> + <a rel="nofollow noreferrer license" href="http://pixmicat.openfoundry.org/" target="_blank">Pixmicat!</a> -</small>';
 	$dat .= $PTE->ParseBlock('FOOTER',$pte_vals);
 }
 
 /* 網址自動連結 */
 function auto_link_callback($matches){
-	return (strtolower($matches[3]) == "</a>") ? $matches[0] : preg_replace('/(https?|ftp|news)(:\/\/[\w\+\$\;\?\.\{\}%,!#~*\/:@&=_-]+)/u', '<a href="$1$2" rel="_blank">$1$2</a>', $matches[0]);
+	return (strtolower($matches[3]) == "</a>") ? $matches[0] : preg_replace('/(https?|ftp|news)(:\/\/[\w\+\$\;\?\.\{\}%,!#~*\/:@&=_-]+)/u', '<a href="$1$2" target="_blank" rel="nofollow noreferrer">$1$2</a>', $matches[0]);
 }
 function auto_link($proto){
 	$proto = preg_replace('|<br\s*/?>|',"\n",$proto);
