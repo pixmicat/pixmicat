@@ -175,54 +175,102 @@ function updatelog($resno=0,$page_num=-1,$single_page=false){
 			$pte_vals['{$THREADS}'] .= arrangeThread($PTE, $tree, $tree_cut, $posts, $hiddenReply, $resno, $arr_kill, $arr_old, $kill_sensor, $old_sensor, true, $adminMode); // 交給這個函式去搞討論串印出
 		}
 		$pte_vals['{$PAGENAV}'] = '<div id="page_switch">';
-
+		if (USE_BOOTSTRAP){
+			$pte_vals['{$PAGENAV}'] = '<ul class="pagination pagination-large pagination-centered">';
+		}
 		// 換頁判斷
 		$prev = ($resno ? $page_num : $page) - 1;
 		$next = ($resno ? $page_num : $page) + 1;
 		if($resno){ // 回應分頁
 			if(RE_PAGE_DEF > 0){ // 回應分頁開啟
-				$pte_vals['{$PAGENAV}'] .= '<table style="border: 1px solid gray" ><tr><td style="white-space: nowrap;">';
-				$pte_vals['{$PAGENAV}'] .= ($prev >= 0) ? '<a rel="prev" href="'.PHP_SELF.'?res='.$resno.'&amp;page_num='.$prev.'">'._T('prev_page').'</a>' : _T('first_page');
-				$pte_vals['{$PAGENAV}'] .= "</td><td>";
-				if($tree_count==0) $pte_vals['{$PAGENAV}'] .= '[<b>0</b>] '; // 無回應
-				else{
-					for($i = 0, $len = $tree_count / RE_PAGE_DEF; $i < $len; $i++){
-						if(!$AllRes && $page_num==$i) $pte_vals['{$PAGENAV}'] .= '[<b>'.$i.'</b>] ';
-						else $pte_vals['{$PAGENAV}'] .= '[<a href="'.PHP_SELF.'?res='.$resno.'&amp;page_num='.$i.'">'.$i.'</a>] ';
+				if (USE_BOOTSTRAP){
+					//$pte_vals['{$PAGENAV}'] .= '<li>';
+					$pte_vals['{$PAGENAV}'] .= ($prev >= 0) ? '<li><a rel="prev" href="'.PHP_SELF.'?res='.$resno.'&amp;page_num='.$prev.'">'._T('prev_page').'</a>' : '<li class="disabled"><span>'._T('first_page').'</span>';
+					$pte_vals['{$PAGENAV}'] .= '</li>';
+					if($tree_count==0) $pte_vals['{$PAGENAV}'] .= '<li class="disabled"><span>0</span></li>'; // 無回應
+					else{
+						for($i = 0, $len = $tree_count / RE_PAGE_DEF; $i < $len; $i++){
+							if(!$AllRes && $page_num==$i) $pte_vals['{$PAGENAV}'] .= '<li class="disabled"><span>'.$i.'</span></li>';
+							else $pte_vals['{$PAGENAV}'] .= '<li><a href="'.PHP_SELF.'?res='.$resno.'&amp;page_num='.$i.'">'.$i.'</a></li>';
+						}
+						$pte_vals['{$PAGENAV}'] .= $AllRes ? '<li class="disabled"><span>'._T('all_pages').'</span><li> ' : ($tree_count > RE_PAGE_DEF ? '<li><a href="'.PHP_SELF.'?res='.$resno.'&amp;page_num=all">'._T('all_pages').'</a><li>' : '');
 					}
-					$pte_vals['{$PAGENAV}'] .= $AllRes ? '[<b>'._T('all_pages').'</b>] ' : ($tree_count > RE_PAGE_DEF ? '[<a href="'.PHP_SELF.'?res='.$resno.'&amp;page_num=all">'._T('all_pages').'</a>] ' : '');
+					//$pte_vals['{$PAGENAV}'] .= '';
+					$pte_vals['{$PAGENAV}'] .= (!$AllRes && $tree_count > $next * RE_PAGE_DEF) ? '<li><a href="'.PHP_SELF.'?res='.$resno.'&amp;page_num='.$next.'">'._T('next_page').'</a>' : '<li class="disabled"><span>'._T('last_page').'</span>';
+					$pte_vals['{$PAGENAV}'] .= '</li>'."\n";
+				}else{
+					$pte_vals['{$PAGENAV}'] .= '<table style="border: 1px solid gray" ><tr><td style="white-space: nowrap;">';
+					$pte_vals['{$PAGENAV}'] .= ($prev >= 0) ? '<a rel="prev" href="'.PHP_SELF.'?res='.$resno.'&amp;page_num='.$prev.'">'._T('prev_page').'</a>' : _T('first_page');
+					$pte_vals['{$PAGENAV}'] .= "</td><td>";
+					if($tree_count==0) $pte_vals['{$PAGENAV}'] .= '[<b>0</b>] '; // 無回應
+					else{
+						for($i = 0, $len = $tree_count / RE_PAGE_DEF; $i < $len; $i++){
+							if(!$AllRes && $page_num==$i) $pte_vals['{$PAGENAV}'] .= '[<b>'.$i.'</b>] ';
+							else $pte_vals['{$PAGENAV}'] .= '[<a href="'.PHP_SELF.'?res='.$resno.'&amp;page_num='.$i.'">'.$i.'</a>] ';
+						}
+						$pte_vals['{$PAGENAV}'] .= $AllRes ? '[<b>'._T('all_pages').'</b>] ' : ($tree_count > RE_PAGE_DEF ? '[<a href="'.PHP_SELF.'?res='.$resno.'&amp;page_num=all">'._T('all_pages').'</a>] ' : '');
+					}
+					$pte_vals['{$PAGENAV}'] .= '</td><td style="white-space: nowrap;">';
+					$pte_vals['{$PAGENAV}'] .= (!$AllRes && $tree_count > $next * RE_PAGE_DEF) ? '<a href="'.PHP_SELF.'?res='.$resno.'&amp;page_num='.$next.'">'._T('next_page').'</a>' : _T('last_page');
+					$pte_vals['{$PAGENAV}'] .= '</td></tr></table>'."\n";
 				}
-				$pte_vals['{$PAGENAV}'] .= '</td><td style="white-space: nowrap;">';
-				$pte_vals['{$PAGENAV}'] .= (!$AllRes && $tree_count > $next * RE_PAGE_DEF) ? '<a href="'.PHP_SELF.'?res='.$resno.'&amp;page_num='.$next.'">'._T('next_page').'</a>' : _T('last_page');
-				$pte_vals['{$PAGENAV}'] .= '</td></tr></table>'."\n";
 			}
 		}else{ // 一般分頁
-			$pte_vals['{$PAGENAV}'] .= '<table style="border: 1px solid gray" ><tr>';
-			if($prev >= 0){
-				if(!$adminMode && $prev==0) $pte_vals['{$PAGENAV}'] .= '<td><form action="'.PHP_SELF2.'" method="get">';
-				else{
-					if($adminMode || (STATIC_HTML_UNTIL != -1) && ($prev > STATIC_HTML_UNTIL)) $pte_vals['{$PAGENAV}'] .= '<td><form action="'.PHP_SELF.'?page_num='.$prev.'" method="post">';
-					else $pte_vals['{$PAGENAV}'] .= '<td><form action="'.$prev.PHP_EXT.'" method="get">';
+			if (USE_BOOTSTRAP){
+				//$pte_vals['{$PAGENAV}'] .= '<table style="border: 1px solid gray" ><tr>';
+				if($prev >= 0){
+					if(!$adminMode && $prev==0) $pte_vals['{$PAGENAV}'] .= '<li><a href="'.PHP_SELF2.'">';
+					else{
+						if($adminMode || (STATIC_HTML_UNTIL != -1) && ($prev > STATIC_HTML_UNTIL)) $pte_vals['{$PAGENAV}'] .= '<li><a rel="prev" href="'.PHP_SELF.'?page_num='.$prev.'">';
+						else $pte_vals['{$PAGENAV}'] .= '<li><a rel="prev" href="'.$prev.PHP_EXT.'">';
+					}
+					$pte_vals['{$PAGENAV}'] .= _T('prev_page').'</a>';
+				}else $pte_vals['{$PAGENAV}'] .= '<li class="disabled"><span>'._T('first_page').'</span>';
+				$pte_vals['{$PAGENAV}'] .= '</li>';
+				for($i = 0, $len = $threads_count / PAGE_DEF; $i < $len; $i++){
+					if($page==$i) $pte_vals['{$PAGENAV}'] .= "";//"[<b>".$i."</b>] ";
+					else{
+						$pageNext = ($i==$next) ? ' rel="next"' : '';
+						if(!$adminMode && $i==0) $pte_vals['{$PAGENAV}'] .= '<li><a href="'.PHP_SELF2.'?">0</a>';
+						elseif($adminMode || (STATIC_HTML_UNTIL != -1 && $i > STATIC_HTML_UNTIL)) $pte_vals['{$PAGENAV}'] .= '<li><a href="'.PHP_SELF.'?page_num='.$i.'"'.$pageNext.'>'.$i.'</a>';
+						else $pte_vals['{$PAGENAV}'] .= '<li><a href="'.$i.PHP_EXT.'?"'.$pageNext.'>'.$i.'</a>';
+					}
 				}
-				$pte_vals['{$PAGENAV}'] .= '<div><input type="submit" value="'._T('prev_page').'" /></div></form></td>';
-			}else $pte_vals['{$PAGENAV}'] .= '<td style="white-space: nowrap;">'._T('first_page').'</td>';
-			$pte_vals['{$PAGENAV}'] .= '<td>';
-			for($i = 0, $len = $threads_count / PAGE_DEF; $i < $len; $i++){
-				if($page==$i) $pte_vals['{$PAGENAV}'] .= "[<b>".$i."</b>] ";
-				else{
-					$pageNext = ($i==$next) ? ' rel="next"' : '';
-					if(!$adminMode && $i==0) $pte_vals['{$PAGENAV}'] .= '[<a href="'.PHP_SELF2.'?">0</a>] ';
-					elseif($adminMode || (STATIC_HTML_UNTIL != -1 && $i > STATIC_HTML_UNTIL)) $pte_vals['{$PAGENAV}'] .= '[<a href="'.PHP_SELF.'?page_num='.$i.'"'.$pageNext.'>'.$i.'</a>] ';
-					else $pte_vals['{$PAGENAV}'] .= '[<a href="'.$i.PHP_EXT.'?"'.$pageNext.'>'.$i.'</a>] ';
+				$pte_vals['{$PAGENAV}'] .= '</li>';
+				if($threads_count > $next * PAGE_DEF){ 
+					if($adminMode || (STATIC_HTML_UNTIL != -1) && ($next > STATIC_HTML_UNTIL)) $pte_vals['{$PAGENAV}'] .= '<li><a href="'.PHP_SELF.'?page_num='.$next.'" >';
+					else $pte_vals['{$PAGENAV}'] .= '<li><a rel="next" href="'.$next.PHP_EXT.'">';
+					$pte_vals['{$PAGENAV}'] .= _T('next_page').'</A> </li>';
+				}else $pte_vals['{$PAGENAV}'] .= '<li class="disabled"><span>'._T('last_page').'</span></li>';
+				$pte_vals['{$PAGENAV}'] .= '</ul>'."\n";
+			}else{
+				$pte_vals['{$PAGENAV}'] .= '<table style="border: 1px solid gray" ><tr>';
+				if($prev >= 0){
+					if(!$adminMode && $prev==0) $pte_vals['{$PAGENAV}'] .= '<td><form action="'.PHP_SELF2.'" method="get">';
+					else{
+						if($adminMode || (STATIC_HTML_UNTIL != -1) && ($prev > STATIC_HTML_UNTIL)) $pte_vals['{$PAGENAV}'] .= '<td><form action="'.PHP_SELF.'?page_num='.$prev.'" method="post">';
+						else $pte_vals['{$PAGENAV}'] .= '<td><form action="'.$prev.PHP_EXT.'" method="get">';
+					}
+					$pte_vals['{$PAGENAV}'] .= '<div><input type="submit" value="'._T('prev_page').'" /></div></form></td>';
+				}else $pte_vals['{$PAGENAV}'] .= '<td style="white-space: nowrap;">'._T('first_page').'</td>';
+				$pte_vals['{$PAGENAV}'] .= '<td>';
+				for($i = 0, $len = $threads_count / PAGE_DEF; $i < $len; $i++){
+					if($page==$i) $pte_vals['{$PAGENAV}'] .= "[<b>".$i."</b>] ";
+					else{
+						$pageNext = ($i==$next) ? ' rel="next"' : '';
+						if(!$adminMode && $i==0) $pte_vals['{$PAGENAV}'] .= '[<a href="'.PHP_SELF2.'?">0</a>] ';
+						elseif($adminMode || (STATIC_HTML_UNTIL != -1 && $i > STATIC_HTML_UNTIL)) $pte_vals['{$PAGENAV}'] .= '<a href="'.PHP_SELF.'?page_num='.$i.'"'.$pageNext.'>'.$i.'</a>] ';
+						else $pte_vals['{$PAGENAV}'] .= '[<a href="'.$i.PHP_EXT.'?"'.$pageNext.'>'.$i.'</a>] ';
+					}
 				}
+				$pte_vals['{$PAGENAV}'] .= '</td>';
+				if($threads_count > $next * PAGE_DEF){
+					if($adminMode || (STATIC_HTML_UNTIL != -1) && ($next > STATIC_HTML_UNTIL)) $pte_vals['{$PAGENAV}'] .= '<td><form action="'.PHP_SELF.'?page_num='.$next.'" method="post">';
+					else $pte_vals['{$PAGENAV}'] .= '<td><form action="'.$next.PHP_EXT.'" method="get">';
+					$pte_vals['{$PAGENAV}'] .= '<div><input type="submit" value="'._T('next_page').'" /></div></form></td>';
+				}else $pte_vals['{$PAGENAV}'] .= '<td style="white-space: nowrap;">'._T('last_page').'</td>';
+				$pte_vals['{$PAGENAV}'] .= '</tr></table>'."\n";
 			}
-			$pte_vals['{$PAGENAV}'] .= '</td>';
-			if($threads_count > $next * PAGE_DEF){
-				if($adminMode || (STATIC_HTML_UNTIL != -1) && ($next > STATIC_HTML_UNTIL)) $pte_vals['{$PAGENAV}'] .= '<td><form action="'.PHP_SELF.'?page_num='.$next.'" method="post">';
-				else $pte_vals['{$PAGENAV}'] .= '<td><form action="'.$next.PHP_EXT.'" method="get">';
-				$pte_vals['{$PAGENAV}'] .= '<div><input type="submit" value="'._T('next_page').'" /></div></form></td>';
-			}else $pte_vals['{$PAGENAV}'] .= '<td style="white-space: nowrap;">'._T('last_page').'</td>';
-			$pte_vals['{$PAGENAV}'] .= '</tr></table>'."\n";
 		}
 		$pte_vals['{$PAGENAV}'] .= '<br style="clear: left;" />
 </div>';
