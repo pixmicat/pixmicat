@@ -184,10 +184,10 @@ function updatelog($resno=0,$page_num=-1,$single_page=false){
 		if($resno){ // 回應分頁
 			if(RE_PAGE_DEF > 0){ // 回應分頁開啟
 				if (USE_BOOTSTRAP){
-					$pte_vals['{$PAGENAV}'] .= '<li>';
-					$pte_vals['{$PAGENAV}'] .= ($prev >= 0) ? '<a rel="prev" href="'.PHP_SELF.'?res='.$resno.'&amp;page_num='.$prev.'">'._T('prev_page').'</a>' : _T('first_page');
-					$pte_vals['{$PAGENAV}'] .= "</li>";
-					if($tree_count==0) $pte_vals['{$PAGENAV}'] .= '[<b>0</b>] '; // 無回應
+					//$pte_vals['{$PAGENAV}'] .= '<li>';
+					$pte_vals['{$PAGENAV}'] .= ($prev >= 0) ? '<li><a rel="prev" href="'.PHP_SELF.'?res='.$resno.'&amp;page_num='.$prev.'">'._T('prev_page').'</a>' : '<li class="disabled"><span>'._T('first_page').'</span>';
+					$pte_vals['{$PAGENAV}'] .= '</li>';
+					if($tree_count==0) $pte_vals['{$PAGENAV}'] .= '<li class="disabled"><span>0</span></li>'; // 無回應
 					else{
 						for($i = 0, $len = $tree_count / RE_PAGE_DEF; $i < $len; $i++){
 							if(!$AllRes && $page_num==$i) $pte_vals['{$PAGENAV}'] .= '<li class="disabled"><span>'.$i.'</span></li>';
@@ -195,8 +195,8 @@ function updatelog($resno=0,$page_num=-1,$single_page=false){
 						}
 						$pte_vals['{$PAGENAV}'] .= $AllRes ? '<li class="disabled"><span>'._T('all_pages').'</span><li> ' : ($tree_count > RE_PAGE_DEF ? '<li><a href="'.PHP_SELF.'?res='.$resno.'&amp;page_num=all">'._T('all_pages').'</a><li>' : '');
 					}
-					$pte_vals['{$PAGENAV}'] .= '<li>';
-					$pte_vals['{$PAGENAV}'] .= (!$AllRes && $tree_count > $next * RE_PAGE_DEF) ? '<a href="'.PHP_SELF.'?res='.$resno.'&amp;page_num='.$next.'">'._T('next_page').'</a>' : _T('last_page');
+					//$pte_vals['{$PAGENAV}'] .= '';
+					$pte_vals['{$PAGENAV}'] .= (!$AllRes && $tree_count > $next * RE_PAGE_DEF) ? '<li><a href="'.PHP_SELF.'?res='.$resno.'&amp;page_num='.$next.'">'._T('next_page').'</a>' : '<li class="disabled"><span>'._T('last_page').'</span>';
 					$pte_vals['{$PAGENAV}'] .= '</li>'."\n";
 				}else{
 					$pte_vals['{$PAGENAV}'] .= '<table style="border: 1px solid gray" ><tr><td style="white-space: nowrap;">';
