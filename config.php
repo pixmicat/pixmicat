@@ -116,7 +116,8 @@ $THUMB_SETTING = array( // 預覽圖生成設定
 // 外觀設定
 $ADDITION_INFO = ""; // 可在表單下顯示額外文字
 $LIMIT_SENSOR = array('ByPostCountCondition'=>500); // 文章自動刪除機制設定
-define("TEMPLATE_FILE", 'inc_pixmicat.tpl'); // 樣板位置
+define("TEMPLATE_FILE", 'inc_pixmicat8.tpl'); // 樣板位置
+define("USE_BOOTSTRAP",true); //使用BootStrap樣板引擎。
 define("PAGE_DEF", 15); // 一頁顯示幾篇討論串
 define("ADMIN_PAGE_DEF", 20); // 管理模式下，一頁顯示幾筆資料
 define("RE_DEF", 10); // 一篇討論串最多顯示之回應筆數 (超過則自動隱藏，全部隱藏：0)
