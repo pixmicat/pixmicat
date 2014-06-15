@@ -318,6 +318,36 @@ function getRemoteAddrThroughProxy() {
     if (!defined('TRUST_HTTP_X_FORWARDED_FOR') || !TRUST_HTTP_X_FORWARDED_FOR) {
         return '';
     }
+
+    if (filter_has_var(INPUT_SERVER, 'HTTP_X_REAL_IP')) { //real ip behind ngix proxy
+    	$x_real_ip = filter_input(INPUT_SERVER, 'HTTP_X_REAL_IP');
+    	if (filter_var(x_real_ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+        	return x_real_ip;
+    	}
+    }
+
+    if (filter_has_var(INPUT_SERVER, 'X-Cluster-Client-Ip')) { //zesu proxy
+        	$x_real_ip = filter_input(INPUT_SERVER, 'X-Cluster-Client-Ip');
+    	if (filter_var(x_real_ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+        	return x_real_ip;
+    	}
+    }
+
+    if (filter_has_var(INPUT_SERVER, 'X-Coming-From')) { //  proxy
+        	$x_real_ip = filter_input(INPUT_SERVER, 'X-Coming-From');
+    	if (filter_var(x_real_ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+        	return x_real_ip;
+    	}
+    }
+    
+    if (filter_has_var(INPUT_SERVER, 'Client-IP')) { //  proxy
+        	$x_real_ip = filter_input(INPUT_SERVER, 'Client-IP');
+    	if (filter_var(x_real_ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+        	return x_real_ip;
+    	}
+    }
+
+
     if (!filter_has_var(INPUT_SERVER, 'HTTP_VIA')) {
         return '';
     }
