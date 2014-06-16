@@ -326,7 +326,7 @@ function getRemoteAddrThroughProxy() {
 			foreach (explode(',', $_SERVER[$key]) as $ip) {
 				$ip = trim($ip);
 				// 如果結果為 Private IP 或 Reserved IP，捨棄改用 REMOTE_ADDR
-				if ((bool) filter_var($ip, FILTER_VALIDATE_IP,FILTER_FLAG_IPV4 |FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+				if (filter_var($ip, FILTER_VALIDATE_IP,FILTER_FLAG_IPV4 |FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) !==false) {
 					return $ip;
 				}
 			}
