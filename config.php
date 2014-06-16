@@ -76,8 +76,15 @@ define("USE_QUOTESYSTEM", 1); // 是否打開引用瀏覽系統 [自動轉換>>N
 define("SHOW_IMGWH", 1); // 是否顯示附加圖檔之原檔長寬尺寸 (是：1 否：0)
 define("USE_CATEGORY", 1); // 是否開啟使用類別標籤分類功能 (是：1 否：0)
 define("USE_RE_CACHE", 1); // 是否使用回應頁面顯示快取功能 (是：1 否：0)
-define("USE_XHTML", 1); // 是否回傳 XHTML 檔頭讓瀏覽器以更嚴格的方式解析 [僅限瀏覽器支援者] (是：1 否：0)
 define("TRUST_HTTP_X_FORWARDED_FOR", 0); // 是否利用HTTP_X_FORWARDED_FOR抓取Proxy後的真實IP。注意檔頭可能被偽造，若無特別需要請勿開啟 (是：1 否：0)
+$PROXYHEADERlist=array(//如啓用TRUST_HTTP_X_FORWARDED_FOR，我們將相信的Header,越上越優先相信。
+		'HTTP_CLIENT_IP',
+		'HTTP_X_REAL_IP',
+		'HTTP_X_FORWARDED_FOR',
+		'HTTP_X_FORWARDED',
+		'HTTP_X_CLUSTER_CLIENT_IP',
+		'HTTP_FORWARDED_FOR',
+		'HTTP_FORWARDED');
 
 // 模組載入
 $ModuleList = array();

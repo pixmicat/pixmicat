@@ -318,19 +318,21 @@ function getRemoteAddrThroughProxy() {
     if (!defined('TRUST_HTTP_X_FORWARDED_FOR') || !TRUST_HTTP_X_FORWARDED_FOR) {
         return '';
     }
-    if (!filter_has_var(INPUT_SERVER, 'HTTP_VIA')) {
-        return '';
-    }
-    if (!filter_has_var(INPUT_SERVER, 'HTTP_X_FORWARDED_FOR')) {
-        return '';
-    }
- 
-    $tmp = preg_split('/[ ,]+/', filter_input(INPUT_SERVER, 'HTTP_X_FORWARDED_FOR'));
-    // 防止 Squid "unknown" 問題，此種情況直接使用 REMOTE_ADDR
-    // 如果結果為 Private IP 或 Reserved IP，捨棄改用 REMOTE_ADDR
-    if (filter_var($tmp[0], FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
-        return $tmp[0];
-    }
+    $ip='';
+    $proxy = $PROXYHEADERlist;
+    
+	foreach ($proxy as $key) {
+		if (array_key_exists($key, $_SERVER)) {
+			foreach (explode(',', $_SERVER[$key]) as $ip) {
+				$ip = trim($ip);
+				// 如果結果為 Private IP 或 Reserved IP，捨棄改用 REMOTE_ADDR
+				if (filter_var($ip, FILTER_VALIDATE_IP,FILTER_FLAG_IPV4 |FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) !==false) {
+					return $ip;
+				}
+			}
+		}
+	}
+
     return '';
 }
 
