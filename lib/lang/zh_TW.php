@@ -158,7 +158,6 @@ $language['info_fileusage_unlimited']	= '無上限';
 $language['info_server_top']			= '伺服器支援情報';
 $language['info_server_gd']				= 'GD函式庫';
 $language['init_permerror']				= '根目錄沒有寫入權限，請修改權限<br />';
-$language['init_inited']				= '環境初始化成功！<br />請現在打開此程式刪除init()程式環境初始化區段<br />';
 $language['action_main_notsupport']		= '後端並不支援此動作';
 $language['action_main_optimize']		= '資料表最佳化';
 $language['action_main_check']			= '資料表檢查';

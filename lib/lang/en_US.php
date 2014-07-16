@@ -158,7 +158,6 @@ $language['info_fileusage_unlimited']	= 'Unlimited';
 $language['info_server_top']			= 'Server information';
 $language['info_server_gd']				= 'GD library ';
 $language['init_permerror']				= 'No write permission in root directory. Please modify permission settings.<br />';
-$language['init_inited']				= 'Environment initialized.<br />Please edit this file and remove init() statement.<br />';
 $language['action_main_notsupport']		= 'Backend does not support this operation.';
 $language['action_main_optimize']		= 'Optimization ';
 $language['action_main_check']			= 'Check ';

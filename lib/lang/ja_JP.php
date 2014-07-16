@@ -158,7 +158,6 @@ $language['info_fileusage_unlimited']	= '限界なし';
 $language['info_server_top']			= 'サーバー支援情報';
 $language['info_server_gd']				= 'GD モジュール';
 $language['init_permerror']				= 'カレントディレクトリに書けません<br />';
-$language['init_inited']				= '環境初始化成功した！<br />このファイルを編集して、init()を削除してください。<br />';
 $language['action_main_notsupport']		= 'バックエンドには、この動作がありません。';
 $language['action_main_optimize']		= 'テーブル最適化';
 $language['action_main_check']			= 'テーブルチェック';
