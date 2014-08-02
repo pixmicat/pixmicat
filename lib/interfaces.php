@@ -319,7 +319,7 @@ interface IFileIO {
      * @param int $delta 本次更動檔案大小，作為差異修改之用 (單位 byte)
      * @return int 目前容量大小 (單位 byte)
      */
-    function updateStorageSize($delta);
+    function updateStorageSize($delta = 0);
 }
 
 /**
