@@ -339,7 +339,7 @@ function getREMOTE_ADDR(){
         return $ipProxy;
     }
 
-    return filter_input(INPUT_SERVER, 'REMOTE_ADDR');
+    return $_SERVER['REMOTE_ADDR'];
 }
 
 /**
@@ -374,8 +374,8 @@ function getRemoteAddrThroughProxy() {
  * @since 8th.Release
  */
 function getRemoteAddrOpenShift() {
-    if (filter_has_var(INPUT_ENV, 'OPENSHIFT_REPO_DIR')) {
-        return filter_input(INPUT_SERVER, 'HTTP_X_FORWARDED_FOR');
+    if (isset($_ENV['OPENSHIFT_REPO_DIR'])) {
+        return $_SERVER['HTTP_X_FORWARDED_FOR'];
     }
     return '';
 }
@@ -386,20 +386,20 @@ function getRemoteAddrOpenShift() {
 */
 
 function getRemoteAddrCloudFlare() {
-    $addr = filter_input(INPUT_SERVER, 'REMOTE_ADDR');
+    $addr = $_SERVER['REMOTE_ADDR'];
     $cloudflare_v4 = array('199.27.128.0/21', '173.245.48.0/20', '103.21.244.0/22', '103.22.200.0/22', '103.31.4.0/22', '141.101.64.0/18', '108.162.192.0/18', '190.93.240.0/20', '188.114.96.0/20', '197.234.240.0/22', '198.41.128.0/17', '162.158.0.0/15', '104.16.0.0/12');
     $cloudflare_v6 = array('2400:cb00::/32', '2606:4700::/32', '2803:f800::/32', '2405:b500::/32', '2405:8100::/32');
 
     if(filter_var($addr, FILTER_VALIDATE_IP,FILTER_FLAG_IPV4)) { //v4 address
         foreach ($cloudflare_v4 as &$cidr) {
             if(matchCIDR($addr, $cidr)) {
-                return filter_input(INPUT_SERVER, 'HTTP_CF_CONNECTING_IP');
+                return $_SERVER['HTTP_CF_CONNECTING_IP'];
             }
         }
     } else { // v6 address
         foreach ($cloudflare_v6 as &$cidr) {
             if(matchCIDRv6($addr, $cidr)) {
-                return filter_input(INPUT_SERVER, 'HTTP_CF_CONNECTING_IP');
+                return $_SERVER['HTTP_CF_CONNECTING_IP'];
             }
         }
     }

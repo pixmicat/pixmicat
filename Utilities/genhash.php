@@ -4,7 +4,7 @@ $str = filter_input(INPUT_POST, 'str');
 $salt = filter_input(INPUT_POST, 'salt');
 if (!empty($str) && !empty($salt)) {
     $hash = crypt($str, $salt);
-    if (filter_input(INPUT_SERVER, 'HTTP_X_REQUESTED_WITH') === 'XMLHttpRequest') {
+    if ($_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest') {
         exit($hash);
     }
 }

@@ -34,9 +34,9 @@ abstract class AbstractFileIO implements IFileIO {
     }
 
     private function getAbsoluteUrl() {
-        $phpSelf = filter_input(INPUT_SERVER, 'PHP_SELF');
+        $phpSelf = $_SERVER['PHP_SELF'];
         return sprintf(
-                'http://%s%s', filter_input(INPUT_SERVER, 'HTTP_HOST'), substr($phpSelf, 0, strpos($phpSelf, PHP_SELF))
+                'http://%s%s', $_SERVER['HTTP_HOST'], substr($phpSelf, 0, strpos($phpSelf, PHP_SELF))
         );
     }
 
