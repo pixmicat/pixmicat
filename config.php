@@ -130,7 +130,8 @@ define("RE_DEF", 10); // 一篇討論串最多顯示之回應筆數 (超過則�
 define("RE_PAGE_DEF", 30); // 回應模式一頁顯示幾筆回應內容 (分頁用，全部顯示：0)
 define("MAX_RES", 30); // 回應筆數超過多少則不自動推文 (關閉：0)
 define("MAX_AGE_TIME", 0); // 討論串可接受推文的時間範圍 (單位：小時，討論串存在超過此時間則回應皆不再自動推文 關閉：0)
-define("COMM_MAX", 2000); // 內文接受Bytes數 (注意：中文字為2Bytes)
+define("COMM_MAX", 2000); // 內文接受字數 (UTF-8)
+define("INPUT_MAX", 100); // 除了內文外其他欄位的字數上限
 define("BR_CHECK", 0); // 文字換行行數上限 (不限：0)
 define("STATIC_HTML_UNTIL", 10); // 更新文章時自動生成的靜態網頁至第幾頁止 (全部生成：-1 僅入口頁：0)
 define("GZIP_COMPRESS_LEVEL", 3); // PHP動態輸出頁面使用Gzip壓縮層級 (關閉：0 啟動：1～9，推薦值：3)
