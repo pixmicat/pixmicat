@@ -21,7 +21,7 @@ http://pixmicat.openfoundry.org/
 */
 /*---- Part 1：程式基本設定 ----*/
 // 伺服器常態設定
-define("DEBUG", false); // 是否產生詳細 DEBUG 訊息
+if(!defined('DEBUG')) define("DEBUG", false); // 是否產生詳細 DEBUG 訊息
 define("ROOTPATH", dirname(__FILE__).DIRECTORY_SEPARATOR); // 主程式根目錄
 define("STORAGE_PATH", ROOTPATH); // 圖檔、快取儲存目錄 (需具有讀寫權限 777)
 define("TIME_ZONE", '+8'); // 時區設定 (GMT時區，參照 http://wwp.greenwichmeantime.com/ )
