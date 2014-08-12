@@ -82,14 +82,14 @@ function form(&$dat, $resno, $iscollapse=true, $retURL=PHP_SELF, $name='', $mail
 	$pte_vals += array('{$MAX_FILE_SIZE}' => MAX_KB * 1024,
 		'{$RESTO}' => $resno ? '<input type="hidden" name="resto" value="'.$resno.'" />' : '',
 		'{$FORM_NAME_TEXT}' => _T('form_name'),
-		'{$FORM_NAME_FIELD}' => '<input class="hide" type="text" name="name" value="spammer" /><input type="text" name="'.FT_NAME.'" id="fname" size="28" value="'.$name.'" />',
+		'{$FORM_NAME_FIELD}' => '<input class="hide" type="text" name="name" value="spammer" /><input maxlength="'.INPUT_MAX.'" type="text" name="'.FT_NAME.'" id="fname" size="28" value="'.$name.'" />',
 		'{$FORM_EMAIL_TEXT}' => _T('form_email'),
-		'{$FORM_EMAIL_FIELD}' => '<input type="text" name="'.FT_EMAIL.'" id="femail" size="28" value="'.$mail.'" /><input type="text" class="hide" name="email" value="foo@foo.bar" />',
+		'{$FORM_EMAIL_FIELD}' => '<input maxlength="'.INPUT_MAX.'" type="text" name="'.FT_EMAIL.'" id="femail" size="28" value="'.$mail.'" /><input type="text" class="hide" name="email" value="foo@foo.bar" />',
 		'{$FORM_TOPIC_TEXT}' => _T('form_topic'),
-		'{$FORM_TOPIC_FIELD}' => '<input class="hide" value="DO NOT FIX THIS" type="text" name="sub" /><input type="text" name="'.FT_SUBJECT.'" id="fsub" size="28" value="'.$sub.'" />',
+		'{$FORM_TOPIC_FIELD}' => '<input class="hide" value="DO NOT FIX THIS" type="text" name="sub" /><input maxlength="'.INPUT_MAX.'"  type="text" name="'.FT_SUBJECT.'" id="fsub" size="28" value="'.$sub.'" />',
 		'{$FORM_SUBMIT}' => '<input type="submit" name="sendbtn" value="'._T('form_submit_btn').'" />',
 		'{$FORM_COMMENT_TEXT}' => _T('form_comment'),
-		'{$FORM_COMMENT_FIELD}' => '<textarea name="'.FT_COMMENT.'" id="fcom" cols="48" rows="4" style="width: 400px; height: 80px;">'.$com.'</textarea><textarea name="com" class="hide" cols="48" rows="4">EID OG SMAPS</textarea>',
+		'{$FORM_COMMENT_FIELD}' => '<textarea maxlength="'.COMM_MAX.'" name="'.FT_COMMENT.'" id="fcom" cols="48" rows="4" style="width: 400px; height: 80px;">'.$com.'</textarea><textarea name="com" class="hide" cols="48" rows="4">EID OG SMAPS</textarea>',
 		'{$FORM_DELETE_PASSWORD_FIELD}' => '<input type="password" name="pwd" size="8" maxlength="8" value="" />',
 		'{$FORM_DELETE_PASSWORD_TEXT}' => _T('form_delete_password'),
 		'{$FORM_DELETE_PASSWORD_NOTICE}' => _T('form_delete_password_notice'),
@@ -404,4 +404,8 @@ function getRemoteAddrCloudFlare() {
         }
     }
     return '';
+}
+
+function strlenUnicode($str) {
+    return mb_strlen($str, 'UTF-8');
 }
