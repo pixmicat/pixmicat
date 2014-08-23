@@ -10,3 +10,15 @@ License
 -------
 
 Artistic License 2.0
+
+Requirements
+------------
+
+- PHP 5.2.0 or above (PHP 4 is not supported)
+- GD module
+
+Resources
+---------
+
+- Google Code: http://code.google.com/p/pixmicat/
+- Project site: http://pixmicat.openfoundry.org/ (Chinese zh-TW)

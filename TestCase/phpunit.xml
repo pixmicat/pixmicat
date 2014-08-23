@@ -1,0 +1,22 @@
+<phpunit backupGlobals="false"
+         backupStaticAttributes="false" 
+         bootstrap="Bootstrap.php"
+         cacheTokens="true"
+         convertErrorsToExceptions="true"
+         convertNoticesToExceptions="true"
+         convertWarningsToExceptions="true"
+         processIsolation="false"
+         stopOnFailure="false"
+         syntaxCheck="false"
+         verbose="false">
+    <testsuites>
+      <testsuite name="Pixmicat Lib">
+        <directory>./</directory>
+      </testsuite>
+    </testsuites>
+    <filter>
+        <whitelist>
+            <directory>*Test.php</directory>
+        </whitelist>
+    </filter>
+</phpunit>
