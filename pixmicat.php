@@ -22,11 +22,11 @@ http://pixmicat.openfoundry.org/
 "Pixmicat!", "Pixmicat", 及"圖咪貓"是Pixmicat! Development Team的商標。
 
 最低運行需求：
-PHP 5.2.0 / 2 November 2006
+PHP 5.3.0 / 30 June 2009
 GD Version 2.0.28 / 21 July 2004
 
 建議運行環境：
-PHP 5.2.0 或更高版本並開啟 GD 和 Zlib 支援，如支援 ImageMagick 建議使用
+PHP 5.3.0 或更高版本並開啟 GD 和 Zlib 支援，如支援 ImageMagick 建議使用
 安裝 PHP 編譯快取套件 (如eAccelerator, XCache, APC) 或其他快取套件 (如memcached) 更佳
 如伺服器支援 SQLite, MySQL, PostgreSQL 等請盡量使用
 
