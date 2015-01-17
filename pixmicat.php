@@ -45,6 +45,7 @@ require ROOTPATH.'lib/pmclibrary.php'; // 引入函式庫
 require ROOTPATH.'lib/lib_errorhandler.php'; // 引入全域錯誤捕捉
 require ROOTPATH.'lib/lib_compatible.php'; // 引入相容函式庫
 require ROOTPATH.'lib/lib_common.php'; // 引入共通函式檔案
+require ROOTPATH.'vendor/autoload.php';
 
 /* 更新記錄檔檔案／輸出討論串 */
 function updatelog($resno=0,$page_num=-1,$single_page=false){
