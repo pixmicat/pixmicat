@@ -9,37 +9,6 @@
  * @date $Date$
  */
  
-// Windows PHP 5.2.0 does not have this function implemented.
-if (!function_exists('inet_pton')) {
-	// Source: http://stackoverflow.com/a/14568699
-	function inet_pton($ip){
-		# ipv4
-		if (strpos($ip, '.') !== FALSE) {
-			if (strpos($ip, ':') === FALSE) $ip = pack('N',ip2long($ip));
-			else {
-				$ip = explode(':',$ip);
-				$ip = pack('N',ip2long($ip[count($ip)-1]));
-			}
-		}
-		# ipv6
-		elseif (strpos($ip, ':') !== FALSE) {
-			$ip = explode(':', $ip);
-			$parts=8-count($ip);
-			$res='';$replaced=0;
-			foreach ($ip as $seg) {
-				if ($seg!='') $res .= str_pad($seg, 4, '0', STR_PAD_LEFT);
-				elseif ($replaced==0) {
-					for ($i=0;$i<=$parts;$i++) $res.='0000';
-					$replaced=1;
-				} elseif ($replaced==1) $res.='0000';
-			}
-			$ip = pack('H'.strlen($res), $res);
-		}
-		return $ip;
-	}
-}
- 
-
 /* 輸出表頭 */
 function head(&$dat,$resno=0){
 	$PTE = PMCLibrary::getPTEInstance();
