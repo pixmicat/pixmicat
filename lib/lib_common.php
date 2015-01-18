@@ -1,4 +1,6 @@
 <?php
+namespace Pixmicat;
+
 /**
  * Pixmicat! Common Library
  *

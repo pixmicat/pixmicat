@@ -1,4 +1,9 @@
 <?php
+namespace Pixmicat;
+
+use Pixmicat\PMCLibrary;
+use Pixmicat\Pio\Condition\PIOSensor;
+
 define("PIXMICAT_VER", 'Pixmicat!-PIO 8th.Release.2'); // 版本資訊文字
 define("PHP_SELF", basename(__FILE__)); // 主程式名
 /*
@@ -41,11 +46,10 @@ PHP 5.3.0 或更高版本並開啟 GD 和 Zlib 支援，如支援 ImageMagick �
 */
 
 require './config.php'; // 引入設定檔
-require ROOTPATH.'lib/pmclibrary.php'; // 引入函式庫
+require ROOTPATH . 'vendor/autoload.php';
 require ROOTPATH.'lib/lib_errorhandler.php'; // 引入全域錯誤捕捉
 require ROOTPATH.'lib/lib_compatible.php'; // 引入相容函式庫
 require ROOTPATH.'lib/lib_common.php'; // 引入共通函式檔案
-require ROOTPATH.'vendor/autoload.php';
 
 /* 更新記錄檔檔案／輸出討論串 */
 function updatelog($resno=0,$page_num=-1,$single_page=false){
@@ -651,9 +655,8 @@ function regist(){
 		$destFile = IMG_DIR.$tim.$ext; // 圖檔儲存位置
 		$thumbFile = THUMB_DIR.$tim.'s.'.$THUMB_SETTING['Format']; // 預覽圖儲存位置
 		if(USE_THUMB !== 0){ // 生成預覽圖
-			$thumbType = USE_THUMB; if(USE_THUMB==1){ $thumbType = 'gd'; } // 與舊設定相容
-			require(ROOTPATH.'lib/thumb/thumb.'.$thumbType.'.php');
-			$thObj = new ThumbWrapper($dest, $imgW, $imgH);
+			$thObj = PMCLibrary::getThumbInstance();
+                        $thObj->setSourceConfig($dest, $imgW, $imgH);
 			$thObj->setThumbnailConfig($W, $H, $THUMB_SETTING);
 			$thObj->makeThumbnailtoFile($thumbFile);
 			@chmod($thumbFile, 0666);
@@ -1096,7 +1099,7 @@ function listModules(){
 
 	/* Module Infomation */
 	$dat .= _T('module_info').'<ul>'."\n";
-	foreach($PMS->moduleInstance as $m) $dat .= '<li>'.$m->getModuleName().'<div style="padding-left:2em;">'.$m->getModuleVersionInfo()."</div></li>\n";
+	foreach($PMS->getModuleInstances() as $m) $dat .= '<li>'.$m->getModuleName().'<div style="padding-left:2em;">'.$m->getModuleVersionInfo()."</div></li>\n";
 	$dat .= '</ul><hr />
 </div>
 
@@ -1138,9 +1141,7 @@ function showstatus(){
 	$func_thumbWork = '<span style="color: red;">'._T('info_nonfunctional').'</span>';
 	$func_thumbInfo = '(No thumbnail)';
 	if(USE_THUMB !== 0){
-		$thumbType = USE_THUMB; if(USE_THUMB==1){ $thumbType = 'gd'; }
-		require(ROOTPATH.'lib/thumb/thumb.'.$thumbType.'.php');
-		$thObj = new ThumbWrapper();
+		$thObj = PMCLibrary::getThumbInstance();
 		if($thObj->isWorking()) $func_thumbWork = '<span style="color: blue;">'._T('info_functional').'</span>';
 		$func_thumbInfo = $thObj->getClass();
 		unset($thObj);
@@ -1253,7 +1254,7 @@ switch($mode){
 	case 'module':
 		$PMS = PMCLibrary::getPMSInstance();
 		$loadModule = isset($_GET['load']) ? $_GET['load'] : '';
-		if($PMS->onlyLoad($loadModule)) $PMS->moduleInstance[$loadModule]->ModulePage();
+		if($PMS->onlyLoad($loadModule)) $PMS->getModuleInstance($loadModule)->ModulePage();
 		else echo '404 Not Found';
 		break;
 	case 'moduleloaded':

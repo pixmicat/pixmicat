@@ -1,9 +1,12 @@
 <?php
+namespace Pixmicat;
+
 /**
  * Pixmicat! compatible components
  *
  * @package PMCLibrary
  * @version $Id$
+ * @deprecated 未來要拿掉
  */
 
 /**

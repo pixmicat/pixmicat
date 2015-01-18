@@ -1,4 +1,6 @@
 <?php
+namespace Pixmicat;
+
 /**
  * Global error handler
  *
@@ -11,7 +13,7 @@
  */
 function errorHandler($errno, $errstr, $errfile, $errline) {
 	// Ignore @ prefix suppressed error
-	if (!(error_reporting() & $errno)) {
+	if (!(\error_reporting() & $errno)) {
         return;
     }
 
@@ -19,20 +21,20 @@ function errorHandler($errno, $errstr, $errfile, $errline) {
     	error('Error caught: #%d: %s in %s on line %d',
     	$errno, $errstr, $errfile, $errline);
 }
-set_error_handler('errorHandler');
+\set_error_handler('\Pixmicat\errorHandler');
 
 /**
  * Handles fatal PHP errors. Only PHP 5.2+ supports this method.
  */
 function fatalErrorHandler() {
-	$e = error_get_last();
+	$e = \error_get_last();
 	if($e !== NULL) {
 	    PMCLibrary::getLoggerInstance('Global')->
 	    	error('Fatal error caught: #%d: %s in %s on line %d',
 	    	$e['type'], $e['message'], $e['file'], $e['line']);
 	}
 }
-register_shutdown_function('fatalErrorHandler');
+\register_shutdown_function('\Pixmicat\fatalErrorHandler');
 
 /**
  * Handles thrown exceptions by program itself or PHP.
@@ -40,4 +42,4 @@ register_shutdown_function('fatalErrorHandler');
 function exceptionHandler($e) {
 	PMCLibrary::getLoggerInstance('Global')->error('Exception caught: %s', $e);
 }
-set_exception_handler('exceptionHandler');
+\set_exception_handler('\Pixmicat\exceptionHandler');
