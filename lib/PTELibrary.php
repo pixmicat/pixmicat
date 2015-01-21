@@ -64,9 +64,9 @@ class PTELibrary
         foreach ($ary_val as $akey=>$aval) {
             $ary_val[$akey] = \str_replace('{$', '{'.\chr(1).'$', $ary_val[$akey]);
         }
-        $tmp_block = $this->EvalFOREACH($tmp_block, $ary_val); // 解析FOREACH敘述
-        $tmp_block = $this->EvalIF($tmp_block, $ary_val); // 解析IF敘述
-        $tmp_block = $this->EvalInclude($tmp_block, $ary_val); // 解析引用
+        $tmp_block = $this->evalForEach($tmp_block, $ary_val); // 解析FOREACH敘述
+        $tmp_block = $this->evalIf($tmp_block, $ary_val); // 解析IF敘述
+        $tmp_block = $this->evalInclude($tmp_block, $ary_val); // 解析引用
         return \str_replace(
             '{'.\chr(1).'$',
             '{$',
@@ -77,7 +77,7 @@ class PTELibrary
     /**
      * 解析IF敘述
      */
-    public function EvalIF($tpl, $ary)
+    private function evalIf($tpl, $ary)
     {
         $tmp_tpl = $tpl;
         if (\preg_match_all('/<!--&IF\(([\$&].*),\'(.*)\',\'(.*)\'\)-->/smU', $tmp_tpl, $matches, \PREG_SET_ORDER)) {
@@ -94,8 +94,8 @@ class PTELibrary
                             ? $this->BlockValue($vari)
                             : (array_key_exists($key, $ary) && $ary[$key] == true)
                         )
-                            ? $this->EvalInclude($iftrue, $ary)
-                            : $this->EvalInclude($iffalse, $ary)
+                            ? $this->evalInclude($iftrue, $ary)
+                            : $this->evalInclude($iffalse, $ary)
                     ),
                     $tmp_tpl
                 );
@@ -107,7 +107,7 @@ class PTELibrary
     /**
      * 解析FOREACH敘述
      */
-    public function EvalFOREACH($tpl, $ary)
+    private function evalForEach($tpl, $ary)
     {
         $tmp_tpl = $tpl;
         if (\preg_match_all('/<!--&FOREACH\((\$.*),\'(.*)\'\)-->/smU', $tmp_tpl, $matches, \PREG_SET_ORDER)) {
@@ -116,8 +116,9 @@ class PTELibrary
                 $block = $submatches[2];
                 
                 $foreach_tmp = '';
-                if (isset($ary['{'.$vari.'}']) && is_array($ary['{'.$vari.'}'])) {
-                    foreach ($ary['{'.$vari.'}'] as $eachvar) {
+                $key = '{'.$vari.'}';
+                if (isset($ary[$key]) && is_array($ary[$key])) {
+                    foreach ($ary[$key] as $eachvar) {
                         $foreach_tmp .= $this->ParseBlock($block, $eachvar);
                     }
                 }
@@ -130,7 +131,7 @@ class PTELibrary
     /**
      * 解析區塊引用
      */
-    public function EvalInclude($tpl, $ary)
+    private function evalInclude($tpl, $ary)
     {
         $tmp_tpl = $tpl;
         if (\preg_match_all('/<!--&(.*)\/-->/smU', $tmp_tpl, $matches, \PREG_SET_ORDER)) {
