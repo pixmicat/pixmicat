@@ -104,12 +104,13 @@ function foot(&$dat){
 }
 
 /* 網址自動連結 */
-function auto_link_callback($matches){
-	return (strtolower($matches[3]) == "</a>") ? $matches[0] : preg_replace('/(https?|ftp|news)(:\/\/[\w\+\$\;\?\.\{\}%,!#~*\/:@&=_-]+)/u', '<a href="$1$2" target="_blank" rel="nofollow noreferrer">$1$2</a>', $matches[0]);
-}
 function auto_link($proto){
 	$proto = preg_replace('|<br\s*/?>|',"\n",$proto);
-	$proto = preg_replace_callback('/(>|^)([^<]+?)(<.*?>|$)/m','auto_link_callback',$proto);
+        $proto = preg_replace_callback('/(>|^)([^<]+?)(<.*?>|$)/m', function($matches) {
+            return (strtolower($matches[3]) == "</a>")
+                ? $matches[0]
+                : preg_replace('/(https?|ftp|news)(:\/\/[\w\+\$\;\?\.\{\}%,!#~*\/:@&=_-]+)/u', '<a href="$1$2" target="_blank" rel="nofollow noreferrer">$1$2</a>', $matches[0]);
+        }, $proto);
 	return str_replace("\n",'<br />',$proto);
 }
 
