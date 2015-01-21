@@ -15,11 +15,12 @@ namespace Pixmicat;
  * @param args 翻譯資源檔索引、其餘變數
  * @see LanguageLoader->getTranslation
  */
-function _T(/*$args[]*/) {
-	return call_user_func_array(
-		array(PMCLibrary::getLanguageInstance(), 'getTranslation'),
-		func_get_args()
-	);
+function _T(/*$args[]*/)
+{
+    return \call_user_func_array(
+        array(PMCLibrary::getLanguageInstance(), 'getTranslation'),
+        \func_get_args()
+    );
 }
 
 /**
@@ -28,14 +29,9 @@ function _T(/*$args[]*/) {
  * @deprecated 7th.Release. Use LanguageLoader->attachLanguage instead.
  * @param callable $fcall 附加翻譯資源字串的函式
  */
-function AttachLanguage($fcall){
-	$GLOBALS['language'] = array();
-	call_user_func($fcall);
-	PMCLibrary::getLanguageInstance()->attachLanguage($GLOBALS['language']);
+function AttachLanguage($fcall)
+{
+    $GLOBALS['language'] = array();
+    \call_user_func($fcall);
+    PMCLibrary::getLanguageInstance()->attachLanguage($GLOBALS['language']);
 }
-
-// 為了相容舊寫法而保留
-$PIO = PMCLibrary::getPIOInstance();
-$FileIO = PMCLibrary::getFileIOInstance();
-$PTE = PMCLibrary::getPTEInstance();
-$PMS = PMCLibrary::getPMSInstance();
