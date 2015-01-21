@@ -1,6 +1,8 @@
 <?php
 namespace Pixmicat\Pio\Condition;
 
+use Pixmicat\PMCLibrary;
+
 /**
  * 以總文章篇數作為刪除判斷 
  */
