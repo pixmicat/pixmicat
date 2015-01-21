@@ -86,12 +86,13 @@ class PTELibrary
                 $vari = \substr($submatches[1], 1);
                 $iftrue = $submatches[2];
                 $iffalse = $submatches[3];
+                $key = '{$'.$vari.'}';
                 $tmp_tpl = \str_replace(
                     $submatches[0],
                     (
                         ($isblock
                             ? $this->BlockValue($vari)
-                            : ($ary['{$'.$vari.'}'] !== '' && $ary['{$'.$vari.'}'] !== false && $ary['{$'.$vari.'}'] !== null)
+                            : (array_key_exists($key, $ary) && $ary[$key] == true)
                         )
                             ? $this->EvalInclude($iftrue, $ary)
                             : $this->EvalInclude($iffalse, $ary)
