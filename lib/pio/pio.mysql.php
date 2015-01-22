@@ -457,6 +457,13 @@ class PIOmysql implements IPIO {
 	/* 搜尋文章 */
 	function searchPost($keyword, $field, $method){
 		if(!$this->prepared) $this->dbPrepare();
+	
+		if (!in_array($field, array('com', 'name', 'sub', 'no'))) {
+			$field = 'com';
+		}
+		if (!in_array($method, array('AND', 'OR'))) {
+			$method = 'AND';
+		}
 
 		$keyword_cnt = count($keyword);
 		$SearchQuery = 'SELECT * FROM '.$this->tablename." WHERE {$field} LIKE '%".mysql_real_escape_string($keyword[0], $this->con)."%'";
