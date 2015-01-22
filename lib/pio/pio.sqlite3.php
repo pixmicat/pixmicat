@@ -11,7 +11,9 @@
 
 class PIOsqlite3 implements IPIO {
 	private $ENV, $DSN, $tablename; // Local Constant
-	private $con, $prepared, $useTransaction; // Local Global
+	/** @var \PDO */
+	private $con;
+	private $prepared, $useTransaction; // Local Global
 
 	public function __construct($connstr='', $ENV){
 		$this->ENV = $ENV;
@@ -238,12 +240,20 @@ class PIOsqlite3 implements IPIO {
 		if(!$this->prepared) $this->dbPrepare();
 
 		if(is_array($postlist)){ // 取多串
-			$pno = implode(',', $postlist); // ID字串
-			$tmpSQL = 'SELECT '.$fields.' FROM '.$this->tablename.' WHERE no IN ('.$pno.') ORDER BY no';
+			$postlist = array_filter($postlist, "is_numeric");
+			$params = str_repeat('?,', count($postlist) - 1) . '?';
+			$tmpSQL = "SELECT $fields FROM {$this->tablename} WHERE no IN ($params) ORDER BY no";
 			if(count($postlist) > 1){ if($postlist[0] > $postlist[1]) $tmpSQL .= ' DESC'; } // 由大排到小
-		}else $tmpSQL = 'SELECT '.$fields.' FROM '.$this->tablename.' WHERE no = '.intval($postlist); // 取單串
-		$line = $this->con->query($tmpSQL)->fetchAll(PDO::FETCH_ASSOC);
-		return $line;
+                        
+			$sth = $this->con->prepare($tmpSQL);
+			$sth->execute($postlist);
+		} else {
+			$tmpSQL = "SELECT $fields FROM {$this->tablename} WHERE no = ?"; // 取單串
+			$sth = $this->con->prepare($tmpSQL);
+			$sth->bindValue(1, $postlist, PDO::PARAM_INT);
+			$sth->execute();
+		}
+		return $sth->fetchAll(PDO::FETCH_ASSOC);
 	}
 
 	/* 刪除舊附件 (輸出附件清單) */

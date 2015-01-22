@@ -721,7 +721,15 @@ function usrdel(){
 	$onlyimgdel = isset($_POST['onlyimgdel']) ? $_POST['onlyimgdel'] : '';
 	$delno = array();
 	reset($_POST);
-	while($item = each($_POST)){ if($item[1]=='delete' && $item[0] != 'func') array_push($delno, $item[0]); }
+	while ($item = each($_POST)){
+		if ($item[1] !== 'delete') {
+			continue;
+		}
+		if (!is_numeric($item[0])) {
+			continue;
+		}
+		array_push($delno, intval($item[0]));
+	}
 	$haveperm = passwordVerify($pwd) || adminAuthenticate('check');
 	$PMS->useModuleMethods('Authenticate', array($pwd,'userdel',&$haveperm));
 	if($haveperm && isset($_POST['func'])){ // 前端管理功能

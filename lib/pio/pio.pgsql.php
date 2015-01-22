@@ -269,6 +269,7 @@ class PIOpgsql implements IPIO {
 
 		if(is_array($postlist)){ // 取多串
 			if(!count($postlist)) return array();
+			$postlist = array_filter($postlist, "is_numeric");
 			$pno = implode(',', $postlist); // ID字串
 			$tmpSQL = 'SELECT '.$fields.' FROM '.$this->tablename.' WHERE no IN ('.$pno.') ORDER BY no';
 			if(count($postlist) > 1){ if($postlist[0] > $postlist[1]) $tmpSQL .= ' DESC'; } // 由大排到小
