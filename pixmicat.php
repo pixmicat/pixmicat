@@ -756,7 +756,7 @@ function usrdel(){
 	foreach($posts as $post){
 		if($pwd_md5==$post['pwd'] || $host==$post['host'] || $haveperm){
 			$search_flag = true; // 有搜尋到
-			array_push($delposts, $post['no']);
+			array_push($delposts, intval($post['no']));
 		}
 	}
 	if($search_flag){
