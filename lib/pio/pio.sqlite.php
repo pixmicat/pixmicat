@@ -287,6 +287,7 @@ class PIOsqlite implements IPIO {
 	function removePosts($posts){
 		if(!$this->prepared) $this->dbPrepare();
 		if(count($posts)==0) return array();
+		$posts = array_filter($posts, "is_numeric");
 
 		$files = $this->removeAttachments($posts, true); // 先遞迴取得刪除文章及其回應附件清單
 		$pno = implode(', ', $posts); // ID字串
@@ -300,6 +301,7 @@ class PIOsqlite implements IPIO {
 		$FileIO = PMCLibrary::getFileIOInstance();
 		if(!$this->prepared) $this->dbPrepare();
 		if(count($posts)==0) return array();
+		$posts = array_filter($posts, "is_numeric");
 
 		$files = array();
 		$pno = implode(', ', $posts); // ID字串

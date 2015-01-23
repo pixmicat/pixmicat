@@ -275,10 +275,12 @@ class PIOsqlite3 implements IPIO {
 	/* 刪除文章 */
 	public function removePosts($posts){
 		if(!$this->prepared) $this->dbPrepare();
+		$posts = array_filter($posts, "is_numeric");
 
 		$files = $this->removeAttachments($posts, true); // 先遞迴取得刪除文章及其回應附件清單
-		$pno = implode(', ', $posts); // ID字串
-		if(!$this->con->exec('DELETE FROM '.$this->tablename.' WHERE no IN ('.$pno.') OR resto IN('.$pno.')')) $this->_error_handler('Delete old posts and replies failed', __LINE__);
+		$params = str_repeat('?,', count($posts) - 1) . '?';
+		$sth = $this->con->prepare("DELETE FROM {$this->tablename} WHERE no IN ($params) OR resto IN($params)");
+		if(!$sth->execute($posts)) $this->_error_handler('Delete old posts and replies failed', __LINE__);
 		return $files;
 	}
 
@@ -286,14 +288,21 @@ class PIOsqlite3 implements IPIO {
 	public function removeAttachments($posts, $recursion=false){
 		$FileIO = PMCLibrary::getFileIOInstance();
 		if(!$this->prepared) $this->dbPrepare();
+		$posts = array_filter($posts, "is_numeric");
 
 		$files = array();
-		$pno = implode(', ', $posts); // ID字串
-		if($recursion) $tmpSQL = 'SELECT ext,tim FROM '.$this->tablename.' WHERE (no IN ('.$pno.') OR resto IN('.$pno.")) AND ext <> ''"; // 遞迴取出 (含回應附件)
-		else $tmpSQL = 'SELECT ext,tim FROM '.$this->tablename.' WHERE no IN ('.$pno.") AND ext <> ''"; // 只有指定的編號
+		$params = str_repeat('?,', count($posts) - 1) . '?';
+		if ($recursion) {
+			// 遞迴取出 (含回應附件)
+			$tmpSQL = "SELECT ext,tim FROM {$this->tablename} WHERE (no IN ($params) OR resto IN($params)) AND ext <> ''";
+		} else {
+			// 只有指定的編號
+			$tmpSQL = "SELECT ext,tim FROM {$this->tablename} WHERE no IN ($params) AND ext <> ''";
+		}
 
-		($result = $this->con->query($tmpSQL)) or $this->_error_handler('Get attachments of the post failed', __LINE__);
-		while(list($dext, $dtim) = $result->fetch(PDO::FETCH_NUM)){
+		$sth = $this->con->prepare($tmpSQL);
+		$sth->execute($posts) or $this->_error_handler('Get attachments of the post failed', __LINE__);
+		while(list($dext, $dtim) = $sth->fetch(PDO::FETCH_NUM)){
 			$dfile = $dtim.$dext; $dthumb = $FileIO->resolveThumbName($dtim);
 			if($FileIO->imageExists($dfile)) $files[] = $dfile;
 			if($dthumb && $FileIO->imageExists($dthumb)) $files[] = $dthumb;
