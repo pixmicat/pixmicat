@@ -1,10 +1,10 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 8th.Release.2'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 8th.Release.3'); // 版本資訊文字
 define("PHP_SELF", basename(__FILE__)); // 主程式名
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
-版權所有 © 2005-2014 Pixmicat! Development Team
+版權所有 © 2005-2015 Pixmicat! Development Team
 
 版權聲明：
 此程式是基於レッツPHP!<http://php.s3.to/>的gazou.php、
