@@ -261,6 +261,7 @@ class PIOsqlite implements IPIO {
 
 		if(is_array($postlist)){ // 取多串
 			$postlist = array_filter($postlist, "is_numeric");
+			if (count($postlist) == 0) return array();
 			$pno = implode(',', $postlist); // ID字串
 			$tmpSQL = 'SELECT '.$fields.' FROM '.$this->tablename.' WHERE no IN ('.$pno.') ORDER BY no';
 			if(count($postlist) > 1){ if($postlist[0] > $postlist[1]) $tmpSQL .= ' DESC'; } // 由大排到小
@@ -290,8 +291,8 @@ class PIOsqlite implements IPIO {
 	/* 刪除文章 */
 	function removePosts($posts){
 		if(!$this->prepared) $this->dbPrepare();
-		if(count($posts)==0) return array();
 		$posts = array_filter($posts, "is_numeric");
+		if (count($posts) == 0) return array();
 
 		$files = $this->removeAttachments($posts, true); // 先遞迴取得刪除文章及其回應附件清單
 		$pno = implode(', ', $posts); // ID字串
@@ -304,8 +305,8 @@ class PIOsqlite implements IPIO {
 	function removeAttachments($posts, $recursion=false){
 		$FileIO = PMCLibrary::getFileIOInstance();
 		if(!$this->prepared) $this->dbPrepare();
-		if(count($posts)==0) return array();
 		$posts = array_filter($posts, "is_numeric");
+		if (count($posts) == 0) return array();
 
 		$files = array();
 		$pno = implode(', ', $posts); // ID字串
