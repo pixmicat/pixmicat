@@ -1,4 +1,7 @@
 <?php
+
+use Pixmicat\PMCLibrary;
+
 class LoggerTest extends PHPUnit_Framework_TestCase {
 	public $Logger;
 

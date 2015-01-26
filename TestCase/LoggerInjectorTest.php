@@ -1,4 +1,9 @@
 <?php
+
+use Pixmicat\Logger\LoggerInjector;
+use Pixmicat\Logger\LoggerInterceptor;
+use Pixmicat\PMCLibrary;
+
 class TempClass {
 	public function printMessage($msg) {
 		return "Hello, $msg!";

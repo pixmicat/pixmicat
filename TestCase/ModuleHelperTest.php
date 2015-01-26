@@ -1,4 +1,8 @@
 <?php
+
+use Pixmicat\Module\ModuleHelper;
+use Pixmicat\PMCLibrary;
+
 class mod_test extends ModuleHelper {
 	public function __construct($PMS) {
 		parent::__construct($PMS);

@@ -1,4 +1,7 @@
 <?php
+
+use Pixmicat\PMCLibrary;
+
 class PMSTest extends PHPUnit_Framework_TestCase {
 	public $PMS;
 

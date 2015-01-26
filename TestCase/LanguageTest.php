@@ -1,6 +1,8 @@
 <?php
 require_once ROOTPATH.'lib/lib_compatible.php';
 
+use Pixmicat\PMCLibrary;
+
 class LanguageTest extends PHPUnit_Framework_TestCase {
 	public $Lang;
 
@@ -52,36 +54,36 @@ class LanguageTest extends PHPUnit_Framework_TestCase {
 
 	public function test_T() {
 		$expect = '資料表最佳化';
-		$result = _T('admin_optimize');
+		$result = Pixmicat\_T('admin_optimize');
 		$this->assertEquals($expect, $result);
 	}
 
 	public function test_TWithArgs() {
 		$expect = '【 附加圖檔使用容量總計 : <b>51200</b> KB 】';
-		$result = _T('admin_totalsize', '51200');
+		$result = Pixmicat\_T('admin_totalsize', '51200');
 		$this->assertEquals($expect, $result);
 	}
 
 	public function test_TNoArg() {
 		$expect = '';
-		$result = _T();
+		$result = Pixmicat\_T();
 		$this->assertEquals($expect, $result);
 	}
 
 	public function test_TIndexNotExists() {
 		$expect = 'WTF_IS_THIS_ANYWAY';
-		$result = _T('WTF_IS_THIS_ANYWAY');
+		$result = Pixmicat\_T('WTF_IS_THIS_ANYWAY');
 		$this->assertEquals($expect, $result);
 	}
 
 	public function testAttachLanguageOldway() {
-		AttachLanguage(function(){
+		Pixmicat\AttachLanguage(function(){
 			global $language;
 			$language['testIndex'] = 'testValue';
 		});
 
 		$expect = 'testValue';
-		$result = _T('testIndex');
+		$result = Pixmicat\_T('testIndex');
 		$this->assertEquals($expect, $result);
 	}
 
@@ -91,7 +93,7 @@ class LanguageTest extends PHPUnit_Framework_TestCase {
 		PMCLibrary::getLanguageInstance()->attachLanguage($langArray);
 
 		$expect = 'testValue2';
-		$result = _T('testIndex2');
+		$result = Pixmicat\_T('testIndex2');
 		$this->assertEquals($expect, $result);
 	}
 }
