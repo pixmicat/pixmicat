@@ -1,4 +1,4 @@
-Pixmicat! Imageboard System
+Pixmicat! Imageboard System [![Build Status](https://drone.io/github.com/scribetw/pixmicat/status.png)](https://drone.io/github.com/scribetw/pixmicat/latest)
 ========
 
 What is this?
