@@ -31,7 +31,7 @@ class LanguageLoader
         static $inst = null;
         if ($inst == null) {
             $locale = PIXMICAT_LANGUAGE;
-            $langFile = ROOTPATH."lib/lang/{$locale}.php";
+            $langFile = ROOTPATH."lib/Lang/{$locale}.php";
             if (\file_exists($langFile)) {
                 require $langFile;
             } else {
@@ -53,7 +53,7 @@ class LanguageLoader
     public function setFallback($localeFallback = 'en_US')
     {
         if ($localeFallback != $this->getLocale()) {
-            require ROOTPATH."lib/lang/{$localeFallback}.php";
+            require ROOTPATH."lib/Lang/{$localeFallback}.php";
             $this->hasFallback = true;
             $this->languageFallback = $language;
         } else {

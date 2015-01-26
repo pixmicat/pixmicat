@@ -1,9 +1,13 @@
 <?php
+
+use Pixmicat\Logger\LoggerInterceptor;
+use Pixmicat\PMCLibrary;
+
 class LoggerInterceptorTest extends PHPUnit_Framework_TestCase {
 	public function testInstance() {
 		$obj = new LoggerInterceptor(PMCLibrary::getLoggerInstance('Test'));
 		$this->assertNotNull($obj);
-		$this->assertInstanceOf('MethodInterceptor', $obj);
+		$this->assertInstanceOf('Pixmicat\Aop\MethodInterceptor', $obj);
 	}
 
 	/**
