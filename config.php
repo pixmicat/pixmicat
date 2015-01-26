@@ -2,7 +2,7 @@
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
-版權所有 © 2005-2014 Pixmicat! Development Team
+版權所有 © 2005-2015 Pixmicat! Development Team
 
 版權聲明：
 此程式是基於レッツPHP!<http://php.s3.to/>的gazou.php、
@@ -38,7 +38,6 @@ define("FILEIO_PARAMETER", ''); // FileIO參數 (本機端儲存)
 //define("FILEIO_PARAMETER", serialize(array('http://www.example.com/~demo/satellite.cgi', true, '12345678', 'http://www.example.com/~demo/src/', true))); // FileIO參數 (Satellite)
 
 // PIO資料來源設定
-//define("CONNECTION_STRING", 'log://'.STORAGE_PATH.'img.log:'.STORAGE_PATH.'tree.log/'); // PIO 連線字串 (Log)
 //define("CONNECTION_STRING", 'mysql://pixmicat:pass@localhost/test/imglog/'); // PIO 連線字串 (MySQL)
 define("CONNECTION_STRING", 'sqlite3://'.STORAGE_PATH.'pixmicat.db3/imglog/'); // PIO 連線字串 (PDO SQLite)
 //define("CONNECTION_STRING", 'sqlite://'.STORAGE_PATH.'pixmicat.db/imglog/'); // PIO 連線字串 (SQLite 2)

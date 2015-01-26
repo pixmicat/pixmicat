@@ -1,10 +1,15 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 8th.Release'); // 版本資訊文字
+namespace Pixmicat;
+
+use Pixmicat\PMCLibrary;
+use Pixmicat\Pio\Condition\PIOSensor;
+
+define("PIXMICAT_VER", 'Pixmicat!-PIO 8th.Release.3'); // 版本資訊文字
 define("PHP_SELF", basename(__FILE__)); // 主程式名
 /*
 Pixmicat! : 圖咪貓貼圖版程式
 http://pixmicat.openfoundry.org/
-版權所有 © 2005-2014 Pixmicat! Development Team
+版權所有 © 2005-2015 Pixmicat! Development Team
 
 版權聲明：
 此程式是基於レッツPHP!<http://php.s3.to/>的gazou.php、
@@ -22,11 +27,11 @@ http://pixmicat.openfoundry.org/
 "Pixmicat!", "Pixmicat", 及"圖咪貓"是Pixmicat! Development Team的商標。
 
 最低運行需求：
-PHP 5.2.0 / 2 November 2006
+PHP 5.3.0 / 30 June 2009
 GD Version 2.0.28 / 21 July 2004
 
 建議運行環境：
-PHP 5.2.0 或更高版本並開啟 GD 和 Zlib 支援，如支援 ImageMagick 建議使用
+PHP 5.3.0 或更高版本並開啟 GD 和 Zlib 支援，如支援 ImageMagick 建議使用
 安裝 PHP 編譯快取套件 (如eAccelerator, XCache, APC) 或其他快取套件 (如memcached) 更佳
 如伺服器支援 SQLite, MySQL, PostgreSQL 等請盡量使用
 
@@ -41,8 +46,7 @@ PHP 5.2.0 或更高版本並開啟 GD 和 Zlib 支援，如支援 ImageMagick �
 */
 
 require './config.php'; // 引入設定檔
-require ROOTPATH.'lib/pmclibrary.php'; // 引入函式庫
-require ROOTPATH.'lib/lib_errorhandler.php'; // 引入全域錯誤捕捉
+require ROOTPATH . 'vendor/autoload.php';
 require ROOTPATH.'lib/lib_compatible.php'; // 引入相容函式庫
 require ROOTPATH.'lib/lib_common.php'; // 引入共通函式檔案
 
@@ -650,9 +654,8 @@ function regist(){
 		$destFile = IMG_DIR.$tim.$ext; // 圖檔儲存位置
 		$thumbFile = THUMB_DIR.$tim.'s.'.$THUMB_SETTING['Format']; // 預覽圖儲存位置
 		if(USE_THUMB !== 0){ // 生成預覽圖
-			$thumbType = USE_THUMB; if(USE_THUMB==1){ $thumbType = 'gd'; } // 與舊設定相容
-			require(ROOTPATH.'lib/thumb/thumb.'.$thumbType.'.php');
-			$thObj = new ThumbWrapper($dest, $imgW, $imgH);
+			$thObj = PMCLibrary::getThumbInstance();
+                        $thObj->setSourceConfig($dest, $imgW, $imgH);
 			$thObj->setThumbnailConfig($W, $H, $THUMB_SETTING);
 			$thObj->makeThumbnailtoFile($thumbFile);
 			@chmod($thumbFile, 0666);
@@ -721,7 +724,15 @@ function usrdel(){
 	$onlyimgdel = isset($_POST['onlyimgdel']) ? $_POST['onlyimgdel'] : '';
 	$delno = array();
 	reset($_POST);
-	while($item = each($_POST)){ if($item[1]=='delete' && $item[0] != 'func') array_push($delno, $item[0]); }
+	while ($item = each($_POST)){
+		if ($item[1] !== 'delete') {
+			continue;
+		}
+		if (!is_numeric($item[0])) {
+			continue;
+		}
+		array_push($delno, intval($item[0]));
+	}
 	$haveperm = passwordVerify($pwd) || adminAuthenticate('check');
 	$PMS->useModuleMethods('Authenticate', array($pwd,'userdel',&$haveperm));
 	if($haveperm && isset($_POST['func'])){ // 前端管理功能
@@ -748,7 +759,7 @@ function usrdel(){
 	foreach($posts as $post){
 		if($pwd_md5==$post['pwd'] || $host==$post['host'] || $haveperm){
 			$search_flag = true; // 有搜尋到
-			array_push($delposts, $post['no']);
+			array_push($delposts, intval($post['no']));
 		}
 	}
 	if($search_flag){
@@ -1095,7 +1106,7 @@ function listModules(){
 
 	/* Module Infomation */
 	$dat .= _T('module_info').'<ul>'."\n";
-	foreach($PMS->moduleInstance as $m) $dat .= '<li>'.$m->getModuleName().'<div style="padding-left:2em;">'.$m->getModuleVersionInfo()."</div></li>\n";
+	foreach($PMS->getModuleInstances() as $m) $dat .= '<li>'.$m->getModuleName().'<div style="padding-left:2em;">'.$m->getModuleVersionInfo()."</div></li>\n";
 	$dat .= '</ul><hr />
 </div>
 
@@ -1137,9 +1148,7 @@ function showstatus(){
 	$func_thumbWork = '<span style="color: red;">'._T('info_nonfunctional').'</span>';
 	$func_thumbInfo = '(No thumbnail)';
 	if(USE_THUMB !== 0){
-		$thumbType = USE_THUMB; if(USE_THUMB==1){ $thumbType = 'gd'; }
-		require(ROOTPATH.'lib/thumb/thumb.'.$thumbType.'.php');
-		$thObj = new ThumbWrapper();
+		$thObj = PMCLibrary::getThumbInstance();
 		if($thObj->isWorking()) $func_thumbWork = '<span style="color: blue;">'._T('info_functional').'</span>';
 		$func_thumbInfo = $thObj->getClass();
 		unset($thObj);
@@ -1211,6 +1220,9 @@ function showstatus(){
 	echo $dat;
 }
 
+$errorHandler = new ErrorHandler();
+$errorHandler->register();
+
 /*-----------程式各項功能主要判斷-------------*/
 if(GZIP_COMPRESS_LEVEL && ($Encoding = CheckSupportGZip())){ ob_start(); ob_implicit_flush(0); } // 支援且開啟Gzip壓縮就設緩衝區
 $mode = isset($_GET['mode']) ? $_GET['mode'] : (isset($_POST['mode']) ? $_POST['mode'] : ''); // 目前執行模式 (GET, POST)
@@ -1252,7 +1264,7 @@ switch($mode){
 	case 'module':
 		$PMS = PMCLibrary::getPMSInstance();
 		$loadModule = isset($_GET['load']) ? $_GET['load'] : '';
-		if($PMS->onlyLoad($loadModule)) $PMS->moduleInstance[$loadModule]->ModulePage();
+		if($PMS->onlyLoad($loadModule)) $PMS->getModuleInstance($loadModule)->ModulePage();
 		else echo '404 Not Found';
 		break;
 	case 'moduleloaded':

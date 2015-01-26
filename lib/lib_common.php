@@ -1,4 +1,6 @@
 <?php
+namespace Pixmicat;
+
 /**
  * Pixmicat! Common Library
  *
@@ -9,37 +11,6 @@
  * @date $Date$
  */
  
-// Windows PHP 5.2.0 does not have this function implemented.
-if (!function_exists('inet_pton')) {
-	// Source: http://stackoverflow.com/a/14568699
-	function inet_pton($ip){
-		# ipv4
-		if (strpos($ip, '.') !== FALSE) {
-			if (strpos($ip, ':') === FALSE) $ip = pack('N',ip2long($ip));
-			else {
-				$ip = explode(':',$ip);
-				$ip = pack('N',ip2long($ip[count($ip)-1]));
-			}
-		}
-		# ipv6
-		elseif (strpos($ip, ':') !== FALSE) {
-			$ip = explode(':', $ip);
-			$parts=8-count($ip);
-			$res='';$replaced=0;
-			foreach ($ip as $seg) {
-				if ($seg!='') $res .= str_pad($seg, 4, '0', STR_PAD_LEFT);
-				elseif ($replaced==0) {
-					for ($i=0;$i<=$parts;$i++) $res.='0000';
-					$replaced=1;
-				} elseif ($replaced==1) $res.='0000';
-			}
-			$ip = pack('H'.strlen($res), $res);
-		}
-		return $ip;
-	}
-}
- 
-
 /* 輸出表頭 */
 function head(&$dat,$resno=0){
 	$PTE = PMCLibrary::getPTEInstance();
@@ -133,12 +104,13 @@ function foot(&$dat){
 }
 
 /* 網址自動連結 */
-function auto_link_callback($matches){
-	return (strtolower($matches[3]) == "</a>") ? $matches[0] : preg_replace('/(https?|ftp|news)(:\/\/[\w\+\$\;\?\.\{\}%,!#~*\/:@&=_-]+)/u', '<a href="$1$2" target="_blank" rel="nofollow noreferrer">$1$2</a>', $matches[0]);
-}
 function auto_link($proto){
 	$proto = preg_replace('|<br\s*/?>|',"\n",$proto);
-	$proto = preg_replace_callback('/(>|^)([^<]+?)(<.*?>|$)/m','auto_link_callback',$proto);
+        $proto = preg_replace_callback('/(>|^)([^<]+?)(<.*?>|$)/m', function($matches) {
+            return (strtolower($matches[3]) == "</a>")
+                ? $matches[0]
+                : preg_replace('/(https?|ftp|news)(:\/\/[\w\+\$\;\?\.\{\}%,!#~*\/:@&=_-]+)/u', '<a href="$1$2" target="_blank" rel="nofollow noreferrer">$1$2</a>', $matches[0]);
+        }, $proto);
 	return str_replace("\n",'<br />',$proto);
 }
 
@@ -346,6 +318,8 @@ function getREMOTE_ADDR(){
  * 取得 (Transparent) Proxy 提供之 IP 參數
  */
 function getRemoteAddrThroughProxy() {
+    global $PROXYHEADERlist;
+
     if (!defined('TRUST_HTTP_X_FORWARDED_FOR') || !TRUST_HTTP_X_FORWARDED_FOR) {
         return '';
     }
