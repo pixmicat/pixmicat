@@ -19,8 +19,9 @@ before_script:
   
 script:
   - php --version
-  - cd TestCase
-  - phpunit -d date.timezone=UTC --log-junit shippable/testresults/junit.xml --coverage-xml shippable/codecoverage
+  - phpunit -c TestCase/phpunit.xml -d date.timezone=UTC --log-junit shippable/testresults/junit.xml --coverage-xml shippable/codecoverage
   
 notifications:
-  email: false
+  email:
+    on_success: never
+    on_failure: always
