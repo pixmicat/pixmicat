@@ -19,7 +19,7 @@ before_script:
   
 script:
   - php --version
-  - phpunit -c TestCase/phpunit.xml -d date.timezone=UTC --log-junit shippable/testresults/junit.xml --coverage-xml shippable/codecoverage
+  - vendor/bin/phpunit -c TestCase/phpunit.xml -d date.timezone=UTC --log-junit shippable/testresults/junit.xml --coverage-xml shippable/codecoverage
   
 notifications:
   email:
