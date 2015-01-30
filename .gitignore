@@ -1,3 +1,6 @@
 /.netbean/
+/vendor/
+composer.phar
+composer.lock
 *.log
 *.dat
