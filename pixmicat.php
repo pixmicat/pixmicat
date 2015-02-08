@@ -92,7 +92,7 @@ function updatelog($resno=0,$page_num=-1,$single_page=false){
 			$page_end = ceil($threads_count / PAGE_DEF) - 1; // 頁面編號最後值
 		}else{ // 討論串分頁模式 (PHP動態輸出一頁份)
 			$threads_count = $PIO->threadCount(); // 討論串個數
-			if($page_num < 0 || ($page_num * PAGE_DEF) >= $threads_count) error(_T('page_not_found')); // $page_num超過範圍
+			if($page_num < 0 || ($threads_count > 0 && ($page_num * PAGE_DEF) >= $threads_count)) error(_T('page_not_found')); // $page_num超過範圍
 			$page_start = $page_end = $page_num; // 設定靜態頁面編號
 			$threads = $PIO->fetchThreadList(); // 取得全討論串列表
 			$PMS->useModuleMethods('ThreadOrder', array($resno,$page_num,$single_page,&$threads)); // "ThreadOrder" Hook Point
