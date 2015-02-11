@@ -46,7 +46,7 @@ class ThumbWrapper{
 
 	function makeThumbnailtoFile($destFile){
 		if(!$this->isWorking()) return false;
-		$CLI = "$this->_exec -thumbnail {$this->thumbWidth}x{$this->thumbHeight} -quality $this->thumbQuality \"$this->sourceFile\" \"$destFile\"";
+		$CLI = "$this->_exec -thumbnail {$this->thumbWidth}x{$this->thumbHeight} -quality $this->thumbQuality -flatten \"$this->sourceFile\" \"$destFile\"";
 		@exec($CLI);
 		return true;
 	}
