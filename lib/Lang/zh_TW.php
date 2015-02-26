@@ -197,4 +197,8 @@ $language['ip_dnsbl_banned']			= '被列在 DNSBL(%1$s) 封鎖名單之內';
 // mainscript.js // regist_withoutcomment,regist_upload_notsupport,js_convert_sakura
 $language['js_convert_sakura']			= '偵測到您有輸入櫻花日文假名的可能性，將自動為您轉換';
 
+// Webm
+$language['webm_executable_not_found'] = 'Webm支援需要ffmpeg/avconv執行檔';
+$language['webm_exception'] = '處理Webm時發生錯誤';
+
 ?>
