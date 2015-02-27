@@ -7,19 +7,21 @@ use FFMpeg\FFMpeg;
 use FFMpeg\FFProbe;
 use FFMpeg\Exception\RuntimeException;
 
-class Webm {
+class Webm
+{
 
     const IMAGETYPE_WEBM = 999;
 
     /**
      * 啟動時先檢查執行檔
      */
-    public static function checkEnvironment() {
+    public static function checkEnvironment()
+    {
         global $FFMPEG_CONFIGS;
 
         if (!is_executable($FFMPEG_CONFIGS['ffmpeg.binaries']) || !is_executable($FFMPEG_CONFIGS['ffprobe.binaries'])) {
             if (defined('DEBUG')) {
-                return FALSE;
+                return false;
             } else {
                 \Pixmicat\error(\Pixmicat\_T('webm_executable_not_found'));
             }
@@ -32,15 +34,16 @@ class Webm {
      * @return boolean|array
      * @throws \FFMpeg\Exception\InvalidArgumentException
      */
-    public static function isWebm($filename) {
+    public static function isWebm($filename)
+    {
         try {
             if (is_file($filename)) {
                 $ffprobe = self::getFFProbeInstance();
 
                 // check format
                 $format = $ffprobe->format($filename);
-                if (strstr((string) $format->get('format_name'), 'webm') === FALSE) {
-                    return FALSE;
+                if (strstr((string) $format->get('format_name'), 'webm') === false) {
+                    return false;
                 }
 
                 // extract stream
@@ -58,7 +61,7 @@ class Webm {
             self::runtimeException($e);
         }
 
-        return FALSE;
+        return false;
     }
 
     /**
@@ -72,7 +75,8 @@ class Webm {
      * @return array
      * @throws \FFMpeg\Exception\InvalidArgumentException
      */
-    public static function createThumbnail($filename, $destination, array $info, $W, $H) {
+    public static function createThumbnail($filename, $destination, array $info, $W, $H)
+    {
         global $THUMB_SETTING;
 
         try {
@@ -96,7 +100,8 @@ class Webm {
      * Log and show error message
      * @param RuntimeException $e
      */
-    private static function runtimeException(RuntimeException $e) {
+    private static function runtimeException(RuntimeException $e)
+    {
         PMCLibrary::getLoggerInstance()->error("Message: %s\nTrace:\n%s", $e->getMessage(), $e->getTraceAsString());
         \Pixmicat\error(\Pixmicat\_T('webm_exception'));
     }
@@ -105,7 +110,8 @@ class Webm {
      * @global array $FFMPEG_CONFIGS
      * @return FFMpeg
      */
-    private static function getFFMpegInstance() {
+    private static function getFFMpegInstance()
+    {
         global $FFMPEG_CONFIGS;
         return FFMpeg::create($FFMPEG_CONFIGS);
     }
@@ -114,9 +120,9 @@ class Webm {
      * @global array $FFMPEG_CONFIGS
      * @return FFProbe
      */
-    private static function getFFProbeInstance() {
+    private static function getFFProbeInstance()
+    {
         global $FFMPEG_CONFIGS;
         return FFProbe::create($FFMPEG_CONFIGS);
     }
-
 }
