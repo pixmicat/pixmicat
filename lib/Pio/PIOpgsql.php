@@ -30,7 +30,7 @@ class PIOpgsql implements IPIO {
 			$err .= sprintf(PHP_EOL."Description: %s".PHP_EOL.
 				"SQL: %s", pg_last_error($this->con), $query);
 		}
-		throw new RuntimeException($err);
+		throw new \RuntimeException($err);
 	}
 
 	/* private 使用SQL字串和PostgreSQL伺服器要求 */

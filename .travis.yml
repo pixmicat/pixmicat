@@ -9,9 +9,12 @@ php:
 
 before_install:
   - curl -sS https://getcomposer.org/installer | php
+  - sudo apt-get update
+  - sudo apt-get install -y libav-tools
 
 install:
   - php composer.phar install --prefer-dist --no-interaction --no-progress
+  - php composer.phar require 'php-ffmpeg/php-ffmpeg:0.6.0' --no-interaction --no-progress
 
 before_script:
   - mkdir -p shippable/testresults

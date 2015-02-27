@@ -1,7 +1,7 @@
 <?php
 define('PHP_SELF', 'default.php');
 require './config.php';
-require ROOTPATH . 'lib/pmclibrary.php';
+require ROOTPATH . 'lib/PMCLibrary.php';
 require ROOTPATH . 'lib/lib_errorhandler.php';
 require ROOTPATH . 'lib/lib_compatible.php';
 require ROOTPATH . 'lib/lib_common.php';

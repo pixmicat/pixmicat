@@ -4,3 +4,7 @@ composer.phar
 composer.lock
 *.log
 *.dat
+*.db3
+*.db
+src
+thumb

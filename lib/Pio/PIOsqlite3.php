@@ -32,7 +32,7 @@ class PIOsqlite3 implements IPIO {
 			$err .= sprintf(PHP_EOL."Description: %s",
 				print_r($this->con->errorInfo(), true));
 		}
-		throw new RuntimeException($err);
+		throw new \RuntimeException($err);
 	}
 
 	/* PIO模組版本 */
