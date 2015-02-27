@@ -1,6 +1,6 @@
 <?php
 include('./config.php');
-include ROOTPATH.'lib/pmclibrary.php';
+include ROOTPATH.'lib/PMCLibrary.php';
 
 @unlink(FILEIO_INDEXLOG);
 $FileIO = PMCLibrary::getFileIOInstance();

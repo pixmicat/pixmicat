@@ -10,7 +10,7 @@
  * @date $Date$
  */
 include('./config.php');
-require ROOTPATH.'lib/pmclibrary.php';
+require ROOTPATH.'lib/PMCLibrary.php';
 
 define('PIO_ANOTHER_CONNSTR', 'sqlite3://another-pixmicat.db3/imglog/'); // Another-PIO 連線字串 (此來源必須無任何資料，全新)
 $PIOEnv = array( // PIO 環境常數
