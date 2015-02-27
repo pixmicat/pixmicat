@@ -9,6 +9,8 @@ use FFMpeg\Exception\RuntimeException;
 
 class Webm {
 
+    const IMAGETYPE_WEBM = 999;
+    
     /**
      * 啟動時先檢查執行檔
      */
@@ -43,13 +45,17 @@ class Webm {
                 
                 // extract stream
                 $stream = $ffprobe->streams($filename)->first();
-                return [
-                    'W' => (int) $stream->get('width'),
-                    'H' => (int) $stream->get('height')
-                ];
+                if($stream === null) {
+                    throw new RuntimeException("Can't extract stream from $filename");
+                } else {
+                    return array(
+                        'W' => (int) $stream->get('width'),
+                        'H' => (int) $stream->get('height')
+                    );
+                }
             }
         } catch (RuntimeException $e) {
-            $this->runtimeException($e);
+            self::runtimeException($e);
         }
 
         return FALSE;
@@ -75,7 +81,7 @@ class Webm {
             $video->frame(\FFMpeg\Coordinate\TimeCode::fromSeconds(0))
                     ->save($destination);
         } catch (\FFMpeg\Exception\RuntimeException $e) {
-            $this->runtimeException($e);
+            self::runtimeException($e);
         }
 
         $instThumb = PMCLibrary::getThumbInstance();
@@ -89,8 +95,8 @@ class Webm {
      * @param RuntimeException $e
      */
     private static function runtimeException(RuntimeException $e) {
-        PMCLibrary::getLoggerInstance()->error("Message: %s\nTrace:\n%s", [$e->getMessage(), $e->getTraceAsString()]);
-        \Pixmicat\error(_T('webm_exception'));
+        PMCLibrary::getLoggerInstance()->error("Message: %s\nTrace:\n%s", $e->getMessage(), $e->getTraceAsString());
+        \Pixmicat\error(\Pixmicat\_T('webm_exception'));
     }
 
     /**

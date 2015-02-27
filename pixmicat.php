@@ -480,7 +480,18 @@ function regist(){
 
 		// 三‧檢查是否為可接受的檔案
 		$size = @getimagesize($dest);
-		if(!is_array($size)) error(_T('regist_upload_notimage'), $dest); // $size不為陣列就不是圖檔
+		if(!is_array($size)) {
+                    // 檢查是否為WebM
+                    if(USE_WEBM && ($webm_info = Webm\Webm::isWebm($dest)) !== FALSE) {
+                        $size = [
+                            0 => $webm_info['W'],
+                            1 => $webm_info['H'],
+                            2 => Webm\Webm::IMAGETYPE_WEBM
+                        ];
+                    } else {
+                        error(_T('regist_upload_notimage'), $dest); // $size不為陣列就不是圖檔
+                    }
+                }
 		$imgsize = @filesize($dest); // 檔案大小
 		$imgsize = ($imgsize>=1024) ? (int)($imgsize/1024).' KB' : $imgsize.' B'; // KB和B的判別
 		switch($size[2]){ // 判斷上傳附加圖檔之格式
@@ -491,6 +502,7 @@ function regist(){
 			case 5 : $ext = ".psd"; break;
 			case 6 : $ext = ".bmp"; break;
 			case 13 : $ext = ".swf"; break;
+                        case Webm\Webm::IMAGETYPE_WEBM: $ext = ".webm"; break;
 			default : $ext = ".xxx"; error(_T('regist_upload_notsupport'), $dest);
 		}
 		$allow_exts = explode('|', strtolower(ALLOW_UPLOAD_EXT)); // 接受之附加圖檔副檔名
@@ -654,12 +666,16 @@ function regist(){
 		$destFile = IMG_DIR.$tim.$ext; // 圖檔儲存位置
 		$thumbFile = THUMB_DIR.$tim.'s.'.$THUMB_SETTING['Format']; // 預覽圖儲存位置
 		if(USE_THUMB !== 0){ // 生成預覽圖
-			$thObj = PMCLibrary::getThumbInstance();
-                        $thObj->setSourceConfig($dest, $imgW, $imgH);
-			$thObj->setThumbnailConfig($W, $H, $THUMB_SETTING);
-			$thObj->makeThumbnailtoFile($thumbFile);
-			@chmod($thumbFile, 0666);
-			unset($thObj);
+                        if(isset($webm_info)) {
+                            Webm\Webm::createThumbnail($dest, $thumbFile, $webm_info, $W, $H);
+                        } else {
+                            $thObj = PMCLibrary::getThumbInstance();
+                            $thObj->setSourceConfig($dest, $imgW, $imgH);
+                            $thObj->setThumbnailConfig($W, $H, $THUMB_SETTING);
+                            $thObj->makeThumbnailtoFile($thumbFile);
+                            @chmod($thumbFile, 0666);
+                            unset($thObj);
+                        }
 		}
 		rename($dest, $destFile);
 		if(file_exists($destFile)){
@@ -1222,6 +1238,10 @@ function showstatus(){
 
 $errorHandler = new ErrorHandler();
 $errorHandler->register();
+
+if(defined('USE_WEBM')&&USE_WEBM) {
+    Webm\Webm::checkEnvironment();
+}
 
 /*-----------程式各項功能主要判斷-------------*/
 if(GZIP_COMPRESS_LEVEL && ($Encoding = CheckSupportGZip())){ ob_start(); ob_implicit_flush(0); } // 支援且開啟Gzip壓縮就設緩衝區
