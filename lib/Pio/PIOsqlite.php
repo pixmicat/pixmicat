@@ -31,7 +31,7 @@ class PIOsqlite implements IPIO {
 			$err .= sprintf(PHP_EOL."Description: #%d: %s".PHP_EOL.
 				"SQL: %s", $errno, sqlite_error_string($errno), $query);
 		}
-		throw new RuntimeException($err, $errno);
+		throw new \RuntimeException($err, $errno);
 	}
 
 	/* private 使用SQL字串和SQLite要求 */

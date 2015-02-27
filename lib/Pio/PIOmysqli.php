@@ -34,7 +34,7 @@ class PIOmysqli implements IPIO {
 			$err .= sprintf(PHP_EOL."Description: #%d: %s".PHP_EOL.
 				"SQL: %s", $this->con->errno, $this->con->error, $query);
 		}
-		throw new RuntimeException($err, $this->con->errno);
+		throw new \RuntimeException($err, $this->con->errno);
 	}
 
 	/* private 使用SQL字串和MySQL伺服器要求 */

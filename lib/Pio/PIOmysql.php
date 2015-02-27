@@ -31,7 +31,7 @@ class PIOmysql implements IPIO {
 			$err .= sprintf(PHP_EOL."Description: #%d: %s".PHP_EOL.
 				"SQL: %s", mysql_errno(), mysql_error(), $query);
 		}
-		throw new RuntimeException($err, mysql_errno());
+		throw new \RuntimeException($err, mysql_errno());
 	}
 
 	/* private 使用SQL字串和MySQL伺服器要求 */
