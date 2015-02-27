@@ -10,7 +10,7 @@ use FFMpeg\Exception\RuntimeException;
 class Webm {
 
     const IMAGETYPE_WEBM = 999;
-    
+
     /**
      * 啟動時先檢查執行檔
      */
@@ -36,16 +36,16 @@ class Webm {
         try {
             if (is_file($filename)) {
                 $ffprobe = self::getFFProbeInstance();
-                
+
                 // check format
                 $format = $ffprobe->format($filename);
                 if (strstr((string) $format->get('format_name'), 'webm') === FALSE) {
                     return FALSE;
                 }
-                
+
                 // extract stream
                 $stream = $ffprobe->streams($filename)->first();
-                if($stream === null) {
+                if ($stream === null) {
                     throw new RuntimeException("Can't extract stream from $filename");
                 } else {
                     return array(
@@ -74,20 +74,22 @@ class Webm {
      */
     public static function createThumbnail($filename, $destination, array $info, $W, $H) {
         global $THUMB_SETTING;
-        
+
         try {
+            // Extract first frame
             $ffmpeg = self::getFFMpegInstance();
             $video = $ffmpeg->open($filename);
             $video->frame(\FFMpeg\Coordinate\TimeCode::fromSeconds(0))
                     ->save($destination);
+
+            // Create thumbnail of first frame
+            $instThumb = PMCLibrary::getThumbInstance();
+            $instThumb->setSourceConfig($destination, $info['W'], $info['H']);
+            $instThumb->setThumbnailConfig($W, $H, $THUMB_SETTING);
+            $instThumb->makeThumbnailtoFile($destination);
         } catch (\FFMpeg\Exception\RuntimeException $e) {
             self::runtimeException($e);
         }
-
-        $instThumb = PMCLibrary::getThumbInstance();
-        $instThumb->setSourceConfig($destination, $info['W'], $info['H']);
-        $instThumb->setThumbnailConfig($W, $H, $THUMB_SETTING);
-        $instThumb->makeThumbnailtoFile($destination);
     }
 
     /**
