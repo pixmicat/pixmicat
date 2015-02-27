@@ -23,7 +23,7 @@ class LanguageTest extends PHPUnit_Framework_TestCase {
 	}
 
 	public function testGetLanguage() {
-		$expect = 187;
+		$expect = 189;
 		$result = count($this->Lang->getLanguage());
 		$this->assertSame($expect, $result);
 	}
