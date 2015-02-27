@@ -24,7 +24,7 @@ class PIOmysqli implements IPIO {
 	}
 
 	public function __destruct(){
-		if (!is_null($this->con)) @mysqli_close($this->con);
+		if (!is_null($this->con)) @\mysqli_close($this->con);
 	}
 
 	/* private 攔截SQL錯誤 */
@@ -52,7 +52,7 @@ class PIOmysqli implements IPIO {
 	 * @param int $resulttype 回傳陣列類型
 	 * @return array 結果陣列
 	 */
-	private function _mysqli_fetch_all(mysqli_result $result, $resulttype = MYSQLI_NUM) {
+	private function _mysqli_fetch_all(\mysqli_result $result, $resulttype = \MYSQLI_NUM) {
 		if (method_exists($result, 'fetch_all')) {
 			$res = $result->fetch_all($resulttype);
 		} else {
@@ -96,7 +96,7 @@ class PIOmysqli implements IPIO {
 	md5chksum varchar(32) not null,
 	category varchar(255) not null,
 	tim bigint(1) not null,
-	ext varchar(4) not null,
+	ext varchar(5) not null,
 	imgw smallint(1) not null,
 	imgh smallint(1) not null,
 	imgsize varchar(10) not null,
@@ -156,7 +156,7 @@ class PIOmysqli implements IPIO {
 	public function dbPrepare($reload=false, $transaction=false){
 		if($this->prepared) return true;
 
-		$this->con = new mysqli($this->server, $this->username, $this->password, $this->dbname, $this->port);
+		$this->con = new \mysqli($this->server, $this->username, $this->password, $this->dbname, $this->port);
 		if($this->con->connect_error)
 			$this->_error_handler(array('Open database failed', __LINE__));
 
@@ -307,12 +307,10 @@ class PIOmysqli implements IPIO {
 	public function getLastPostNo($state){
 		if(!$this->prepared) $this->dbPrepare();
 
-		if($state=='afterCommit'){ // 送出後的最後文章編號
-			$tree = $this->_mysql_call('SELECT MAX(no) FROM '.$this->tablename, array('Get the last No. failed', __LINE__));
-			$lastno = $tree->fetch_row();
-			$tree->free();
-			return $lastno[0];
-		}else return 0; // 其他狀態沒用
+                $tree = $this->_mysql_call('SELECT MAX(no) FROM '.$this->tablename, array('Get the last No. failed', __LINE__));
+                $lastno = $tree->fetch_row();
+                $tree->free();
+                return $lastno[0];
 	}
 
 	/* 輸出文章清單 */
@@ -360,7 +358,7 @@ class PIOmysqli implements IPIO {
 			if(count($postlist) > 1){ if($postlist[0] > $postlist[1]) $tmpSQL .= ' DESC'; } // 由大排到小
 		}else $tmpSQL = 'SELECT '.$fields.' FROM '.$this->tablename.' WHERE no = '.intval($postlist); // 取單串
 		$line = $this->_mysql_call($tmpSQL, array('Fetch the post content failed', __LINE__));
-		return $this->_mysqli_fetch_all($line, MYSQLI_ASSOC); // 輸出陣列結構
+		return $this->_mysqli_fetch_all($line, \MYSQLI_ASSOC); // 輸出陣列結構
 	}
 
 	/* 刪除舊附件 (輸出附件清單) */
@@ -434,11 +432,12 @@ class PIOmysqli implements IPIO {
 		}else $root = $updatetime; // 新增討論串, 討論串最後被更新時間
 
 		$SQL = 'INSERT INTO '.$this->tablename
-				.' (resto,root,time,md5chksum,category,tim,ext,imgw,imgh,imgsize,tw,th,pwd,now,name,email,sub,com,host,status) VALUES '
-				.'(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+				.' (no,resto,root,time,md5chksum,category,tim,ext,imgw,imgh,imgsize,tw,th,pwd,now,name,email,sub,com,host,status) VALUES '
+				.'(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
 		$stmt = $this->con->prepare($SQL);
-		$stmt->bind_param('isissdsiisiissssssss',
-			$resto,
+		$stmt->bind_param('iisissdsiisiissssssss',
+			$no,
+                        $resto,
 			$root,
 			$time,
 			$md5chksum,
@@ -521,7 +520,7 @@ class PIOmysqli implements IPIO {
 		}
 		$SearchQuery .= ' ORDER BY no DESC'; // 按照號碼大小排序
 		$line = $this->_mysql_call($SearchQuery, array('Search the post failed', __LINE__));
-		return $this->_mysqli_fetch_all($line, MYSQLI_ASSOC); // 輸出陣列結構
+		return $this->_mysqli_fetch_all($line, \MYSQLI_ASSOC); // 輸出陣列結構
 	}
 
 	/* 搜尋類別標籤 */
