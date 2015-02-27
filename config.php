@@ -107,7 +107,7 @@ $BAD_FILEMD5 = array("dummy","dummy2"); // 限制上傳附加圖檔之MD5檢查�
  * 2. CentOS/Fedora
  *      yum install ffmpeg
  */
-define('USE_WEBM', TRUE);
+define('USE_WEBM', FALSE);
 $FFMPEG_CONFIGS = array(
     'ffmpeg.binaries'  => '/usr/bin/avconv', // ffmpeg/avconv執行檔位置
     'ffprobe.binaries' => '/usr/bin/avprobe', // ffprobe/avprobe執行檔位置
