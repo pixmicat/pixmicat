@@ -10,6 +10,7 @@ use Pixmicat\Aop\MethodInterceptor;
 class LoggerInjector
 {
     private $principalClass;
+    /** @var MethodInterceptor */
     private $mi;
 
     public function __construct($principalClass, MethodInterceptor $mi)
