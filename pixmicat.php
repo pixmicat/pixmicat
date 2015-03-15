@@ -1252,6 +1252,7 @@ switch($mode){
 	case 'admin':
 		$admin = isset($_REQUEST['admin']) ? $_REQUEST['admin'] : ''; // 管理者執行模式
 		valid();
+        $PIO = PMCLibrary::getPIOInstance();
 		switch($admin){
 			case 'del': admindel(); break;
 			case 'logout':
