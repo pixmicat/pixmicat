@@ -237,7 +237,8 @@ interface IPIO
     /**
      * 設定文章屬性
      *
-     * @param int $no        文章編號
+     * @param int $no 文章編號
+     * @param string $newStatus 文章屬性
      */
     function setPostStatus($no, $newStatus);
 }
