@@ -9,10 +9,11 @@ use Pixmicat\PMCLibrary;
  */
 abstract class ModuleHelper implements IModule
 {
+    /** @var PMS */
     protected static $PMS;
     private $clazz;
 
-    public function __construct($PMS)
+    public function __construct(PMS $PMS)
     {
         // 儲存 $PMS 參考
         if (self::$PMS == null) {
@@ -120,6 +121,7 @@ abstract class ModuleHelper implements IModule
      *
      * @param args 翻譯資源檔索引、其餘變數
      * @see LanguageLoader->getTranslation
+     * @return string 翻譯字串
      */
     protected function _T()
     {
