@@ -127,7 +127,7 @@ if(preg_match('/^(.*):\/\//i', CONNECTION_STRING, $backend)) define('PIXMICAT_BA
 
 // 引入必要函式庫
 $PIOEnv = array( // PIO 環境常數
-	'BOARD' => ROOTPATH,
+	'BOARD' => STORAGE_PATH,
 	'LUTCACHE' => 'lutcache.dat',
 	'NONAME' => DEFAULT_NONAME,
 	'NOTITLE' => DEFAULT_NOTITLE,

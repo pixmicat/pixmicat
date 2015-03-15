@@ -149,7 +149,7 @@ function quoteLight($comment){
 
 /* 取得完整的網址 */
 function fullURL(){
-	return 'http://'.$_SERVER['HTTP_HOST'].substr($_SERVER['PHP_SELF'], 0, strpos($_SERVER['PHP_SELF'], PHP_SELF));
+	return '//'.$_SERVER['HTTP_HOST'].substr($_SERVER['PHP_SELF'], 0, strpos($_SERVER['PHP_SELF'], PHP_SELF));
 }
 
 /* 反櫻花字 */

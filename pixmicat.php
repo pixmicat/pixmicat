@@ -1,5 +1,5 @@
 <?php
-define("PIXMICAT_VER", 'Pixmicat!-PIO 8th.Release.3'); // 版本資訊文字
+define("PIXMICAT_VER", 'Pixmicat!-PIO 8th.Release.4'); // 版本資訊文字
 define("PHP_SELF", basename(__FILE__)); // 主程式名
 /*
 Pixmicat! : 圖咪貓貼圖版程式
@@ -1049,7 +1049,6 @@ function searchCategory(){
 	}else $loglist = unserialize($_SESSION['loglist_'.$category_md5]);
 
 	$loglist_count = count($loglist);
-	if(!$loglist_count) error(_T('category_notfound'));
 	$page_max = ceil($loglist_count / PAGE_DEF); if($page > $page_max) $page = $page_max; // 總頁數
 
 	// 分割陣列取出適當範圍作分頁之用
