@@ -47,6 +47,7 @@ class FileIOsatellite extends AbstractIfsFileIO
     {
         if (!($fp = \fsockopen($this->parameter[0]['host'], 80))) {
             return false;
+        }
         $argument = 'mode=transload&key=' . $this->parameter[2] . '&imgurl=http:' . $this->getImageLocalURL($imgname) . '&imgname=' . $imgname;
         $out = 'POST ' . $this->parameter[0]['path'] . " HTTP/1.1\r\n";
         $out .= 'Host: ' . $this->parameter[0]['host'] . "\r\n";
