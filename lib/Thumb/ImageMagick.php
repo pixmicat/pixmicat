@@ -69,7 +69,7 @@ class ImageMagick implements IThumb
             return false;
         }
 
-        $CLI = "$this->exec -thumbnail {$this->thumbWidth}x{$this->thumbHeight} -quality $this->thumbQuality \"$this->sourceFile\" \"$destFile\"";
+        $CLI = "$this->exec -thumbnail {$this->thumbWidth}x{$this->thumbHeight} -quality $this->thumbQuality -flatten \"$this->sourceFile\" \"$destFile\"";
         \exec($CLI);
         return true;
     }

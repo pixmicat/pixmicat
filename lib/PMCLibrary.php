@@ -37,7 +37,7 @@ class PMCLibrary
             }
 
             $PIOEnv = array(// PIO 環境常數
-                'BOARD' => \ROOTPATH,
+                'BOARD' => \STORAGE_PATH,
                 'NONAME' => \DEFAULT_NONAME,
                 'NOTITLE' => \DEFAULT_NOTITLE,
                 'NOCOMMENT' => \DEFAULT_NOCOMMENT,

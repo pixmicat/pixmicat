@@ -37,7 +37,7 @@ abstract class AbstractFileIO implements IFileIO
     {
         $phpSelf = $_SERVER['PHP_SELF'];
         return sprintf(
-            'http://%s%s', $_SERVER['HTTP_HOST'], substr($phpSelf, 0, strpos($phpSelf, PHP_SELF))
+            '//%s%s', $_SERVER['HTTP_HOST'], substr($phpSelf, 0, strpos($phpSelf, PHP_SELF))
         );
     }
 
