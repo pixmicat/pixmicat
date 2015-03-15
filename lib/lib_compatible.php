@@ -14,6 +14,7 @@ namespace Pixmicat;
  *
  * @param args 翻譯資源檔索引、其餘變數
  * @see LanguageLoader->getTranslation
+ * @return string 翻譯後之字串
  */
 function _T(/*$args[]*/)
 {
