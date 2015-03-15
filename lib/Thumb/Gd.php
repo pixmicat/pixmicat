@@ -88,6 +88,7 @@ class Gd implements IThumb
                 break;
             case 'webp':
                 \imagewebp($im_out, $destFile);
+                break;
             case 'jpg':
             case 'jpeg':
             default:
