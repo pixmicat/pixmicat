@@ -1,12 +1,13 @@
 <?php
 namespace Pixmicat;
 
+use Pixmicat\FileIo\IFileIO;
+use Pixmicat\Lang\LanguageLoader;
+use Pixmicat\Logger\ILogger;
 use Pixmicat\Logger\LoggerInjector;
 use Pixmicat\Logger\LoggerInterceptor;
 use Pixmicat\Logger\SimpleLogger;
-use Pixmicat\Lang\LanguageLoader;
 use Pixmicat\Module\PMS;
-use Pixmicat\FileIo\IFileIO;
 use Pixmicat\Pio\IPIO;
 use Pixmicat\Thumb\IThumb;
 
