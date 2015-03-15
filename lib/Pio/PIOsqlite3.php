@@ -1,6 +1,7 @@
 <?php
 namespace Pixmicat\Pio;
 
+use PDO;
 use Pixmicat\PMCLibrary;
 
 /**
@@ -15,7 +16,7 @@ use Pixmicat\PMCLibrary;
 
 class PIOsqlite3 implements IPIO {
 	private $ENV, $DSN, $tablename; // Local Constant
-	/** @var \PDO */
+	/** @var PDO */
 	private $con;
 	private $prepared, $useTransaction; // Local Global
 
@@ -92,7 +93,7 @@ class PIOsqlite3 implements IPIO {
 	public function dbPrepare($reload=false, $transaction=false){
 		if($this->prepared) return true;
 
-		($this->con = new \PDO($this->DSN)) or $this->_error_handler('Open database failed', __LINE__);
+		($this->con = new PDO($this->DSN)) or $this->_error_handler('Open database failed', __LINE__);
 		$this->useTransaction = $transaction;
 		if($transaction) @$this->con->beginTransaction(); // 啟動交易性能模式
 
@@ -142,27 +143,27 @@ class PIOsqlite3 implements IPIO {
 		for($i = 0; $i < $data_count; $i++){
 			$line = \array_map($replaceComma, \explode(',', $data[$i])); // 取代 &#44; 為 ,
 			$tim = \substr($line[5], 0, 10);
-			$PDOStmt->bindValue(1, $line[0], \PDO::PARAM_INT);
-			$PDOStmt->bindValue(2, $line[1], \PDO::PARAM_INT);
-			$PDOStmt->bindValue(3, $line[2], \PDO::PARAM_STR);
-			$PDOStmt->bindValue(4, $tim, \PDO::PARAM_INT);
-			$PDOStmt->bindValue(5, $line[3], \PDO::PARAM_STR);
-			$PDOStmt->bindValue(6, $line[4], \PDO::PARAM_STR);
-			$PDOStmt->bindValue(7, $line[5], \PDO::PARAM_STR ); // 13-digit BIGINT workground //refix at 201406
-			$PDOStmt->bindValue(8, $line[6], \PDO::PARAM_STR);
-			$PDOStmt->bindValue(9, $line[7], \PDO::PARAM_INT);
-			$PDOStmt->bindValue(10, $line[8], \PDO::PARAM_INT);
-			$PDOStmt->bindValue(11, $line[9], \PDO::PARAM_STR);
-			$PDOStmt->bindValue(12, $line[10], \PDO::PARAM_INT);
-			$PDOStmt->bindValue(13, $line[11], \PDO::PARAM_INT);
-			$PDOStmt->bindValue(14, $line[12], \PDO::PARAM_STR);
-			$PDOStmt->bindValue(15, $line[13], \PDO::PARAM_STR);
-			$PDOStmt->bindValue(16, $line[14], \PDO::PARAM_STR);
-			$PDOStmt->bindValue(17, $line[15], \PDO::PARAM_STR);
-			$PDOStmt->bindValue(18, $line[16], \PDO::PARAM_STR);
-			$PDOStmt->bindValue(19, $line[17], \PDO::PARAM_STR);
-			$PDOStmt->bindValue(20, $line[18], \PDO::PARAM_STR);
-			$PDOStmt->bindValue(21, $line[19], \PDO::PARAM_STR);
+			$PDOStmt->bindValue(1, $line[0], PDO::PARAM_INT);
+			$PDOStmt->bindValue(2, $line[1], PDO::PARAM_INT);
+			$PDOStmt->bindValue(3, $line[2], PDO::PARAM_STR);
+			$PDOStmt->bindValue(4, $tim, PDO::PARAM_INT);
+			$PDOStmt->bindValue(5, $line[3], PDO::PARAM_STR);
+			$PDOStmt->bindValue(6, $line[4], PDO::PARAM_STR);
+			$PDOStmt->bindValue(7, $line[5], PDO::PARAM_STR ); // 13-digit BIGINT workground //refix at 201406
+			$PDOStmt->bindValue(8, $line[6], PDO::PARAM_STR);
+			$PDOStmt->bindValue(9, $line[7], PDO::PARAM_INT);
+			$PDOStmt->bindValue(10, $line[8], PDO::PARAM_INT);
+			$PDOStmt->bindValue(11, $line[9], PDO::PARAM_STR);
+			$PDOStmt->bindValue(12, $line[10], PDO::PARAM_INT);
+			$PDOStmt->bindValue(13, $line[11], PDO::PARAM_INT);
+			$PDOStmt->bindValue(14, $line[12], PDO::PARAM_STR);
+			$PDOStmt->bindValue(15, $line[13], PDO::PARAM_STR);
+			$PDOStmt->bindValue(16, $line[14], PDO::PARAM_STR);
+			$PDOStmt->bindValue(17, $line[15], PDO::PARAM_STR);
+			$PDOStmt->bindValue(18, $line[16], PDO::PARAM_STR);
+			$PDOStmt->bindValue(19, $line[17], PDO::PARAM_STR);
+			$PDOStmt->bindValue(20, $line[18], PDO::PARAM_STR);
+			$PDOStmt->bindValue(21, $line[19], PDO::PARAM_STR);
 			$PDOStmt->execute() or $this->_error_handler('Insert a new post failed', __LINE__);
 		}
 		$this->dbCommit(); // 送交
@@ -175,7 +176,7 @@ class PIOsqlite3 implements IPIO {
 		$line = $this->con->query('SELECT no,resto,root,md5chksum,category,tim,ext,imgw,imgh,imgsize,tw,th,pwd,now,name,email,sub,com,host,status FROM '.$this->tablename.' ORDER BY no DESC');
 		$data = '';
 		$replaceComma = \create_function('$txt', 'return str_replace(",", "&#44;", $txt);');
-		while($row = $line->fetch(\PDO::FETCH_ASSOC)){
+		while($row = $line->fetch(PDO::FETCH_ASSOC)){
 			$row = \array_map($replaceComma, $row); // 取代 , 為 &#44;
 			$data .= \implode(',', $row).",\r\n";
 		}
@@ -226,7 +227,7 @@ class PIOsqlite3 implements IPIO {
 			$start = intval($start); $amount = intval($amount);
 			if($amount) $tmpSQL .= " LIMIT {$start}, {$amount}"; // 指定數量
 		}
-		return $this->con->query($tmpSQL)->fetchAll(\PDO::FETCH_COLUMN, 0);
+		return $this->con->query($tmpSQL)->fetchAll(PDO::FETCH_COLUMN, 0);
 	}
 
 	/* 輸出討論串清單 */
@@ -236,7 +237,7 @@ class PIOsqlite3 implements IPIO {
 		$tmpSQL = 'SELECT no FROM '.$this->tablename.' WHERE resto = 0 ORDER BY '.($isDESC ? 'no' : 'root').' DESC';
 		$start = intval($start); $amount = intval($amount);
 		if($amount) $tmpSQL .= " LIMIT {$start}, {$amount}"; // 指定數量
-		return $this->con->query($tmpSQL)->fetchAll(\PDO::FETCH_COLUMN, 0);
+		return $this->con->query($tmpSQL)->fetchAll(PDO::FETCH_COLUMN, 0);
 	}
 
 	/* 輸出文章 */
@@ -268,7 +269,7 @@ class PIOsqlite3 implements IPIO {
 
 		$arr_warn = $arr_kill = array(); // 警告 / 即將被刪除標記
 		($result = $this->con->query('SELECT no,ext,tim FROM '.$this->tablename.' WHERE ext <> "" ORDER BY no')) or $this->_error_handler('Get the old post failed', __LINE__);
-		while(list($dno, $dext, $dtim) = $result->fetch(\PDO::FETCH_NUM)){
+		while(list($dno, $dext, $dtim) = $result->fetch(PDO::FETCH_NUM)){
 			$dfile = $dtim.$dext; $dthumb = $FileIO->resolveThumbName($dtim);
 			if($FileIO->imageExists($dfile)){ $total_size -= $FileIO->getImageFilesize($dfile) / 1024; $arr_kill[] = $dno; $arr_warn[$dno] = 1; } // 標記刪除
 			if($dthumb && $FileIO->imageExists($dthumb)) $total_size -= $FileIO->getImageFilesize($dthumb) / 1024;
@@ -334,26 +335,26 @@ class PIOsqlite3 implements IPIO {
 		$SQL = 'INSERT INTO '.$this->tablename.' (resto,root,time,md5chksum,category,tim,ext,imgw,imgh,imgsize,tw,th,pwd,now,name,email,sub,com,host,status) VALUES '
 				.'(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
 		$PDOStmt = $this->con->prepare($SQL);
-		$PDOStmt->bindValue(1, $resto, \PDO::PARAM_INT);
-		$PDOStmt->bindValue(2, $root, \PDO::PARAM_STR);
-		$PDOStmt->bindValue(3, $time, \PDO::PARAM_INT);
-		$PDOStmt->bindValue(4, $md5chksum, \PDO::PARAM_STR);
-		$PDOStmt->bindValue(5, $category, \PDO::PARAM_STR);
-		$PDOStmt->bindValue(6, $tim, \PDO::PARAM_STR); // 13-digit BIGINT workground//refix at 201406
-		$PDOStmt->bindValue(7, $ext, \PDO::PARAM_STR);
-		$PDOStmt->bindValue(8, $imgw, \PDO::PARAM_INT);
-		$PDOStmt->bindValue(9, $imgh, \PDO::PARAM_INT);
-		$PDOStmt->bindValue(10, $imgsize, \PDO::PARAM_STR);
-		$PDOStmt->bindValue(11, $tw, \PDO::PARAM_INT);
-		$PDOStmt->bindValue(12, $th, \PDO::PARAM_INT);
-		$PDOStmt->bindValue(13, $pwd, \PDO::PARAM_STR);
-		$PDOStmt->bindValue(14, $now, \PDO::PARAM_STR);
-		$PDOStmt->bindValue(15, $name, \PDO::PARAM_STR);
-		$PDOStmt->bindValue(16, $email, \PDO::PARAM_STR);
-		$PDOStmt->bindValue(17, $sub, \PDO::PARAM_STR);
-		$PDOStmt->bindValue(18, $com, \PDO::PARAM_STR);
-		$PDOStmt->bindValue(19, $host, \PDO::PARAM_STR);
-		$PDOStmt->bindValue(20, $status, \PDO::PARAM_STR);
+		$PDOStmt->bindValue(1, $resto, PDO::PARAM_INT);
+		$PDOStmt->bindValue(2, $root, PDO::PARAM_STR);
+		$PDOStmt->bindValue(3, $time, PDO::PARAM_INT);
+		$PDOStmt->bindValue(4, $md5chksum, PDO::PARAM_STR);
+		$PDOStmt->bindValue(5, $category, PDO::PARAM_STR);
+		$PDOStmt->bindValue(6, $tim, PDO::PARAM_STR); // 13-digit BIGINT workground//refix at 201406
+		$PDOStmt->bindValue(7, $ext, PDO::PARAM_STR);
+		$PDOStmt->bindValue(8, $imgw, PDO::PARAM_INT);
+		$PDOStmt->bindValue(9, $imgh, PDO::PARAM_INT);
+		$PDOStmt->bindValue(10, $imgsize, PDO::PARAM_STR);
+		$PDOStmt->bindValue(11, $tw, PDO::PARAM_INT);
+		$PDOStmt->bindValue(12, $th, PDO::PARAM_INT);
+		$PDOStmt->bindValue(13, $pwd, PDO::PARAM_STR);
+		$PDOStmt->bindValue(14, $now, PDO::PARAM_STR);
+		$PDOStmt->bindValue(15, $name, PDO::PARAM_STR);
+		$PDOStmt->bindValue(16, $email, PDO::PARAM_STR);
+		$PDOStmt->bindValue(17, $sub, PDO::PARAM_STR);
+		$PDOStmt->bindValue(18, $com, PDO::PARAM_STR);
+		$PDOStmt->bindValue(19, $host, PDO::PARAM_STR);
+		$PDOStmt->bindValue(20, $status, PDO::PARAM_STR);
 		$PDOStmt->execute() or $this->_error_handler('Insert a new post failed', __LINE__);
 	}
 
@@ -369,7 +370,7 @@ class PIOsqlite3 implements IPIO {
 		else $tmpSQL .= " OR md5(com) = '".md5($com)."'"; // 內文一樣的檢查 (與上者兩者擇一)
 		$this->con->sqliteCreateFunction('md5', 'md5', 1); // Register MD5 function
 		($result = $this->con->query($tmpSQL)) or $this->_error_handler('Get the post to check the succession failed', __LINE__);
-		while(list($lpwd, $lhost) = $result->fetch(\PDO::FETCH_NUM)){
+		while(list($lpwd, $lhost) = $result->fetch(PDO::FETCH_NUM)){
 			// 判斷為同一人發文且符合連續投稿條件
 			if($host==$lhost || $pass==$lpwd || $passcookie==$lpwd) return true;
 		}
@@ -383,7 +384,7 @@ class PIOsqlite3 implements IPIO {
 
 		($result = $this->con->query('SELECT tim,ext FROM '.$this->tablename.' WHERE ext <> "" AND md5chksum = "'.$md5hash.'" ORDER BY no DESC'))
 			or $this->_error_handler('Get the post to check the duplicate attachment failed', __LINE__);
-		while(list($ltim, $lext) = $result->fetch(\PDO::FETCH_NUM)){
+		while(list($ltim, $lext) = $result->fetch(PDO::FETCH_NUM)){
 			if($FileIO->imageExists($ltim.$lext)) return true; // 有相同檔案
 		}
 		return false;
@@ -413,7 +414,7 @@ class PIOsqlite3 implements IPIO {
 		if($keyword_cnt > 1) for($i = 1; $i < $keyword_cnt; $i++) $SearchQuery .= " {$method} {$field} LIKE ".$this->con->quote('%'.$keyword[$i].'%'); // 多重字串交集 / 聯集搜尋
 		$SearchQuery .= ' ORDER BY no DESC'; // 按照號碼大小排序
 		($line = $this->con->query($SearchQuery)) or $this->_error_handler('Search the post failed', __LINE__);
-		return $line->fetchAll(\PDO::FETCH_ASSOC);
+		return $line->fetchAll(PDO::FETCH_ASSOC);
 	}
 
 	/* 搜尋類別標籤 */
@@ -422,7 +423,7 @@ class PIOsqlite3 implements IPIO {
 
 		$result = $this->con->prepare('SELECT no FROM '.$this->tablename.' WHERE lower(category) LIKE :category ORDER BY no DESC');
 		$result->execute(array(':category' => '%,'.strtolower($category).',%'));
-		return $result->fetchAll(\PDO::FETCH_COLUMN, 0);
+		return $result->fetchAll(PDO::FETCH_COLUMN, 0);
 	}
 
 	/* 取得文章屬性 */
