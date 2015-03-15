@@ -1,7 +1,6 @@
 <?php
 namespace Pixmicat;
 
-use Pixmicat\PMCLibrary;
 use Pixmicat\Pio\Condition\PIOSensor;
 
 define("PIXMICAT_VER", 'Pixmicat!-PIO 8th.Release.4'); // 版本資訊文字
@@ -483,11 +482,11 @@ function regist(){
 		if(!is_array($size)) {
                     // 檢查是否為WebM
                     if(USE_WEBM && ($webm_info = Webm\Webm::isWebm($dest)) !== FALSE) {
-                        $size = [
+                        $size = array(
                             0 => $webm_info['W'],
                             1 => $webm_info['H'],
                             2 => Webm\Webm::IMAGETYPE_WEBM
-                        ];
+                        );
                     } else {
                         error(_T('regist_upload_notimage'), $dest); // $size不為陣列就不是圖檔
                     }
