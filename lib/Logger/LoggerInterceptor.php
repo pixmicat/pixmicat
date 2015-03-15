@@ -12,6 +12,7 @@ use Pixmicat\Aop\MethodInterceptor;
  */
 class LoggerInterceptor implements MethodInterceptor
 {
+    /** @var ILogger */
     private $LOG;
 
     public function __construct(ILogger $logger)
