@@ -1,4 +1,4 @@
-Pixmicat! Imageboard System [![Build Status](https://drone.io/github.com/scribetw/pixmicat/status.png)](https://drone.io/github.com/scribetw/pixmicat/latest)
+Pixmicat! Imageboard System [![No Maintenance Intended](http://unmaintained.tech/badge.svg)](http://unmaintained.tech/) [![Build Status](https://drone.io/github.com/scribetw/pixmicat/status.png)](https://drone.io/github.com/scribetw/pixmicat/latest)
 ========
 
 What is this?
@@ -20,5 +20,4 @@ Requirements
 Resources
 ---------
 
-- Google Code: http://code.google.com/p/pixmicat/
 - Project site: http://pixmicat.openfoundry.org/ (Chinese zh-TW)
